@@ -1,0 +1,6 @@
+<button
+  [disabled]="disabled"
+  [ngClass]="['btn', 'btn ' + theme, 'rounded-' + rounded, size, disabled ? 'disabled' : '', className]"
+>
+  <ng-content />
+</button>

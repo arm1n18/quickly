@@ -1,0 +1,32 @@
+<app-custom-button theme="hover-only" rounded="full" (click)="toggleShow()">
+  {{config.title}}
+  <app-icon [icon]="'ChevronFillDown'"
+    [size]="24"
+    [fill]="'#4765FF'"
+    [class]="'transition-all'"
+    [ngClass]="{
+    'rotate-180': show
+  }"/>
+</app-custom-button>
+
+@if(show) {
+  <div (click)="toggleShow()" class="dropdown-container drop-shadow-xl shadow-stone-200"
+    [ngClass]="{
+      'with-line': config.divider == 'line',
+      'with-gap': config.divider == 'gap'
+    }"
+  >
+    @for(group of list; track $index) {
+        @if($index > 0 && config.divider == 'line') {
+          <div class="w-5/6 h-px rounded-3xl bg-(--secondary) mx-auto"></div>
+        }
+        <div class="dropdown-group" [ngClass]="getGroupClasses($index, group.length)">
+          @for (el of group; track el) {
+            <div class="dropdown-item" (click)="el.onClick?.()">
+                {{el.title}}
+            </div>
+          }
+        </div>
+    }
+  </div>
+}

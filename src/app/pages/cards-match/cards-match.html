@@ -1,0 +1,59 @@
+<div class="flex flex-col gap-4 w-full h-full bg-[var(--background)]">
+  <div class="game-header">
+
+    <app-dropdown 
+      [list]="dropdownList"
+      [config]="{title: 'Підбір', divider: 'line'}" 
+      class="game-header-left"
+    />
+
+    <div class="game-header-center">{{ timer().s }},{{ timer().ms }}</div>
+    <div class="flex gap-2 game-header-right">
+      <app-custom-button theme="secondary" rounded="full">
+        Вхід
+      </app-custom-button>
+      <app-custom-button rounded="full">
+        Зареєструватись
+      </app-custom-button>
+      <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+        <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+      </app-custom-button>
+    </div>
+  </div>
+  @if(matchedQT() === MatchCards().length/2){
+  <div class="game-footer">
+    <app-custom-button rounded="full" theme="secondary">
+      Зареєструватись, щоб зберегити відповідь
+    </app-custom-button>
+    <app-custom-button rounded="full" (click)="playAgain()">
+      <app-icon [icon]="'Game'" [size]="24" [fill]="'#FFF'" />
+      Грати знову
+    </app-custom-button>
+  </div>
+  } @else {
+      <div class="flex flex-wrap gap-4 justify-center content-center h-full">
+      @for (card of MatchCards(); track card) {
+        <div
+          [ngClass]="{
+            'selected': isSelected(card.id),
+            'hidden': card.match,
+            'matched': matched() && isSelected(card.id),
+            'not-matched': matched() != null && !matched() && isSelected(card.id)
+           }"
+          class="MatchCard" (click)="toggleMatchCard(card)"
+        >
+          <div class="MatchCard-text">
+            @if(!card.match) {
+              {{ card.content.text }}
+            }
+          </div>
+
+          @if(card.content.media?.type === 'image') {
+            <div class="z-1 absolute w-full h-full opacity-20 bg-no-repeat bg-cover" [style.background-image]="'url(' + card.content.media!.content + ')'">
+            </div>
+          }
+        </div>
+      }
+    </div>
+}
+</div>

@@ -1,0 +1,20 @@
+@if(show) {
+  <div data-modal [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-[2]'" (click)="closeModal()">
+    <div
+      (click)="$event.stopPropagation()"
+      class="bg-white w-full max-w-2xl rounded-xl flex flex-col px-9 py-9 overflow-hidden h-fit mx-auto">
+      <div class="flex justify-between w-full items-center mb-4">
+        <ng-content select="[header]"></ng-content>
+        <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="closeModal()">
+          <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+        </app-custom-button>
+      </div>
+
+      <ng-content select="[main]"></ng-content>
+
+      <div class="sticky bottom-0 flex justify-center">
+        <ng-content select="[footer]"></ng-content>
+      </div>
+    </div>
+  </div>
+}

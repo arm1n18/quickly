@@ -1,0 +1,109 @@
+@if(module) {
+  <div class="flex flex-col items-center gap-4 w-[598px]">
+    <div class="w-full flex gap-4">
+      <app-custom-button
+        class="w-1/3"
+        className="w-full"
+        rounded="md" theme="secondary"
+        (click)="changeGameMode('match')"
+      >
+        Підбір
+      </app-custom-button>
+      <app-custom-button
+        class="w-1/3"
+        className="w-full"
+        rounded="md" theme="secondary"
+        (click)="changeGameMode('test')"
+      >
+        Тестування
+      </app-custom-button>
+      <app-custom-button
+        class="w-1/3"
+        className="w-full" theme="secondary"
+        (click)="changeGameMode('default')"
+      >
+        default
+      </app-custom-button>
+    </div>
+
+
+    <app-quiz-card
+      [cardInput]="{
+          title: currentCard.title,
+          description: currentCard.description
+        }"
+    />
+    <div class="quiz-footer-nav">
+      <div class="quiz-footer-left">
+        <app-custom-button
+          (click)="toggleAutoPlay()"
+          [theme]="'secondary'"
+          [size]="'symbol'"
+          [rounded]="'full'"
+        >
+          <app-icon [icon]="isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#4765FF'" />
+        </app-custom-button>
+
+        <app-custom-button
+          (click)="toggleShuffle()"
+          [theme]="isShuffleActive ? 'primary' : 'secondary'"
+          [size]="'symbol'"
+          [rounded]="'full'"
+        >
+          <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isShuffleActive ? '#FFF' : '#4765FF'" />
+        </app-custom-button>
+      </div>
+
+      <div class="quiz-footer-center">
+        <app-custom-button
+          (click)="this.changeCard('prev')"
+          [theme]="'secondary'"
+          [size]="'symbol'"
+          [rounded]="'full'"
+          [disabled]="currentCardIndex() === 0"
+        >
+          <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#4765FF'" />
+        </app-custom-button>
+
+        <div>{{ currentCardIndex()+1 }}/{{ this.module.cards.length }}</div>
+
+        <app-custom-button
+          (click)="this.changeCard('next')"
+          [theme]="'secondary'"
+          [size]="'symbol'"
+          [rounded]="'full'"
+          [disabled]="currentCardIndex() === this.module.cards.length-1"
+        >
+          <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#4765FF'" />
+        </app-custom-button>
+      </div>
+
+
+      <div class="flex gap-1 h-11 p-1 items-center bg-[var(--secondary)] w-fit rounded-full overflow-hidden quiz-footer-right">
+        <app-custom-button
+          [theme]="'secondary'"
+          [size]="'dual-child'"
+          [rounded]="'right-sm'"
+          [className]="'rounded-r-none'"
+        >
+          <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'"/>
+        </app-custom-button>
+        <div class="w-[2px] h-1/2 bg-[var(--hover-secondary2)]"></div>
+        <app-custom-button
+          [theme]="'secondary'"
+          [size]="'dual-child'"
+          [rounded]="'left-sm'"
+        >
+          <app-icon [icon]="'FullScreen'" [size]="32" [stroke]="'#4765FF'"/>
+        </app-custom-button>
+      </div>
+
+    </div>
+
+    <div class="w-full h-[2px] rounded-3xl bg-[var(--secondary)]">
+      <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.module.cards.length-1))*100 + '%' }" class="h-[2px] rounded-3xl bg-[var(--accent)]"></div>
+    </div>
+
+    <app-cards-overview [cards]="module.cards" class="w-full"/>
+  </div>
+}

@@ -1,0 +1,77 @@
+.btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  height: 44px;
+  gap: 8px;
+}
+
+.btn.symbol {
+  width: 44px;
+}
+
+.btn.dual-child {
+  height: 36px;
+  width: 44px;
+}
+
+.btn.text {
+  padding: 0 16px;
+}
+
+.btn.secondary {
+  color: var(--accent);
+  background-color: var(--secondary);
+}
+
+.btn.secondary:hover {
+  background-color: var(--hover-secondary);
+}
+
+.btn.primary {
+  color: #fff;
+  background-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background-color: var(--hover-accent);
+}
+
+.btn.hover-only {
+  color: var(--accent);
+}
+
+.btn.hover-only:hover {
+  background-color: var(--secondary);
+}
+
+.rounded-none {
+  border-radius: 0 !important;
+}
+
+.rounded-md {
+  border-radius: 16px;
+}
+
+.rounded-full {
+  border-radius: 100px;
+}
+
+.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.rounded-right-sm {
+  border-radius: 24px 8px 8px 24px;
+}
+
+.rounded-left-sm {
+  border-radius: 8px 24px 24px 8px;
+}
+
+.rounded-sm {
+  border-radius: 8px;
+}
