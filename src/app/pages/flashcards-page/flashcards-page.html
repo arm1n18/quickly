@@ -1,0 +1,39 @@
+<div class="flex flex-col gap-4 w-full min-h-screen bg-(--background) items-center">
+    <div class="sticky z-1 top-0 w-full">
+        <div class="game-header">
+
+        <app-dropdown 
+            [list]="dropdownList"
+            [config]="{title: 'Картки', divider: 'line'}" 
+            class="game-header-left"
+        />
+
+        <div class="justify-self-center flex flex-col items-center">
+            <div>{{ currentCardIndex()+1 }}/{{ this.module.cards.length }}</div>
+            <div>{{ module.title }}</div>
+        </div>
+        <div class="flex gap-2 game-header-right">
+            @if(true) {
+            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
+                <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'" />
+            </app-custom-button>
+            } @else {
+            <app-custom-button theme="secondary" rounded="full">
+                Вхід
+            </app-custom-button>
+            <app-custom-button rounded="full">
+                Зареєструватись
+            </app-custom-button>
+            }
+            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+                <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+            </app-custom-button>
+        </div>
+        </div>
+        <div class="w-full h-0.5 rounded-3xl bg-(--secondary)">
+        <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.module.cards.length-1))*100 + '%' }" class="h-0.5 rounded-3xl bg-[var(--accent)]"></div>
+        </div>
+    </div>
+
+    <app-quiz-cards [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false}" (quizChange)="currentCardIndex.set($event)"/>
+</div>

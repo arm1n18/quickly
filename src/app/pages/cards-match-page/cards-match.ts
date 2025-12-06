@@ -31,7 +31,7 @@ export class CardsMatch implements OnInit {
 
   dropdownList: DropdownItem[][] = [
       [
-        { title: 'Картки', onClick: () => this.changeGameMode('default') },
+        { title: 'Картки', onClick: () => this.changeGameMode('flashcards') },
         { title: 'Тест', onClick: () => this.changeGameMode('test') }],
       [
         { title: 'Головна', onClick: () => this.changeGameMode('default') },
@@ -170,6 +170,9 @@ export class CardsMatch implements OnInit {
         break;
       case 'test':
         void this.router.navigate(['../test'], { relativeTo: this.route });
+        break;
+      case 'flashcards':
+        void this.router.navigate(['../flashcards'], { relativeTo: this.route });
         break;
       default:
         break;

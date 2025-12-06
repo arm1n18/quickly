@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Module } from '../../../interfaces/quizCard.interface';
+import { Module } from '../../interfaces/quizCard.interface';
 import { combineLatest } from 'rxjs';
-import { CardsState } from '../../../state/cards-state/cards-state';
+import { CardsState } from '../../state/cards-state/cards-state';
 
 @Component({
   selector: 'app-cards-print-page',

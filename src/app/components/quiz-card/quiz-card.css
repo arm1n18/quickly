@@ -5,6 +5,11 @@
   cursor: pointer;
 }
 
+.quiz-card.full-screen {
+  width: 1024px;
+  height: 672px;
+}
+
 .quiz-card-inner {
   position: relative;
   width: 100%;

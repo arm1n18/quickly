@@ -40,10 +40,6 @@
 
           <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media?.content }}"></video>
         }@case ("image") {
-<!--          <img width="224" height="112" class="object-contain media-block" alt="imh" ngSrc="{{ question!.question.media?.content }}"/>-->
-          
-<!-- <div class="bg-cover bg-no-repeat bg-center h-52 w-52 rounded-xl shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.question.media?.content + ')'"></div> -->
-          
             @if(question!.question.media?.content) {
               <app-image [image]="question!.question.media?.content!" [config]="{width: '208px', height: '208px', allowModal: true}" />
             }
@@ -85,7 +81,6 @@
             {{answer.text}}
           </div>
           @if (answer.media?.content) {
-            <!-- <div class="bg-cover bg-no-repeat bg-center h-16 w-16 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + answer.media?.content + ')'"></div> -->
             <app-image [image]="answer.media!.content" [config]="{width: '64px', height: '64px', allowModal: true}" />
           }
         </div>

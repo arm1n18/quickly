@@ -1,4 +1,9 @@
-<div class="quiz-card" [class.flipped]="isFlipped" (click)="toggleFlip()">
+<div class="quiz-card"
+  [class.flipped]="isFlipped" (click)="toggleFlip()"
+  [ngClass]="{
+    'full-screen': fullScreen
+  }"
+>
     <div class="quiz-card-inner" [class.no-transition]="noTransition">
       <div class="quiz-card-front"
            [ngClass]="animationClass()"

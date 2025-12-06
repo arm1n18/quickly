@@ -1,4 +1,4 @@
-export type GameMode = 'default' | 'match' | 'test'
+export type GameMode = 'default' | 'match' | 'test' | 'flashcards'
 
 type MediaType = 'audio' | 'video' | 'image'
 
