@@ -14,14 +14,13 @@
       </div>
 
       <div class="flex w-full gap-4 overflow-hidden h-48" [ngClass]="{
-            'justify-between': question?.question!.text && question?.question!.media?.content,
-            'justify-center': question?.question!.text && question?.question!.media?.content
+            'justify-between': question?.question!.text && question?.question!.media?.content
           }">
 
         @if(question?.question!.text) {
           @if(question!.question.text!.length > 164) {
             <div class="flex flex-col relative">
-              <p class="overflow-y-auto scrollbar max-h-full pb-1 break-words whitespace-pre-wrap in-shadow-white" [ngClass]="question?.question!.media?.content != undefined ? 'text-lg' : 'title'">
+              <p class="overflow-y-auto scrollbar max-h-full pb-1 wrap-break-word whitespace-pre-wrap in-shadow-white" [ngClass]="question?.question!.media?.content != undefined ? 'text-lg' : 'title'">
                 {{question?.question!.text}}
               </p>
   <!--            <div class="absolute bottom-0 left-0 w-full h-8 pointer-events-none z-10 in-shadow-white"></div>-->
@@ -43,7 +42,8 @@
 
               <video width="224" height="112" class="object-contain media-block" src="{{question?.question!.media?.content}}"></video>
             }@case ("image") {
-              <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question?.question!.media?.content + ')'"></div>
+              <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question?.question!.media?.content + ')'"></div> -->
+              <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" />
             }
           }
         }
@@ -100,7 +100,8 @@
             <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media?.content }}"></video>
           }@case ("image") {
   <!--          <img width="224" height="112" class="object-contain media-block" alt="imh" ngSrc="{{ question!.question.media?.content }}"/>-->
-            <div class="bg-cover bg-no-repeat bg-center h-52 w-52 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.question.media?.content + ')'"></div>
+            <!-- <div class="bg-cover bg-no-repeat bg-center h-52 w-52 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.question.media?.content + ')'"></div> -->
+            <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" />
           }
         }
       }

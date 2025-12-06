@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {TestInputCard} from '../../interfaces/quizCard.interface';
-import {CustomButton, Icon} from '../ui';
+import { CustomButton, Icon, Image } from '../ui';
 import {NgClass} from '@angular/common';
 import { debounceTime, Subject } from 'rxjs';
 import { Feedback } from '../../services/feedback/feedback';
@@ -10,8 +10,9 @@ import { Feedback } from '../../services/feedback/feedback';
   imports: [
     CustomButton,
     Icon,
-    NgClass
-  ],
+    NgClass,
+    Image
+],
   templateUrl: './test-input-question.html',
   styleUrl: './test-input-question.css'
 })

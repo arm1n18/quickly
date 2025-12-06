@@ -1,5 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
+import { Component, Input, OnChanges } from '@angular/core';
+import { ChartConfiguration, ChartType } from 'chart.js';
 import { BaseChartDirective } from "ng2-charts";
 
 @Component({
@@ -41,10 +41,32 @@ export class DoughnutChart implements OnChanges {
       elements: {
         arc: {
           borderRadius: 12,
-        }
+        },
+      }
+    },
+    plugins: [
+      {
+      id: 'centerText',
+      afterDraw: (chart) => {
+        const { ctx } = chart;
+
+        const centerX = chart.getDatasetMeta(0).data[0].x+2;
+        const centerY = chart.getDatasetMeta(0).data[0].y+2;
+
+        const text = `${Math.round(((this.correct * 100) / (this.incorrect+this.correct)))}%`;
+        ctx.save();
+
+        ctx.font = '500 32px "Roboto"';
+        // ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#4765FF';
+        ctx.fillText(text, centerX, centerY);
+        ctx.restore();
       }
     }
+    ]
   }
+  
   ngOnChanges(): void {
     this.chartConfig.data.datasets[0].data = [this.correct, this.incorrect];
   }

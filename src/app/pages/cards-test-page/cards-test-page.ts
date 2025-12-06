@@ -17,14 +17,13 @@ import {
   TestResult
 } from '../../interfaces/quizCard.interface';
 import {CardsState} from '../../state/cards-state/cards-state';
-import {CustomButton, Icon, Modal} from '../../components/ui';
+import {CustomButton, Dropdown, DropdownItem, Icon, Modal} from '../../components/ui';
 import {NgClass, NgStyle} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {combineLatest, Subject, takeUntil, tap, timer} from 'rxjs';
 import {Validator} from '../../services/validator/validator';
 import { DoughnutChart } from '../../components/ui/doughnut-chart/doughnut-chart/doughnut-chart';
-import { Dropdown, DropdownItem } from "../../components/ui/dropdown/dropdown";
 
 type TestMode = 'true-false' | 'choose' | 'matching' | 'input'
 
@@ -59,7 +58,7 @@ export class CardsTestPage implements OnInit {
   testTF: TestTFCard[] = []
   testInput: TestInputCard[] = []
   testMatch: {questions: TestMatchCard[], answers: ContentBlock[]} = { questions: [], answers: [] }
-  timer: WritableSignal<{ s: number, ms: number }> = signal({ s: 0, ms: 0 });
+  timer: WritableSignal<{ m: number, s: number }> = signal({ m: 0, s: 0 });
 
   module: Module= {title: '', cards: []};
   testConfig: WritableSignal<{
@@ -101,7 +100,7 @@ export class CardsTestPage implements OnInit {
           let shuffledCard = shuffledCards[i];
 
           let testQACard: TestQACard = {
-            question: shuffledCard.title,
+            question: this.testConfig().answerMode == 'title' ? shuffledCard.description : shuffledCard.title,
             answers: []
           }
 
@@ -111,33 +110,29 @@ export class CardsTestPage implements OnInit {
           let answers: TestAnswer[] = this.shuffleArray([
             {
               isCorrect: true,
-              ...shuffledCard.description,
+              ...(this.testConfig().answerMode == 'title' ? shuffledCard.title : shuffledCard.description),
             },
-            ...randomWrongCards.map(c => ({isCorrect:false, ...c.description}))
+            ...randomWrongCards.map(c => ({isCorrect:false, ...(this.testConfig().answerMode == 'title' ? c.title : c.description),}))
           ])
 
           testQACard.answers = this.shuffleArray(answers);
           this.testQA.push(testQACard);
         }
-
-        console.log(this.testQA);
       }
       break;
       case ('matching'): {
         const questions: TestMatchCard[] = shuffledCards.slice(0, maxLength).map((c, index) => ({
-            question: {id: `q${index}`, ...c.title},
-            answer: {id: `q${index}`, ...c.description}
+            question: {id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.description : c.title)},
+            answer: {id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.title : c.description)}
         }));
         const answers: ContentBlock[] = this.shuffleArray(shuffledCards.slice(0, maxLength)
           .flatMap((c, index) => ({
-            id: `q${index}`, ...c.description
+            id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.title : c.description)
           }))
         );
 
         this.testMatch.questions = questions;
         this.testMatch.answers = answers;
-
-        console.log(this.testMatch);
       }
       break;
       case ('true-false'): {
@@ -150,19 +145,19 @@ export class CardsTestPage implements OnInit {
             }
 
             let testTFCard: TestTFCard = {
-              question: shuffledCard.title ,
+              question: this.testConfig().answerMode == 'title' ? shuffledCard.description : shuffledCard.title ,
               answer: {
                 isCorrect: false,
-                ...shuffledCards[randomIndex].description,
+                ...(this.testConfig().answerMode == 'title' ? shuffledCards[randomIndex].title : shuffledCards[randomIndex].description),
               }
             }
             this.testTF.push(testTFCard);
           } else {
             let testTFCard: TestTFCard = {
-              question: shuffledCard.title ,
+              question: this.testConfig().answerMode == 'title' ? shuffledCard.description : shuffledCard.title,
               answer: {
                 isCorrect: true,
-                ...shuffledCard.description
+                ...(this.testConfig().answerMode == 'title' ? shuffledCard.title : shuffledCard.description),
               }
             }
             this.testTF.push(testTFCard);
@@ -176,8 +171,8 @@ export class CardsTestPage implements OnInit {
         for (let i = 0; i < maxLength; i++) {
           const card = shuffledCards[i];
           this.testInput.push({
-            question: card.title,
-            answer: card.description
+            question: this.testConfig().answerMode == 'title' ? card.description : card.title,
+            answer: this.testConfig().answerMode == 'title' ? card.title : card.description
           })
         }
       }
@@ -264,6 +259,10 @@ export class CardsTestPage implements OnInit {
       }
     }
 
+    window.scrollTo({
+      top: 0,
+    })
+
     this.show.showAnswers = true
   }
 
@@ -320,17 +319,17 @@ export class CardsTestPage implements OnInit {
   startTimer(): void {
     const start = performance.now();
 
-    timer(0,100).pipe(
+    timer(0,1000).pipe(
       takeUntil(this.stopTimer$),
       tap(() => {
         const elapsed = performance.now() - start;
 
         const totalMs = Math.floor(elapsed);
-        const s = Math.floor(totalMs / 1000);
-        const ms = Math.floor((totalMs % 1000) / 100);
 
-        this.timer.set({ s, ms });
-        // this.cdr.detectChanges();
+        const m = Math.floor(totalMs / 60000);
+        const s = Math.floor((totalMs % 60000) / 1000);
+
+        this.timer.set({ m, s });
       })
     ).subscribe();
   }
@@ -338,6 +337,7 @@ export class CardsTestPage implements OnInit {
   stopTimer(): void {
     this.stopTimer$.next();
   }
+
   ngOnInit(): void {
     combineLatest([this.cardsState.module$, this.route.queryParams]).subscribe(([module, params]) => {
       if(!module) return

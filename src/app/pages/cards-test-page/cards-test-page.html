@@ -38,8 +38,8 @@
     </div>
   </div>
   @if(show.showAnswers) {
-    <div class="flex flex-col gap-4 text-lg w-[768px]">
-      <div>{{`Час: ${timer().s} хв. ${timer().ms} сек.`}}</div>
+    <div class="flex flex-col gap-4 text-lg w-3xl">
+      <div>{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
       <div class="flex gap-8 items-center">
         <app-doughnut-chart [correct]="result.correct.length" [incorrect]="result.incorrect.length" />
         <div class="flex flex-col w-60 gap-2">
@@ -48,14 +48,14 @@
               <app-icon [icon]="'Check'" [size]="24" [stroke]="'#4765FF'" [fill]="'transparent'"/>
               Правильно
             </div>
-          <div class="bg-[#EEF0FF] border-[#4765FF] border-1 rounded-xl flex justify-center w-14">{{result.correct.length}}</div>
+          <div class="bg-[#EEF0FF] border-[#4765FF] border rounded-xl flex justify-center w-14">{{result.correct.length}}</div>
           </div>
           <div class="flex justify-between text-[#A7B2FF]">
             <div class="flex gap-2 items-center">
               <app-icon [icon]="'Cross'" [size]="24" [fill]="'#A7B2FF'" />
               Неправильно
             </div>
-            <div class="bg-[#EEF0FF] text-[#4765FF] border-[#A7B2FF] border-1 rounded-xl flex justify-center w-14">{{result.incorrect.length}}</div>
+            <div class="bg-[#EEF0FF] text-[#4765FF] border-[#A7B2FF] border rounded-xl flex justify-center w-14">{{result.incorrect.length}}</div>
           </div>
         </div>
       </div>
@@ -134,7 +134,7 @@
       />
     </div>
 
-    <div class="w-full h-[2px] bg-(--secondary)"></div>
+    <div class="w-full h-0.5 bg-(--secondary)"></div>
 
     <div class="w-full flex justify-between items-center">
       Вірно-невірно
@@ -185,7 +185,7 @@
       </label>
     </div>
 
-    <div class="w-full h-[2px] bg-(--secondary)"></div>
+    <div class="w-full h-0.5 bg-(--secondary)"></div>
 
     <div class="w-full flex flex-col gap-4">
       <div class="w-full flex justify-between items-center">
@@ -198,22 +198,24 @@
       <div [class]="'w-full flex flex-col gap-4 pl-4'" [ngClass]="{'hidden': !show.showAnswerMode}">
         <div class="w-full flex justify-between items-center">
           Питання - відповідь
-          <label [class]="'switch'" (click)="tempTestConfig.answerMode = 'title'">
+          <label [class]="'switch'">
             <input
               [type]="'checkbox'"
-              [disabled]="tempTestConfig.answerMode == 'title'"
-              [checked]="tempTestConfig.answerMode == 'title'"
+              [disabled]="tempTestConfig.answerMode == 'description'"
+              [checked]="tempTestConfig.answerMode == 'description'"
+              (click)="tempTestConfig.answerMode = 'description'"
             />
             <span [class]="'slider round'"></span>
           </label>
         </div>
         <div class="w-full flex justify-between items-center">
           Відповідь - Питання
-          <label [class]="'switch'" (click)="tempTestConfig.answerMode = 'description'">
+          <label [class]="'switch'">
             <input
               [type]="'checkbox'"
-              [disabled]="tempTestConfig.answerMode == 'description'"
-              [checked]="tempTestConfig.answerMode == 'description'"
+              [disabled]="tempTestConfig.answerMode == 'title'"
+              [checked]="tempTestConfig.answerMode == 'title'"
+              (click)="tempTestConfig.answerMode = 'title'"
             />
             <span [class]="'slider round'"></span>
           </label>

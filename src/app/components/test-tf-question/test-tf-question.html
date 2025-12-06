@@ -19,7 +19,7 @@
 
        @if(question!.question.text) {
          @if(question!.question.text.length > 164) {
-           <p class="overflow-y-auto max-h-full pb-1 break-words whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'text-xl'">
+           <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'text-xl'">
              {{ question!.question.text }}
            </p>
            <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
@@ -40,8 +40,11 @@
 
              <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media?.content }}"></video>
            }@case ("image") {
-             <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.question.media?.content + ')'"></div>
-           }
+             <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.question.media?.content + ')'"></div> -->
+              @if(question!.question.media?.content) {
+                <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" />
+              }
+            }
          }
        }
      </div>
@@ -68,7 +71,7 @@
 
       @if(question!.answer.text) {
         @if(question!.answer.text.length > 164) {
-          <p class="overflow-y-auto max-h-full pb-1 break-words whitespace-pre-wrap" [ngClass]="question!.answer.media?.content != undefined ? 'text-lg' : 'text-xl'">
+          <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.answer.media?.content != undefined ? 'text-lg' : 'text-xl'">
             {{ question!.answer.text }}
           </p>
           <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
@@ -89,7 +92,8 @@
 
             <video width="96" height="96" class="object-cover media-block" src="{{ question!.answer.media?.content }}"></video>
           }@case ("image") {
-            <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.answer.media?.content + ')'"></div>
+            <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.answer.media?.content + ')'"></div> -->
+            <app-image [image]="question!.answer.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" />
           }
         }
       }

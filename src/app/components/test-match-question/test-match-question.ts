@@ -1,15 +1,16 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {ContentBlock, TestMatchCard} from '../../interfaces/quizCard.interface';
 import {NgClass} from '@angular/common';
-import {Icon} from '../ui';
+import { Icon, Image } from '../ui';
 import { Feedback } from '../../services/feedback/feedback';
 
 @Component({
   selector: 'app-test-match-question',
   imports: [
     NgClass,
-    Icon
-  ],
+    Icon,
+    Image
+],
   templateUrl: './test-match-question.html',
   styleUrl: './test-match-question.css'
 })

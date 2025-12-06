@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {TestTFCard} from '../../interfaces/quizCard.interface';
-import {CustomButton, Icon} from '../ui';
+import { CustomButton, Icon, Image } from '../ui';
 import {NgClass} from '@angular/common';
 import { Feedback } from '../../services/feedback/feedback';
 
@@ -10,7 +10,8 @@ import { Feedback } from '../../services/feedback/feedback';
     Icon,
     NgClass,
     CustomButton,
-  ],
+    Image
+],
   templateUrl: './test-tf-question.html',
   styleUrl: './test-tf-question.css'
 })

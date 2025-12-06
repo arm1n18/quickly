@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {CardsRootPage} from './pages/cards-root-page/cards-root-page';
 import {CardsMatch, CardsPage} from './pages';
 import {CardsTestPage} from './pages/cards-test-page/cards-test-page';
+import { CardsPrintPage } from './pages/cards-print-page/cards-print-page/cards-print-page';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,10 @@ export const routes: Routes = [
       {
         path: 'test',
         component: CardsTestPage,
+      },
+      {
+        path: 'print',
+        component: CardsPrintPage,
       },
     ]
   },
