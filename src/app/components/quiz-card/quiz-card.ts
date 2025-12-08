@@ -1,12 +1,12 @@
 import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
 import  { Icon } from '../ui'
 import { ChangeDetectorRef } from '@angular/core';
-import { NgClass, NgOptimizedImage, NgStyle } from '@angular/common';
+import { NgClass, NgOptimizedImage } from '@angular/common';
 import {Card} from '../../interfaces/quizCard.interface';
 
 @Component({
   selector: 'app-quiz-card',
-  imports: [Icon, NgClass, NgOptimizedImage, NgStyle],
+  imports: [Icon, NgClass, NgOptimizedImage],
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.css'
 })

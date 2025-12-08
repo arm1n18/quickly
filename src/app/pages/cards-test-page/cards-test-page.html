@@ -33,8 +33,8 @@
         </app-custom-button>
       </div>
     </div>
-    <div class="w-full h-0.5 rounded-3xl bg-(--secondary)">
-      <div [ngStyle]="{ 'width': (Math.min(answered / testConfig().maxQuestions, 1) * 100)+ '%' }" class="h-0.5 rounded-3xl bg-[var(--accent)]"></div>
+    <div class="w-full h-px rounded-3xl bg-(--secondary)">
+      <div [ngStyle]="{ 'width': (Math.min(answered / testConfig().maxQuestions, 1) * 100)+ '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
     </div>
   </div>
   @if(show.showAnswers) {
@@ -134,7 +134,7 @@
       />
     </div>
 
-    <div class="w-full h-0.5 bg-(--secondary)"></div>
+    <div class="w-full h-px bg-(--secondary)"></div>
 
     <div class="w-full flex justify-between items-center">
       Вірно-невірно
@@ -185,7 +185,7 @@
       </label>
     </div>
 
-    <div class="w-full h-0.5 bg-(--secondary)"></div>
+    <div class="w-full h-px bg-(--secondary)"></div>
 
     <div class="w-full flex flex-col gap-4">
       <div class="w-full flex justify-between items-center">

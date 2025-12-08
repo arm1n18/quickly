@@ -6,10 +6,14 @@ import { Subject, Subscription, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { NgStyle } from '@angular/common';
 
 interface QuizCardsInterface {
-  fullscreen?: boolean,
-  progressBar?: boolean,
-  dualBtn?: boolean
+  side: sideType
+  fullscreen: boolean,
+  progressBar: boolean,
+  dualBtn: boolean
 }
+
+type sideType = 'title' | 'description' | 'both'
+
 
 @Component({
   selector: 'app-quiz-cards',
@@ -18,13 +22,18 @@ interface QuizCardsInterface {
   styleUrl: './quiz-cards.css',
 })
 export class QuizCards {
-  @ViewChild(QuizCard) quizCard!: QuizCard;
-  @Input({ required: true }) cards: Card[] = [];
-  @Input() config: QuizCardsInterface = {
+  private _config: QuizCardsInterface  = {
+    side: 'title',
     fullscreen: false,
     progressBar: false,
     dualBtn: false,
   };
+
+  @ViewChild(QuizCard) quizCard!: QuizCard;
+  @Input({ required: true }) cards: Card[] = [];
+  @Input() set config(value: Partial<QuizCardsInterface>) {
+    this._config = {...this._config, ...value}
+  }
   @Output() quizChange = new EventEmitter<number>();
 
   private changeCardTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -48,6 +57,10 @@ export class QuizCards {
       return shuffled[currentIndex];
     }
     return this.cards[currentIndex];
+  }
+
+  get config(): QuizCardsInterface {
+    return this._config;
   }
 
   changeCard(action: 'next' | 'prev') {

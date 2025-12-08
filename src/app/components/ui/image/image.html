@@ -9,7 +9,7 @@
 </div>
 
 @if(showModal && config.allowModal) {
-  <div data-modal [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2 cursor-default'" (click)="closeModal($event)">
+  <div [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2 cursor-default'" (click)="closeModal($event)">
     <!-- <div
         class="bg-cover bg-no-repeat bg-center rounded-xl shrink-0 cursor-zoom-in"
         [style.background-image]="'url(' + image + ')'"

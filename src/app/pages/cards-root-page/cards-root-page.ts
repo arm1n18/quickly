@@ -2,11 +2,10 @@ import {Component, OnInit} from '@angular/core';
 import {Card, Module} from '../../interfaces/quizCard.interface';
 import {CardsState} from '../../state/cards-state/cards-state';
 import {RouterOutlet} from '@angular/router';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
 
 @Component({
   selector: 'app-cards-root-page',
-  imports: [RouterOutlet, MainLayout],
+  imports: [RouterOutlet],
   templateUrl: './cards-root-page.html',
   styleUrl: './cards-root-page.css'
 })

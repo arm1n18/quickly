@@ -2,33 +2,44 @@ import { Component, signal, ViewChild, WritableSignal } from '@angular/core';
 import { GameMode, Module } from '../../interfaces/quizCard.interface';
 import { CardsState } from '../../state/cards-state/cards-state';
 import { combineLatest } from 'rxjs';
-import { Dropdown, CustomButton, Icon, DropdownItem } from "../../components/ui";
-import { NgStyle } from '@angular/common';
+import { Dropdown, CustomButton, Icon, DropdownItem, Modal } from "../../components/ui";
+import { NgClass, NgStyle } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuizCards } from "../../components/quiz-cards/quiz-cards";
 
 @Component({
   selector: 'app-flashcards-page',
-  imports: [Dropdown, CustomButton, Icon, NgStyle, QuizCards],
+  imports: [Dropdown, CustomButton, Icon, NgStyle, QuizCards, NgClass, Modal],
   templateUrl: './flashcards-page.html',
   styleUrl: './flashcards-page.css',
 })
+
 export class FlashcardsPage {
   @ViewChild(QuizCards) quizCards!: QuizCards;
   
-  module: Module= {title: '', cards: []};
+  module: Module = {title: '', cards: []};
   currentCardIndex: WritableSignal<number> = signal(0);
-  show: {showSettingsModal: boolean} = {
+  show: {showSettingsModal: boolean, shortcut: boolean} = {
     showSettingsModal: false,
+    shortcut: false
   }
+  frontSide: 'title' | 'description' | 'both' = 'title'
 
   dropdownList: DropdownItem[][] = [
     [
       { title: 'Тестування', onClick: () => this.changeGameMode('test') },
       { title: 'Підбір', onClick: () => this.changeGameMode('match') }],
     [
-      { title: 'Головна', onClick: () => this.changeGameMode('default') },
-      { title: 'Пошук', onClick: () => this.changeGameMode('default') }
+      { title: 'Головна', onClick: () => this.changeGameMode('default') }
+    ]
+  ]
+
+  dropdownList2: DropdownItem[][] = [
+    [
+      { title: 'Термін', onClick: () => {}, preselected: this.frontSide === 'title' },
+      { title: 'Визначення', onClick: () => {}, preselected: this.frontSide === 'description' }],
+    [
+      { title: 'Обидві сторони', onClick: () => {}, preselected: this.frontSide === 'both' }
     ]
   ]
   
@@ -38,7 +49,6 @@ export class FlashcardsPage {
     private router: Router
   ) {}
   
-
   toggleShowModal() {
     this.show.showSettingsModal = !this.show.showSettingsModal
   }

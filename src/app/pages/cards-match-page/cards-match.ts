@@ -30,14 +30,14 @@ export class CardsMatch implements OnInit {
   module: Module | undefined;
 
   dropdownList: DropdownItem[][] = [
-      [
-        { title: 'Картки', onClick: () => this.changeGameMode('flashcards') },
-        { title: 'Тест', onClick: () => this.changeGameMode('test') }],
-      [
-        { title: 'Головна', onClick: () => this.changeGameMode('default') },
-        { title: 'Пошук', onClick: () => this.changeGameMode('default') }
-      ]
+    [
+      { title: 'Картки', onClick: () => this.changeGameMode('flashcards') },
+      { title: 'Тест', onClick: () => this.changeGameMode('test') }],
+    [
+      { title: 'Головна', onClick: () => this.changeGameMode('default') },
+      { title: 'Пошук', onClick: () => this.changeGameMode('default') }
     ]
+  ]
 
   constructor(
     private cdr: ChangeDetectorRef,

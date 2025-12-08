@@ -1,16 +1,21 @@
 import { Component, ElementRef, HostListener , Input } from '@angular/core';
 import { CustomButton } from "../custom-button/custom-button";
-import {NgClass} from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Icon } from "../icon/icon";
 
 export interface DropdownItem {
-  title: string;
+  title: any;
   onClick?: () => void;
   icon?: string;
   disabled?: boolean;
+  preselected?: boolean;
 }
 
+// TODO_AUTO_POSITION
+
 type DividerType = 'gap' | 'line';
+type PositionXType = 'left' | 'right' | 'auto';
+type PositionYType = | 'top' | 'bottom' | 'auto';
 
 @Component({
   selector: 'app-dropdown',
@@ -23,11 +28,21 @@ export class Dropdown {
   constructor(private elementRef: ElementRef) {}
   
   @Input({ required: true }) list: DropdownItem[][] = [];
-  @Input({ required: true }) config: {title: string, divider?: DividerType} = {
+  @Input() config: Partial<{title: string, divider: DividerType}> = {
     title: '',
     divider: 'gap'
   };
+  @Input() position: Partial<{px: PositionXType, py: PositionYType}> = {
+    px: 'left',
+    py: 'bottom'
+  };
   show: boolean = false
+  selectedValue: any | null
+
+  select(value: any) {
+    this.selectedValue = value
+    this.toggleShow()
+  }
 
   toggleShow () {
     this.show = !this.show
@@ -51,10 +66,22 @@ export class Dropdown {
     };
   }
 
+  get preslectedValue(): string | undefined {
+    if(this.selectedValue) {
+      return this.selectedValue
+    }
+
+    const group = this.list.find(g =>
+      g.some(v => v.preselected === true)
+    );
+
+    return group?.find(v => v.preselected === true)?.title;
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const clickedInside = this.elementRef.nativeElement.contains(event.target)
+    console.log(clickedInside)
     if (!clickedInside) {
       this.show = false
     }

@@ -1,12 +1,11 @@
 <div class="flex flex-col gap-4">
     <app-quiz-card
         [cardInput]="{
-            title: currentCard.title,
-            description: currentCard.description
+            title: config.side !== 'description' ? currentCard.title : currentCard.description,
+            description: config.side !== 'description' ? currentCard.description : currentCard.title
         }"
         [fullScreen]="config.fullscreen || false"
     />
-
     <div class="quiz-footer-nav">
         <div class="quiz-footer-left">
         <app-custom-button
@@ -76,8 +75,8 @@
     </div>
 
     @if(config.progressBar) {
-        <div class="w-full h-0.5 rounded-3xl bg-[var(--secondary)]">
-            <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.cards.length-1))*100 + '%' }" class="h-0.5 rounded-3xl bg-[var(--accent)]"></div>
+        <div class="w-full h-px rounded-3xl bg-[var(--secondary)]">
+            <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
         </div>
     }
 </div>

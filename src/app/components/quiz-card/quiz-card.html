@@ -1,7 +1,8 @@
 <div class="quiz-card"
-  [class.flipped]="isFlipped" (click)="toggleFlip()"
+  (click)="toggleFlip()"
   [ngClass]="{
-    'full-screen': fullScreen
+    'full-screen': fullScreen,
+    'flipped': isFlipped
   }"
 >
     <div class="quiz-card-inner" [class.no-transition]="noTransition">
