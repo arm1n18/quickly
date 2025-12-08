@@ -1,9 +1,9 @@
 import {Component, Input, OnChanges} from '@angular/core';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 
-type Icons = 'Lightbulb' | 'Volume' | 'ChevronRight' | 'ChevronLeft' | 'ChevronUp' | 'ChevronDown' |
+export type Icons = 'Lightbulb' | 'Volume' | 'ChevronRight' | 'ChevronLeft' | 'ChevronUp' | 'ChevronDown' |
   'ChevronFillRight' | 'ChevronFillLeft' | 'ChevronFillDown' | 'ChevronFillUp' | 'Play' | 'Pause' |
-  'FullScreen' | 'Shuffle' | 'Game' | 'Cross' | 'Settings' | 'Check'
+  'FullScreen' | 'Shuffle' | 'Game' | 'Cross' | 'Settings' | 'Check' | 'Add' | 'Search'
 
 @Component({
   selector: 'app-icon',
@@ -40,7 +40,9 @@ export class Icon implements OnChanges {
     ["ChevronRight", '<path fill-rule="evenodd" clip-rule="evenodd" d="M8.29289 18.7071C7.90237 18.3166 7.90237 17.6834 8.29289 17.2929L13.5858 12L8.29289 6.70711C7.90237 6.31658 7.90237 5.68342 8.29289 5.29289C8.68342 4.90237 9.31658 4.90237 9.70711 5.29289L15.7071 11.2929C16.0976 11.6834 16.0976 12.3166 15.7071 12.7071L9.70711 18.7071C9.31658 19.0976 8.68342 19.0976 8.29289 18.7071Z"></path>'],
     ["ChevronLeft", '<path fill-rule="evenodd" clip-rule="evenodd" d="M15.7071 18.7071C16.0976 18.3166 16.0976 17.6834 15.7071 17.2929L10.4142 12L15.7071 6.70711C16.0976 6.31658 16.0976 5.68342 15.7071 5.29289C15.3166 4.90237 14.6834 4.90237 14.2929 5.29289L8.29289 11.2929C7.90237 11.6834 7.90237 12.3166 8.29289 12.7071L14.2929 18.7071C14.6834 19.0976 15.3166 19.0976 15.7071 18.7071Z"></path>'],
     ["ChevronDown", '<path fill-rule="evenodd" clip-rule="evenodd" d="M18.7071 8.29289C18.3166 7.90237 17.6834 7.90237 17.2929 8.29289L12 13.5858L6.70711 8.29289C6.31658 7.90237 5.68342 7.90237 5.29289 8.29289C4.90237 8.68342 4.90237 9.31658 5.29289 9.70711L11.2929 15.7071C11.6834 16.0976 12.3166 16.0976 12.7071 15.7071L18.7071 9.70711C19.0976 9.31658 19.0976 8.68342 18.7071 8.29289Z"></path>'],
-    ["ChevronUp", '<path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 15.7071C5.68342 16.0976 6.31658 16.0976 6.70711 15.7071L12 10.4142L17.2929 15.7071C17.6834 16.0976 18.3166 16.0976 18.7071 15.7071C19.0976 15.3166 19.0976 14.6834 18.7071 14.2929L12.7071 8.29289C12.3166 7.90237 11.6834 7.90237 11.2929 8.29289L5.29289 14.2929C4.90237 14.6834 4.90237 15.3166 5.29289 15.7071Z"></path>']
+    ["ChevronUp", '<path fill-rule="evenodd" clip-rule="evenodd" d="M5.29289 15.7071C5.68342 16.0976 6.31658 16.0976 6.70711 15.7071L12 10.4142L17.2929 15.7071C17.6834 16.0976 18.3166 16.0976 18.7071 15.7071C19.0976 15.3166 19.0976 14.6834 18.7071 14.2929L12.7071 8.29289C12.3166 7.90237 11.6834 7.90237 11.2929 8.29289L5.29289 14.2929C4.90237 14.6834 4.90237 15.3166 5.29289 15.7071Z"></path>'],
+    ["Add", '<path d="M4 12H20M12 4V20" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>'],
+    ["Search", '<path id="Vector" d="M15 15L21 21M10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10C17 13.866 13.866 17 10 17Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>'],
   ]);
 
   iconSvg: SafeHtml = '';

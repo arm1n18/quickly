@@ -137,21 +137,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   justify-self: center;
 }
 
-.input {
-  height: 48px;
-  width: 100%;
-  border-radius: 16px;
-  padding: 0 16px;
-  background-color: var(--secondary);
-}
 
-input:focus{
-  outline: 2px solid var(--secondary2);
-}
-
-::-webkit-input-placeholder {
-  color: var(--accent);
-}
 
 .in-shadow {
   box-shadow: inset 0 -16px 8px -6px rgba(243, 245, 247, 1);

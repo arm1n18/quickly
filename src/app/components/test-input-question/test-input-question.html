@@ -61,7 +61,7 @@
           Введіть відповідь
         }
       </div>
-      <input class="input" placeholder="Введіть відповідь" (input)="onInputChange($event)"/>
+      <app-custom-input [title]="'Введіть відповідь'" (inputChange)="onInputChange($event)"/>
       <app-custom-button rounded="full" class="self-end" (click)="nextQuestionClick()">Далі</app-custom-button>
     </div>
   </div>

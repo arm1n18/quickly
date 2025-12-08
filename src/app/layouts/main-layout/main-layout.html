@@ -1,0 +1,20 @@
+<div class="header">
+    <app-custom-button theme="hover-only" rounded="full" size="symbol">
+        <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'" />
+    </app-custom-button>
+    <app-custom-input
+        class="grow max-w-[640px]"
+        [title]="'Введіть відповідь'"
+        [icon]="{show: true}"
+    />
+    <div class="flex gap-4">
+        <app-custom-button
+            [theme]="'primary'"
+            [size]="'symbol'"
+            [rounded]="'full'"
+        >
+            <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
+        </app-custom-button>
+        <div class="size-11 bg-amber-500 rounded-full"></div>
+    </div>
+</div>

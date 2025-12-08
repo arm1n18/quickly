@@ -1,3 +1,4 @@
+<app-main-layout/>
 @if(module) {
   <div class="flex flex-col items-center gap-4 w-[598px]">
     <div class="w-full flex gap-4">
@@ -26,7 +27,7 @@
       </app-custom-button>
     </div>
 
-    <app-quiz-cards [cards]="module.cards" [config]="{progressBar: true}" />
+    <app-quiz-cards [cards]="module.cards" [config]="{progressBar: true, dualBtn: true}" />
 
     <app-cards-overview [cards]="module.cards" class="w-full"/>
   </div>

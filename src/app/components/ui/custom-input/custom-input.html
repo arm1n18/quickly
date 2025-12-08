@@ -1,0 +1,18 @@
+<div
+    class="input cursor-text"
+    [style.width] = "width"
+    [ngStyle]="styles"
+    [ngClass]="{
+        'focus': focused
+    }"
+>   
+    @if(icon.show){
+        <app-icon [icon]="icon.name ?? 'Search'" [size]="24" [stroke]="'#A7B2FF'" [fill]="'transparent'" />
+    }
+    <input
+        class="w-full h-full"
+        [placeholder]="title"
+        [value]="value ?? ''"
+        (input)="onInputChange($event)"
+    />
+</div>

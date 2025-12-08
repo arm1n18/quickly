@@ -2,8 +2,9 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {TestInputCard} from '../../interfaces/quizCard.interface';
 import { CustomButton, Icon, Image } from '../ui';
 import {NgClass} from '@angular/common';
-import { debounceTime, Subject } from 'rxjs';
+import { Subject } from 'rxjs';
 import { Feedback } from '../../services/feedback/feedback';
+import { CustomInput } from "../ui/custom-input/custom-input";
 
 @Component({
   selector: 'app-test-input-question',
@@ -11,7 +12,8 @@ import { Feedback } from '../../services/feedback/feedback';
     CustomButton,
     Icon,
     NgClass,
-    Image
+    Image,
+    CustomInput
 ],
   templateUrl: './test-input-question.html',
   styleUrl: './test-input-question.css'
@@ -39,24 +41,12 @@ export class TestInputQuestion {
     window.speechSynthesis.speak(utterance);
   }
 
-  onInputChange(event: Event) {
-    const newValue = (event.target as HTMLInputElement).value
-    this.input$.next(newValue)
-    
+  onInputChange(value: any) {
+    this.questionChange.emit(value);
   }
 
   nextQuestionClick() {
-    this.nextQuestion .emit()
-  }
-
-  ngOnInit() {
-    this.input$.pipe(debounceTime(500)).subscribe(value => {
-      if (value == "") {
-        this.questionChange.emit(undefined)
-      } else {
-        this.questionChange.emit(value);
-      }
-    })
+    this.nextQuestion.emit()
   }
 
   get isCorrectAnswer(): boolean {
