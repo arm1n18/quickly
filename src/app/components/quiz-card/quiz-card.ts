@@ -1,12 +1,12 @@
 import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
-import  { Icon } from '../ui'
+import  { Icon, Image } from '../ui'
 import { ChangeDetectorRef } from '@angular/core';
 import { NgClass, NgOptimizedImage } from '@angular/common';
 import {Card} from '../../interfaces/quizCard.interface';
 
 @Component({
   selector: 'app-quiz-card',
-  imports: [Icon, NgClass, NgOptimizedImage],
+  imports: [Icon, NgClass, NgOptimizedImage, Image],
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.css'
 })
@@ -14,6 +14,7 @@ import {Card} from '../../interfaces/quizCard.interface';
 export class QuizCard implements OnChanges {
   @Input({ required: true }) cardInput: Card = { title: {text: ''}, description: {text: ''} };
   @Input() fullScreen: boolean = false;
+  @Input() dualCard: boolean = false;
   animationClass: WritableSignal<string> = signal('');
   isChanged:  WritableSignal<boolean> = signal(false);
   isFlipped: boolean = false;

@@ -4,6 +4,7 @@
             title: config.side !== 'description' ? currentCard.title : currentCard.description,
             description: config.side !== 'description' ? currentCard.description : currentCard.title
         }"
+        [dualCard]="config.dualCard"
         [fullScreen]="config.fullscreen || false"
     />
     <div class="quiz-footer-nav">

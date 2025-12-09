@@ -1,27 +1,11 @@
 <div
-    class="bg-cover bg-no-repeat bg-center rounded-xl shrink-0"
-    [style.background-image]="'url(' + image + ')'"
+    class="bg-cover bg-no-repeat bg-center rounded-xl shrink-0 overflow-hidden"
     [style.width]="config.width"
     [style.height]="config.height"
     [style.cursor]="config.allowModal ? 'zoom-in' : 'default'"
-    (click)="config.allowModal && openModal($event)"
->
+    (click)="config.allowModal && openModal()"
+  >
+  <img [src]="image"
+    [ngStyle]="styles"
+    class="w-full h-full object-cover" />
 </div>
-
-@if(showModal && config.allowModal) {
-  <div [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2 cursor-default'" (click)="closeModal($event)">
-    <!-- <div
-        class="bg-cover bg-no-repeat bg-center rounded-xl shrink-0 cursor-zoom-in"
-        [style.background-image]="'url(' + image + ')'"
-        [style.width]="config.width"
-        [style.height]="config.height"
-        (click)="openModal($event)"
-    >
-    </div> -->
-    <img
-        [src]="`${image}`"
-        [alt]="image"
-        class="max-w-1/2, max-h-1/2 rounded-xl m-auto cursor-zoom-out"
-    />
-  </div>
-}

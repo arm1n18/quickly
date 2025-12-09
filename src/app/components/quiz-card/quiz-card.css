@@ -26,6 +26,21 @@
   transition: none !important;
 }
 
+.quiz-card.dual {
+  width: 100%;
+  height: 50%;
+  padding: 14px 24px;
+  border-radius: 34px;
+  background-color: var(--lightGrey);
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+
 .quiz-card-front,
 .quiz-card-back {
   position: absolute;
@@ -111,6 +126,16 @@
   animation: slide-in-left .2s ease-in-out;
 }
 .quiz-card-back.slide-in-left {
+  z-index: 0;
+  animation: slide-in-left .2s ease-in-out;
+}
+
+.quiz-card.slide-in-right {
+  z-index: 1;
+  animation: slide-in-right .2s ease-in-out;
+}
+
+.quiz-card.slide-in-left {
   z-index: 0;
   animation: slide-in-left .2s ease-in-out;
 }

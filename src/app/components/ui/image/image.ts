@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { NgStyle } from '@angular/common';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { ImageModal } from '../image-modal/image-modal';
+import { Portal } from '../../../services/portal/portal';
 
 interface ImageConfig {
   width: string,
@@ -9,28 +12,33 @@ interface ImageConfig {
 
 @Component({
   selector: 'app-image',
-  imports: [NgClass],
+  imports: [NgStyle],
   templateUrl: './image.html',
   styleUrl: './image.css'
 })
 
 export class Image {
+  constructor(private portal: Portal) {}
+
   @Input({required: true}) image: string = '';
   @Input({required: true}) config: ImageConfig = {
     width: 'fit-content',
     height: 'fit-content',
     allowModal: false
   };
-  showModal: boolean = false;
+  @Input() styles: { [key: string]: any} = {};
 
-  openModal(e: Event) {
-    e.stopPropagation();
-
-    this.showModal = true
+  
+  openModal() {
+    const modalPortal = new ComponentPortal(ImageModal);
+    this.portal.open(modalPortal, {
+      image: this.image
+    });
   }
 
   closeModal(e: Event) {
     e.stopPropagation();
-    this.showModal = false;
+    const modalPortal = new ComponentPortal(ImageModal);
+    this.portal.open(modalPortal);
   }
 }

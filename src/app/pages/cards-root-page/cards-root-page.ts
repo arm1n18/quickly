@@ -1,7 +1,10 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {Card, Module} from '../../interfaces/quizCard.interface';
 import {CardsState} from '../../state/cards-state/cards-state';
 import {RouterOutlet} from '@angular/router';
+import { CdkPortalOutlet, ComponentPortal } from '@angular/cdk/portal';
+import { Portal } from '../../services/portal/portal';
+import { ImageModal } from '../../components/ui/image-modal/image-modal';
 
 @Component({
   selector: 'app-cards-root-page',
@@ -28,10 +31,13 @@ export class CardsRootPage implements OnInit {
   }
 
   constructor(
-    private cardsState: CardsState
+    private cardsState: CardsState,
+    private portalService: Portal
   ) {}
 
   ngOnInit() {
     this.cardsState.setModule(this.module);
   }
+  
+ 
 }

@@ -35,7 +35,7 @@
         </div>
     </div>
 
-    <app-quiz-cards [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: 'description'}" (quizChange)="currentCardIndex.set($event)"/>
+    <app-quiz-cards [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
 </div>
 
 <app-modal [show]="show.showSettingsModal" (shownChange)="show.showSettingsModal = $event">
@@ -47,6 +47,18 @@
     <div class="w-full flex justify-between items-center">
       Передня сторона
       <app-dropdown [list]="dropdownList2" [config]="{divider: 'line'}" [position]="{px: 'right', py: 'bottom'}" />
+    </div>
+
+    <div class="w-full flex justify-between items-center">
+      Показувати обидві сторони карток
+      <label [class]="'switch'">
+        <input
+          [type]="'checkbox'"
+          [checked]="config.dualCard"
+          (click)="config.dualCard = !config.dualCard"
+        />
+        <span [class]="'slider round'"></span>
+      </label>
     </div>
 
     <div class="w-full h-px bg-(--secondary)"></div>

@@ -9,7 +9,8 @@ interface QuizCardsInterface {
   side: sideType
   fullscreen: boolean,
   progressBar: boolean,
-  dualBtn: boolean
+  dualBtn: boolean,
+  dualCard: boolean,
 }
 
 type sideType = 'title' | 'description' | 'both'
@@ -27,6 +28,7 @@ export class QuizCards {
     fullscreen: false,
     progressBar: false,
     dualBtn: false,
+    dualCard: false
   };
 
   @ViewChild(QuizCard) quizCard!: QuizCard;

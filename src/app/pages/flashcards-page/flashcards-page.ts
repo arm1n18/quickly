@@ -23,7 +23,11 @@ export class FlashcardsPage {
     showSettingsModal: false,
     shortcut: false
   }
-  frontSide: 'title' | 'description' | 'both' = 'title'
+
+  config: {frontSide: 'title' | 'description', dualCard: boolean} = {
+    frontSide: 'title',
+    dualCard: false
+  }
 
   dropdownList: DropdownItem[][] = [
     [
@@ -36,10 +40,8 @@ export class FlashcardsPage {
 
   dropdownList2: DropdownItem[][] = [
     [
-      { title: 'Термін', onClick: () => {}, preselected: this.frontSide === 'title' },
-      { title: 'Визначення', onClick: () => {}, preselected: this.frontSide === 'description' }],
-    [
-      { title: 'Обидві сторони', onClick: () => {}, preselected: this.frontSide === 'both' }
+      { title: 'Термін', onClick: () => this.config.frontSide = 'title', preselected: this.config.frontSide === 'title' },
+      { title: 'Визначення', onClick: () => this.config.frontSide = 'description', preselected: this.config.frontSide === 'description' }
     ]
   ]
   
