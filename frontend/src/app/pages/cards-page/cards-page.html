@@ -1,0 +1,109 @@
+<!-- HEADER -->
+<app-main-layout/>
+<!-- MAIN CONTENT
+  -->
+@if(module) {
+  <div class="flex flex-col gap-4 max-w-200 mx-auto px-3">
+    <!-- OVERVIEW -->
+    <div class="flex w-full justify-between">
+      <div class="flex gap-4 items-center">
+        <h1 class="title">{{module.title}}</h1>
+        <app-rating [rating]="4.1" [votes]="25" />
+      </div>
+      
+      <div class="flex gap-3">
+        <app-custom-button
+            [theme]="'hover-only-gray'"
+            [size]="'text'"
+            [rounded]="'full'"
+        >
+            <app-icon 
+              [icon]="'Bookmark'" 
+              [size]="24"
+            /> 
+            Зберегти
+        </app-custom-button>
+
+        <app-custom-button
+            [theme]="'hover-only-gray'"
+            [size]="'symbol'"
+            [rounded]="'full'"
+            (click)="onCopyUrl()"
+        >
+            <app-icon [icon]="'Reply'" [size]="24" />
+        </app-custom-button>
+        
+        <app-dropdown 
+          [list]="dropdownList"
+          [config]="{
+            rememberSelection: false,
+            divider: 'line',
+          }"
+          [position]="{
+            px: 'right',
+            py: 'bottom'
+          }"
+          class="game-header-left"
+        >
+          <app-custom-button btn 
+            theme="hover-only-gray" 
+            rounded="full" [size]="'symbol'"
+          >
+            <app-icon
+              [icon]="'MenuDots'"
+              [size]="24"
+            />
+          </app-custom-button>
+        </app-dropdown>
+      </div>
+    </div>
+
+    <!-- KEYWORDS -->
+    <div class="flex gap-2">
+      @for(keyword of module.keywords; track keyword) {
+        <a class="keyword-block" [href]="`${keyword.slug}`">{{keyword.title}}</a>
+      }
+    </div>
+
+    <!-- GAME MODS -->
+    <div class="w-full flex gap-4">
+      <app-custom-button
+        class="w-1/3"
+        className="w-full"
+        rounded="md" theme="secondary"
+        (click)="changeGameMode('match')"
+      >
+        <app-icon [size]="24" [icon]="'Notes'" [fill]="'var(--accent)'" />
+        Підбір
+      </app-custom-button>
+      <app-custom-button
+        class="w-1/3"
+        className="w-full"
+        rounded="md" theme="secondary"
+        (click)="changeGameMode('test')"
+      >
+        <app-icon [size]="24" [icon]="'Document'" [fill]="'var(--accent)'" />
+        Тестування
+      </app-custom-button>
+    </div>
+
+    <app-quiz-cards class="w-full" [cards]="module.cards" [config]="{progressBar: true, dualBtn: true}" />
+
+    <!-- AUTHOR -->
+    <div class="flex w-full justify-between items-center">
+      <div class="flex gap-4 items-center">
+        <app-avatar [name]="'User67'" />
+        <div class="flex flex-col">
+          <span class="text-xs m-0 text-[#99a1af]">Автор</span>
+          <a href="" class="font-medium text-[var(--accent)] hover:underline">User67</a>
+        </div>
+      </div>
+
+      <app-custom-button>
+        Підписатись
+      </app-custom-button>
+    </div>
+    
+    <app-cards-overview [cards]="module.cards" class="w-full"/>
+  </div>
+}

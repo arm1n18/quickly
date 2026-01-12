@@ -1,0 +1,109 @@
+<div class="flex flex-col gap-4 w-full min-h-screen bg-(--background) items-center">
+    <div class="sticky z-1 top-0 w-full">
+        <div class="game-header">
+
+        <app-dropdown 
+            [list]="dropdownList"
+            [config]="{title: 'Картки', divider: 'line', icon: {
+              name: 'Slider',
+              color: 'var(--accent)'
+            }}" 
+            class="game-header-left"
+        />
+
+        <div class="justify-self-center flex flex-col items-center">
+            <div>{{ currentCardIndex()+1 }}/{{ this.module.cards.length }}</div>
+            <div>{{ module.title }}</div>
+        </div>
+        <div class="flex gap-2 game-header-right">
+            @if(true) {
+            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
+                <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'" />
+            </app-custom-button>
+            } @else {
+            <app-custom-button theme="secondary" rounded="full">
+                Вхід
+            </app-custom-button>
+            <app-custom-button rounded="full">
+                Зареєструватись
+            </app-custom-button>
+            }
+            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+                <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+            </app-custom-button>
+        </div>
+        </div>
+        <div class="w-full h-px rounded-3xl bg-(--secondary)">
+        <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
+        </div>
+    </div>
+
+    <app-quiz-cards [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
+</div>
+
+<app-modal [show]="show.showSettingsModal" (shownChange)="show.showSettingsModal = $event">
+  <div header>
+    Параметри
+  </div>
+  <div main class="flex flex-col gap-4">
+
+    <div class="w-full flex justify-between items-center">
+      Передня сторона
+      <app-dropdown [list]="dropdownList2" [config]="{divider: 'line'}" [position]="{px: 'right', py: 'bottom'}" />
+    </div>
+
+    <div class="w-full flex justify-between items-center">
+      Показувати обидві сторони карток
+      <label [class]="'switch'">
+        <input
+          [type]="'checkbox'"
+          [checked]="config.dualCard"
+          (click)="config.dualCard = !config.dualCard"
+        />
+        <span [class]="'slider round'"></span>
+      </label>
+    </div>
+
+    <div class="w-full h-px bg-(--secondary)"></div>
+
+    <div class="w-full flex flex-col gap-4">
+      <div class="w-full flex justify-between items-center">
+        Поєднання клавіш
+        <div class="flex items-center gap-2 text-[var(--accent)] cursor-pointer" (click)="show.shortcut = !show.shortcut">
+          Переглянути
+          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#4765FF'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
+        </div>
+      </div>
+      <div [class]="'w-full grid grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': !show.shortcut}">
+        <div class="flex w-full justify-between">
+            Повернутись
+            <kbd class="kbd">←</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Перемішати
+            <kbd class="kbd">S</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Далі
+            <kbd class="kbd">→</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Аудіо
+            <kbd class="kbd">A</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Перегорунти
+            <kbd class="kbd">Пробіл</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Підказка
+            <kbd class="kbd">C</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Автовідтворення
+            <kbd class="kbd">P</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-modal>

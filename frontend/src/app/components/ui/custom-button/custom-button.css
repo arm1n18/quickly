@@ -1,0 +1,109 @@
+/* .btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  height: 44px;
+  gap: 8px;
+} */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+}
+
+.btn.symbol {
+  width: 44px;
+  padding: 0;
+}
+
+.btn.dual-child {
+  min-height: 36px;
+  width: 44px;
+  padding: 0;
+}
+
+.btn.text {
+  padding: 0 1rem;
+}
+
+.btn.secondary {
+  color: var(--accent);
+  background-color: var(--secondary);
+}
+
+.btn.secondary:hover {
+  background-color: var(--hover-secondary);
+}
+
+.btn.primary {
+  color: #fff;
+  background-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background-color: var(--hover-accent);
+}
+
+.btn.lime {
+  color: #000;
+  background-color: var(--accent-lime);
+}
+
+.btn.lime:hover {
+  background-color: var(--hover-accent);
+}
+
+.btn.hover-only {
+  color: var(--accent);
+}
+
+.btn.hover-only:hover {
+  background-color: var(--secondary);
+}
+
+.btn.hover-only-gray {
+  fill: #99a1af;
+  color: #99a1af;
+}
+
+.btn.hover-only-gray:hover {
+  color: var(--accent);
+  fill: var(--accent);
+  background-color: var(--secondary);
+}
+
+.rounded-none {
+  border-radius: 0 !important;
+}
+
+.rounded-md {
+  border-radius: 1rem;
+}
+
+.rounded-full {
+  border-radius: 100px;
+}
+
+.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.rounded-right-sm {
+  border-radius: 1.5rem 0.5rem 0.5rem 1.5rem;
+}
+
+.rounded-left-sm {
+  border-radius: 0.5rem 1.5rem 1.5rem 0.5rem;
+}
+
+.rounded-sm {
+  border-radius: 0.5rem;
+}

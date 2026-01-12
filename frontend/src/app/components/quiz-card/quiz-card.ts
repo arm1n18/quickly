@@ -1,0 +1,99 @@
+import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
+import  { Icon } from '../ui'
+import { NgClass } from '@angular/common';
+import {Card} from '../../interfaces/quizCard.interface';
+import { ImageModalDirective } from "../../directives/imageDirective/image-modal-directive";
+
+@Component({
+  selector: 'app-quiz-card',
+  imports: [Icon, NgClass, ImageModalDirective],
+  templateUrl: './quiz-card.html',
+  styleUrl: './quiz-card.css'
+})
+
+export class QuizCard implements OnChanges {
+  @Input({ required: true }) cardInput: Card | undefined = undefined;
+  @Input() fullScreen: boolean = false;
+  @Input() dualCard: boolean = false;
+
+  public animationClass: WritableSignal<string> = signal('');
+  private isChanged:  WritableSignal<boolean> = signal(false);
+
+  public isFlipped: WritableSignal<boolean> = signal(false);
+  public noTransition = false;
+  public showClue: WritableSignal<boolean> = signal(false);
+
+  public toggleFlip(skipDuringAutoPlay: boolean = false) {
+    if(skipDuringAutoPlay && this.isFlipped()) return
+
+    this.isFlipped.set(!this.isFlipped())
+
+    if (this.showClue()) {
+      this.showClue.set(!this.showClue())
+    }
+  }
+
+  public toggleClue(event: Event) {
+    event.stopPropagation();
+    this.showClue.set(!this.showClue())
+  }
+
+  public speakText(event: Event) {
+    if (this.cardInput) {
+      event.stopPropagation();
+
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(!this.isFlipped ? this.cardInput.title.text : this.cardInput.description.text);
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  public triggerSlideInAnimation(action: 'right' | 'left') {
+    this.animationClass.set(action === 'right' ? 'slide-in-right' : 'slide-in-left');
+    this.noTransition = true;
+    setTimeout(() => {
+      this.noTransition = false;
+    }, 0);
+    setTimeout(() => {
+      this.animationClass.set('');
+    }, 200);
+  }
+
+  get getClue(): string {
+    if(this.cardInput && this.cardInput.description.text) {
+      const mA = this.cardInput.description.text.split(" ")
+
+      const len = mA.length;
+
+      if (len > 2) {
+        if((mA[0].length + mA[1].length) >= 15) {
+          return `${mA[0]} ${'.'.repeat(mA[1].length-1)}`
+        } else {
+          return`${mA[0]} ${mA[1]} ${'.'.repeat(mA[2].length-1)}`
+        }
+      } else if (len === 2) {
+        return `${mA[0]} ${'.'.repeat(mA[1].length-1)}`
+      } else if (len === 1) {
+        return `${mA[0][0]}${'.'.repeat(mA[0].length-1)}`
+      }
+    }
+
+    return ""
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['cardInput']) {
+      this.isFlipped.set(false)
+      this.showClue.set(false)
+      this.isChanged.set(true);
+
+      setTimeout(() => {
+        this.isChanged.set(false);
+      }, 0)
+    }
+  }
+}

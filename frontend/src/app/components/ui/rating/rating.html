@@ -1,0 +1,15 @@
+@if(singleStar) {
+    <app-icon [size]="24" [icon]="'Star'" [fill]="'var(--accent)'" />
+} @else {
+    <div class="flex gap-0.5">
+        @for(star of stars; track star.id) {
+            <app-icon [size]="24" [icon]="'Star'" [fill]="star.fill" />
+        }
+    </div>
+}
+<span class="text-[#99a1af]">
+    {{rating}}
+    @if(votes && votes > 0) {
+        ({{votes}})
+    }
+</span>
