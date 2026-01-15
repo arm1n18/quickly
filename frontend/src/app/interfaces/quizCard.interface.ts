@@ -1,5 +1,10 @@
 export type GameMode = 'default' | 'match' | 'test' | 'flashcards'
 
+interface Keyword {
+  name: string;
+  slug: string;
+}
+
 type MediaType = 'audio' | 'video' | 'image'
 
 interface Media {
@@ -8,25 +13,27 @@ interface Media {
   alt?: string;
 }
 
-interface Keyword {
-  title: string;
-  slug: string;
-}
-
 export interface ContentBlock {
   text?: string;
   media?: Media;
 }
 
-export interface Module {
-  title: string;
-  keywords?: Keyword[];
-  cards: Card[];
-}
-
 export interface Card {
   title: ContentBlock;
   description: ContentBlock;
+}
+
+interface Author {
+  name: string;
+}
+
+export interface Module {
+  id: number;
+  title: string;
+  slug: string;
+  author: Author;
+  keywords: Keyword[] | null;
+  cards: Card[];
 }
 
 export interface MatchCard {
@@ -70,7 +77,7 @@ export interface TestResult {
 }
 
 export type TestMap = {
-  qa: TestQACard[];
+  choose: TestQACard[];
   tf: TestTFCard[];
   input: TestInputCard[];
   match: {

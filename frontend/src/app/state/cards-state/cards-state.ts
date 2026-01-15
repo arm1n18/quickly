@@ -5,6 +5,7 @@ import {BehaviorSubject} from 'rxjs';
 @Injectable({
   providedIn: 'root'
 })
+
 export class CardsState {
   private _module$ = new BehaviorSubject<Module | null>(null);
   module$ = this._module$.asObservable();

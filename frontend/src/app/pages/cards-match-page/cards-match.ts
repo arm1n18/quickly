@@ -27,18 +27,23 @@ export class CardsMatch implements OnInit {
   matchedQT: WritableSignal<number> = signal(0);
   timer: WritableSignal<{ s: number, ms: number }> = signal({ s: 0, ms: 0 });
 
-  module: Module | undefined;
+  private currentModule: WritableSignal<Module | null> = signal(null);
 
-  dropdownList: DropdownItem[][] = [
+  public dropdownList: DropdownItem[][] = [
     [
       { title: 'Картки', onClick: () => this.changeGameMode('flashcards'), icon : {
         name: 'Slider',
         color: 'var(--accent)'
       } },
+      { title: 'Підбір', preselected: true, onClick: () => this.changeGameMode('match'), icon: {
+        name: 'Notes',
+        color: 'var(--accent)'
+      } },
       { title: 'Тестування', onClick: () => this.changeGameMode('test'), icon: {
         name: 'Document',
         color: 'var(--accent)'
-      } }],
+      } }
+    ],
     [
       { title: 'Головна', onClick: () => this.changeGameMode('default'), icon: {
         name: 'House',
@@ -46,7 +51,7 @@ export class CardsMatch implements OnInit {
       } },
       { title: 'Пошук', onClick: () => this.changeGameMode('default') }
     ]
-  ]
+  ];
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -56,7 +61,8 @@ export class CardsMatch implements OnInit {
   ) {}
 
   generateMatchCards() {
-    const randomArray = this.shuffleCards(this.module!.cards).slice(0, 6);
+    const randomArray = this.shuffleCards(this.currentModule()!.cards).slice(0, 6);
+
     this.MatchCards.set(
       this.shuffleCards(randomArray.flatMap((card, id) => [{
         id: `${id}-q`,
@@ -189,8 +195,12 @@ export class CardsMatch implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cardsState.module$.subscribe(module => {if(module)this.module = module});
-    this.generateMatchCards();
-    this.startTimer();
+    this.cardsState.module$.subscribe(module => {
+      if(!module) return 
+      this.currentModule.set(module);
+
+      this.generateMatchCards();
+      this.startTimer();
+    });
   }
 }

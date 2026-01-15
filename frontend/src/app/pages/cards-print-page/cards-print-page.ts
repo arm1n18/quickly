@@ -13,26 +13,4 @@ import { CardsState } from '../../state/cards-state/cards-state';
 export class CardsPrintPage {
   @ViewChild('printSection') printSection!: ElementRef;
   pdfDataUrl: string | null = null;
-  
-  module: Module= {title: '', cards: [], keywords: []};
-  
-  constructor(
-    private cardsState: CardsState,
-    
-  ) {}
-
-  generatePdf() {
-
-  }
-
-  
-  ngOnInit(): void {
-    combineLatest([this.cardsState.module$]).subscribe(([module]) => {
-
-      if(!module) return
-
-      this.module = module;
-
-    });
-  }
 }

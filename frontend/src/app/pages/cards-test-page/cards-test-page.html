@@ -1,7 +1,8 @@
-<div class="w-full min-h-screen bg-(--background)">
+@if(getModule; as module) {
+  <div class="w-full min-h-screen bg-(--background)">
   <header class="sticky z-1 top-0 w-full">
     <div class="game-header">
-
+      
       <app-dropdown 
         [list]="dropdownList"
         [config]="{title: 'Тестування', divider: 'line', icon: {
@@ -12,7 +13,7 @@
       />
 
       <div class="justify-self-center flex flex-col items-center">
-        <div>{{ showConfig.showAnswers ? result.correct.length : result.answered }} / {{ testConfig().maxQuestions }}</div>
+        <div>{{ showConfig.showAnswers ? getResult.correct.length : getResult.answered }} / {{ testConfig().maxQuestions }}</div>
         <div>{{ module.title }}</div>
       </div>
       <div class="flex gap-2 game-header-right">
@@ -37,7 +38,7 @@
       </div>
     </div>
     <div class="w-full h-px rounded-3xl bg-(--secondary)">
-      <div [ngStyle]="{ 'width': (Math.min(result.answered / testConfig().maxQuestions, 1) * 100)+ '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
+      <div [ngStyle]="{ 'width': (Math.min(getResult.answered / testConfig().maxQuestions, 1) * 100)+ '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
     </div>
   </header>
 
@@ -47,21 +48,21 @@
         <div>{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
 
         <div class="flex gap-8 items-center">
-          <app-doughnut-chart [correct]="result.correct.length" [incorrect]="result.incorrect.length" />
+          <app-doughnut-chart [correct]="getResult.correct.length" [incorrect]="getResult.incorrect.length" />
           <div class="flex flex-col w-60 gap-2">
             <div class="text-[#4765FF] flex justify-between">
               <div class="flex gap-2 items-center">
                 <app-icon [icon]="'Check'" [size]="24" [stroke]="'#4765FF'" [fill]="'transparent'"/>
                 Правильно
               </div>
-            <div class="bg-[#EEF0FF] border-[#4765FF] border rounded-xl flex justify-center w-14">{{result.correct.length}}</div>
+            <div class="bg-[#EEF0FF] border-[#4765FF] border rounded-xl flex justify-center w-14">{{getResult.correct.length}}</div>
             </div>
             <div class="flex justify-between text-[#A7B2FF]">
               <div class="flex gap-2 items-center">
                 <app-icon [icon]="'Cross'" [size]="24" [fill]="'#A7B2FF'" />
                 Неправильно
               </div>
-              <div class="bg-[#EEF0FF] text-[#4765FF] border-[#A7B2FF] border rounded-xl flex justify-center w-14">{{result.incorrect.length}}</div>
+              <div class="bg-[#EEF0FF] text-[#4765FF] border-[#A7B2FF] border rounded-xl flex justify-center w-14">{{getResult.incorrect.length}}</div>
             </div>
           </div>
         </div>
@@ -70,31 +71,31 @@
 
     @switch(testConfig().mode) {
       @case("choose") {
-        @for(question of getTest('qa'); let i = $index; let len = $count; track question) {
+        @for(question of tests().choose; let i = $index; let len = $count; track question.question) {
           <app-test-choose-question
             #questionRef
             [question]="question"
             [numeration]="{ pos: i+1, from: len }"
             (questionChange)="toggleSelectAnswer(i, $event)"
             [showAnswer]="showConfig.showAnswers"
-            [answered]="result.answers[i]"
+            [answered]="getResult.answers[i]"
           />
         }
       }
       @case("true-false") {
-        @for(question of getTest('tf'); let i = $index; let len = $count; track question) {
+        @for(question of tests().tf; let i = $index; let len = $count; track question) {
           <app-test-tf-question
             #questionRef
             [question]="question"
             [numeration]="{ pos: i+1, from: len }"
             (questionChange)="toggleSelectAnswer(i, $event)"
             [showAnswer]="showConfig.showAnswers"
-            [answered]="(result.answers[i] == undefined || result.answers[i] == '') ? undefined : result.answers[i] == 'true'"
+            [answered]="(getResult.answers[i] == undefined || getResult.answers[i] == '') ? undefined : getResult.answers[i] == 'true'"
           />
         }
       }
       @case("input") {
-        @for(question of getTest('input'); let i = $index; let len = $count; track question) {
+        @for(question of tests().input; let i = $index; let len = $count; track question) {
           <app-test-input-question
             #questionRef
             [question]="question"
@@ -102,15 +103,15 @@
             (questionChange)="toggleSelectAnswer(i, $event)"
             (nextQuestion)="scrollToNextQuestion(i)"
             [showAnswer]="showConfig.showAnswers"
-            [answered]="result.answers[i]"
+            [answered]="getResult.answers[i]"
           />
         }
       }
-      @case("matching") {
+      @case("match") {
         <app-test-match-question 
-          [questions]="getTest('match')"
+          [questions]="tests().match"
           [showAnswer]="showConfig.showAnswers"
-          [answered]="result.answers"
+          [answered]="getResult.answers"
           (questionChange)="toggleSelectAnswer($event.index, $event.answer)"
         />
       }
@@ -172,9 +173,9 @@
       <label [class]="'switch'">
         <input
           [type]="'checkbox'"
-          [checked]="tempTestConfig.mode == 'matching'"
-          [disabled]="tempTestConfig.mode == 'matching'"
-          (click)="tempTestConfig.mode = 'matching'"
+          [checked]="tempTestConfig.mode == 'match'"
+          [disabled]="tempTestConfig.mode == 'match'"
+          (click)="tempTestConfig.mode = 'match'"
         />
         <span [class]="'slider round'"></span>
       </label>
@@ -239,3 +240,5 @@
     </app-custom-button>
   </div>
 </app-modal>
+
+}

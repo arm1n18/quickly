@@ -14,7 +14,7 @@ export interface DropdownItem {
   preselected?: boolean;
 }
 
-interface DropdownConfig {
+export interface DropdownConfig {
   title: string;
   divider: DividerType;
   rememberSelection: boolean;

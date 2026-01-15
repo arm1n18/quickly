@@ -9,15 +9,19 @@ import { MainLayout } from "../../layouts/main-layout/main-layout";
 import { copyToClipboard } from '../../utils/clipboard';
 import { Avatar } from "../../components/ui/avatar/avatar";
 import { Rating } from "../../components/ui/rating/rating";
+import { Observable } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
+  standalone: true,
   selector: 'app-cards-page',
-  imports: [CardsOverview, CustomButton, QuizCards, MainLayout, Icon, Dropdown, Avatar, Rating],
+  imports: [AsyncPipe, CardsOverview, CustomButton, QuizCards, MainLayout, Icon, Dropdown, Avatar, Rating],
   templateUrl: './cards-page.html',
   styleUrl: './cards-page.css'
 })
 export class CardsPage implements OnInit {
-  module: Module | undefined;
+  module$!: Observable<Module | null>;
+
   dropdownList: DropdownItem[][] = [
     [
       {title: 'Створити копію', icon: {
@@ -53,6 +57,6 @@ export class CardsPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cardsState.module$.subscribe(module => {if(module) this.module = module})
+    this.module$ = this.cardsState.module$
   }
 }
