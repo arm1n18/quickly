@@ -87,3 +87,15 @@ export type TestMap = {
 }; 
 
 export type TestItem<T> = T extends (infer R)[] ? R : never
+
+export interface UserModule {
+  id: number;
+  title: string;
+  slug: string;
+  objects: number;
+  hasImages: boolean;
+}
+
+export interface UserModules {
+  modules: UserModule[];
+}

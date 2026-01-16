@@ -1,0 +1,89 @@
+import { Component, OnInit, signal, WritableSignal } from '@angular/core';
+import { ActivatedRoute, Router, RouterOutlet } from "@angular/router";
+import { Avatar } from "../../components/ui/avatar/avatar";
+import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { Segment, SegmentedControls } from "../../components/ui/segmented-controls/segmented-controls";
+import { CustomInput } from "../../components/ui/custom-input/custom-input";
+import { ApiService } from '../../services/api/api.service';
+import { UserInfo } from '../../interfaces/user.interface';
+import { UserModule } from '../../components/user-modules-component/user-modules-component';
+import { UserFolder } from '../../components/user-folders-component/user-folders-component';
+import { UserStoreService } from '../../services/userStoreService/user-store-service';
+import { Observable, Subject } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+
+@Component({
+  selector: 'app-user-profile',
+  imports: [AsyncPipe, Avatar, MainLayout, SegmentedControls, CustomInput, RouterOutlet],
+  templateUrl: './user-profile.html',
+  styleUrl: './user-profile.css',
+})
+
+export class UserProfile implements OnInit {
+  public selectedSegment: number = 0;
+  public user$!: Observable<UserInfo | null>;
+
+  private username = ""
+  
+  public modules: WritableSignal<UserModule[]> = signal([{
+    id: 1,
+    title: 'Біологія',
+    slug: 'da',
+    objects: 1,
+    hasImages: false
+  }]);
+  public folders: WritableSignal<UserFolder[]> = signal([{
+    title: 'Природничі науки',
+    slug: 'da',
+    objects: 1,
+  }]);
+
+  public segments: Segment[] = [
+    { title: 'Модулі' },
+    { title: 'Папки' }
+  ]
+
+  constructor(
+    private store: UserStoreService, 
+    private apiService: ApiService, 
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  public onSegmentChange(index: number) {
+    this.selectedSegment = index;
+    this.router.navigate(
+      [index === 0 ? 'modules' : 'folders'],
+      { relativeTo: this.route }
+    )
+  }
+
+  public searchByName(text: string) {
+    if(this.selectedSegment == 0) {
+      this.apiService.module.getUserModules(this.username, text)
+        .subscribe(modules => this.store.setModules(modules.modules))
+    } else {
+      this.apiService.folder.getUserFolders(this.username, text)
+        .subscribe(folders => this.store.setFolders(folders.folders))
+    }
+  }
+
+  ngOnInit() {
+    this.user$ = this.store.user$;
+
+    this.route.url.subscribe(segments => {
+      this.selectedSegment = segments.at(-1)?.path === "folders" ? 1 : 0; 
+    })
+
+    this.username = this.route.snapshot.paramMap.get('username')!
+
+    this.apiService.user.getUserProfile(this.username)
+      .subscribe(user => this.store.setUser(user))
+
+    this.apiService.folder.getUserFolders(this.username)
+      .subscribe(folders => this.store.setFolders(folders.folders))
+
+    this.apiService.module.getUserModules(this.username)
+      .subscribe(modules => this.store.setModules(modules.modules))
+  }
+}

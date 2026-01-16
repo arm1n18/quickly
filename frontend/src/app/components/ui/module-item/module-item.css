@@ -1,0 +1,11 @@
+:host {
+    display: flex;
+    padding: 14px;
+    gap: 1rem;
+    border: 2px solid var(--secondary);
+    border-radius: 1rem;
+    background-color: var(--lightGrey);
+    align-items: center;
+    cursor: pointer;
+    width: 100%;
+}

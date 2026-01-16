@@ -24,8 +24,8 @@ func (m *ModuleService) GetModule(ctx context.Context, id int) (*model.Module, e
 	return m.repo.FetchModule(ctx, id)
 }
 
-func (m *ModuleService) GetUserModules(ctx context.Context, username string, lastId int) (*model.UserModules, error) {
-	return m.repo.FetchUserModules(ctx, username, lastId)
+func (m *ModuleService) GetUserModules(ctx context.Context, username string, queryParams module.Query) (*model.UserModules, error) {
+	return m.repo.FetchUserModules(ctx, username, queryParams)
 }
 
 func (m *ModuleService) GetModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error) {

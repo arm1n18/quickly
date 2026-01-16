@@ -19,7 +19,7 @@ export class CustomInput {
   @Input() icon: Partial<{show:boolean, name: Icons}> = {};
   @Output() inputChange = new EventEmitter<any>();
   private input$ = new Subject<string>();
-  focused: boolean = false
+  public focused: boolean = false
 
   constructor(private elementRef: ElementRef) {
     this.input$.pipe(debounceTime(500), takeUntilDestroyed()).subscribe(value => {
@@ -27,7 +27,7 @@ export class CustomInput {
     })
   }
 
-  onInputChange(event: Event) {
+  public onInputChange(event: Event) {
     const newValue = (event.target as HTMLInputElement).value
     this.value = newValue
     this.input$.next(newValue)
@@ -39,7 +39,6 @@ export class CustomInput {
     this.focused = clickedInside
 
     const input = this.elementRef.nativeElement.querySelector('input')
-    console.log(true)
 
     if(input) {
       if(clickedInside){

@@ -1,0 +1,26 @@
+:host {
+    display: flex;
+    background-color: var(--secondary);
+    height: 2.75rem;
+    width: fit-content;
+    border-radius: calc(infinity * 1px);
+    overflow: hidden;
+}
+
+.segment {
+    display: flex;
+    align-items: center;
+    padding: 0.25rem 2rem;
+    border-radius: calc(infinity * 1px);
+    color: var(--accent);
+    cursor: pointer;
+}
+
+.segment:hover {
+    background-color: var(--secondary2);
+}
+
+.segment.selected {
+    background-color: var(--accent);
+    color: #FFF;
+}

@@ -96,9 +96,6 @@
           @case ("audio") {
             <audio src="{{ question!.answer.media?.content }}"></audio>
           }@case ("video") {
-
-            <!--TODO-->
-
             <video width="96" height="96" class="object-cover media-block" src="{{ question!.answer.media?.content }}"></video>
           }@case ("image") {
             <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.answer.media?.content + ')'"></div> -->

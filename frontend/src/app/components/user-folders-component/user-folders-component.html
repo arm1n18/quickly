@@ -1,0 +1,11 @@
+@if(folders$ | async; as folders) {
+    @for(folder of folders; track folder) {
+        <app-module-item [module]="{
+            title: folder.title,
+            objects: folder.objects,
+            hasImage: false,
+            type: 'Folder',
+            href: ''
+        }" />
+    }
+}

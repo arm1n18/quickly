@@ -1,0 +1,9 @@
+@for(segment of segments; track segment; let id = $index) {
+    <div 
+        class="segment" 
+        [ngClass]="{'selected': id == selected}"
+        (click)="selectSegment(id)"
+    >
+        <span>{{segment.title}}</span>
+    </div>
+}

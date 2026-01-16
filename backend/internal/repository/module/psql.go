@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"web-quiz/internal/model"
 	"web-quiz/internal/utils"
@@ -9,11 +10,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Query struct {
+	Name   string
+	LastId int
+}
+
 type ModuleRepository interface {
 	FetchModule(ctx context.Context, id int) (*model.Module, error)
 	FetchModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error)
 	FetchModulesByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummary, error)
-	FetchUserModules(ctx context.Context, username string, lastId int) (*model.UserModules, error)
+	FetchUserModules(ctx context.Context, username string, queryParams Query) (*model.UserModules, error)
 
 	InsertKeywords(ctx context.Context, keywords []string) error
 }
@@ -259,7 +265,7 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 	return &model.ModulesSummary{Modules: modules}, nil
 }
 
-func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, lastId int) (*model.UserModules, error) {
+func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, queryParams Query) (*model.UserModules, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -268,6 +274,7 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, last
 	defer conn.Release()
 
 	args := []interface{}{username}
+	placeholder := 2
 
 	query := `SELECT
 		m.module_id as id,
@@ -287,9 +294,16 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, last
 		u.username = $1
 	`
 
-	if lastId > 0 {
-		query += ` AND m.module_id < $2`
-		args = append(args, lastId)
+	if len(queryParams.Name) > 0 {
+		query += fmt.Sprintf(" AND m.title ILIKE '%%' || $%d || '%%'", placeholder)
+		args = append(args, queryParams.Name)
+		placeholder++
+	}
+
+	if queryParams.LastId > 0 {
+		query += fmt.Sprintf(" AND m.module_id > $%d", placeholder)
+		args = append(args, queryParams.LastId)
+		placeholder++
 	}
 
 	query += ` ORDER BY m.module_id LIMIT 10`

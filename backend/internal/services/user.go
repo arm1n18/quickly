@@ -24,8 +24,8 @@ func (u *UserService) GetUserProfile(ctx context.Context, username string) (*mod
 	return u.repo.FetchUserProfile(ctx, username)
 }
 
-func (u *UserService) GetUserFolders(ctx context.Context, username string) (*model.FoldersSummary, error) {
-	return u.repo.FetchUserFolders(ctx, username)
+func (u *UserService) GetUserFolders(ctx context.Context, username string, queryParams user.Query) (*model.FoldersSummary, error) {
+	return u.repo.FetchUserFolders(ctx, username, queryParams)
 }
 
 func (u *UserService) GetFolder(ctx context.Context, username, slug string) (*model.Folder, error) {

@@ -1,0 +1,24 @@
+<app-main-layout/>
+
+<div class="w-full min-h-screen bg-(--background)">
+    <div class="max-w-200 w-full mx-auto py-9 flex flex-col gap-8">
+        @if(user$ | async; as userInfo) {
+            <div class="flex gap-4 items-center">
+                <app-avatar [name]="userInfo.name" [avatarUrl]="userInfo.avatar ?? undefined" />
+                <a [href]="`/user/${userInfo.name}`" class="font-medium hover:underline">{{userInfo.name}}</a>
+            </div>
+        }
+
+        <app-segmented-controls [segments]="segments" (selectedSegment)="onSegmentChange($event)"/>
+
+        <div class="flex flex-col gap-4">
+            <app-custom-input 
+                [title]="selectedSegment == 0 ? 'Пошук модулів' : 'Пошук папок'" 
+                [icon]="{show: true, name: 'Search'}"
+                (inputChange)="searchByName($event)"
+            />
+            <router-outlet></router-outlet>
+        </div>
+
+    </div>
+</div>

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"web-quiz/internal/repository/module"
 	"web-quiz/internal/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -66,12 +67,13 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool) {
 
 	router.Get("/user/:username", func(c *fiber.Ctx) error {
 		username := c.Params("username")
+		name := c.Query("name")
 		lastId, err := strconv.Atoi(c.Query("lastId"))
 		if err != nil {
 			lastId = 0
 		}
 
-		modules, err := svc.GetUserModules(c.Context(), username, lastId)
+		modules, err := svc.GetUserModules(c.Context(), username, module.Query{Name: name, LastId: lastId})
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Помилка запиту до бази даних",

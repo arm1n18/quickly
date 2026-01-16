@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
+	"web-quiz/internal/repository/user"
 	"web-quiz/internal/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -26,8 +28,13 @@ func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
 
 	router.Get("/:username/folders", func(c *fiber.Ctx) error {
 		username := c.Params("username")
+		name := c.Query("name")
+		lastId, err := strconv.Atoi(c.Query("lastId"))
+		if err != nil {
+			lastId = 0
+		}
 
-		folders, err := svc.GetUserFolders(c.Context(), username)
+		folders, err := svc.GetUserFolders(c.Context(), username, user.Query{Name: name, LastId: lastId})
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Помилка запиту до бази даних",

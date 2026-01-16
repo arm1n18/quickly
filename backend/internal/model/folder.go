@@ -15,6 +15,5 @@ type FolderSummary struct {
 }
 
 type FoldersSummary struct {
-	Author  Author          `json:"author"`
 	Folders []FolderSummary `json:"folders"`
 }
