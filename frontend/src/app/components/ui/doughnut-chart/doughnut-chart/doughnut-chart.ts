@@ -18,7 +18,7 @@ export class DoughnutChart implements OnChanges {
     data: {
         datasets: [{
         data: [this.correct, this.incorrect],
-        backgroundColor: ['#4765FF', '#A7B2FF'],
+        backgroundColor: ['#6d4aff', '#A7B2FF'],
         hoverBorderWidth: 0,
         hoverOffset: 0,
         borderWidth: 0,
@@ -59,7 +59,7 @@ export class DoughnutChart implements OnChanges {
         ctx.font = '500 32px "Roboto"';
         // ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#4765FF';
+        ctx.fillStyle = '#6d4aff';
         ctx.fillText(text, centerX, centerY);
         ctx.restore();
       }

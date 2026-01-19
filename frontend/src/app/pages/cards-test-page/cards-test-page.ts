@@ -108,7 +108,6 @@ export class CardsTestPage implements OnInit, OnDestroy {
         name: 'House',
         color: 'var(--accent)'
       } },
-      { title: 'Пошук', onClick: () => this.changeGameMode('default') }
     ]
   ];
 

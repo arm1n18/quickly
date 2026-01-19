@@ -1,7 +1,7 @@
 import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {NgClass} from '@angular/common';
 
-export type ButtonTheme = 'primary' | 'secondary' | 'hover-only' | 'hover-only-gray'
+export type ButtonTheme = 'primary' | 'secondary' | 'hover-only' | 'hover-only-dark'
 
 @Component({
   selector: 'app-custom-button',

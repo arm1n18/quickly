@@ -18,6 +18,7 @@ export class CustomInput {
   @Input() width: string = '100%'
   @Input() icon: Partial<{show:boolean, name: Icons}> = {};
   @Output() inputChange = new EventEmitter<any>();
+  @Output() inputFocused = new EventEmitter<boolean>();
   private input$ = new Subject<string>();
   public focused: boolean = false
 
@@ -33,7 +34,7 @@ export class CustomInput {
     this.input$.next(newValue)
   }
 
-  @HostListener('document:mousedown', ['$event'])
+  @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const clickedInside = this.elementRef.nativeElement.contains(event.target)
     this.focused = clickedInside
@@ -43,8 +44,10 @@ export class CustomInput {
     if(input) {
       if(clickedInside){
         input.focus()
+        this.inputFocused.emit(true);
       } else {
         input.blur();
+        this.inputFocused.emit(false);
       }
     }
   }

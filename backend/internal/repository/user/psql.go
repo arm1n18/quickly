@@ -149,7 +149,7 @@ func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*mod
 		&folder.Modules,
 	)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
+		log.Printf("error query folder: %v\n", err)
 		return nil, err
 	}
 

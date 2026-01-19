@@ -1,13 +1,33 @@
 @if(module) {
-    <app-icon [size]="24" [icon]="module.type == 'Module' ? 'Notes' : 'Folder'" fill="var(--accent)" />
+    <div class="flex gap-4 items-center">
+        <app-icon [size]="24" [icon]="module.type == 'Module' ? 'Notes' : 'Folder'" fill="var(--accent)" />
 
-    <div class="flex gap-2 items-center">
-        <div class="flex flex-col">
-            <span>{{`${ module.type == 'Module' ? 'Карток' : 'Модулів' }: ${module.objects}`}}</span>
-            <span>{{module.title}}</span>
+        <div class="flex gap-2 items-center">
+            <div class="flex flex-col">
+                <span>{{`${ module.type == 'Module' ? 'Карток' : 'Модулів' }: ${module.objects}`}}</span>
+                <span>{{module.title}}</span>
+            </div>
+            @if(module.hasImage) {
+                <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
+            }
         </div>
-        @if(module.hasImage) {
-            <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
-        }
     </div>
+
+    @if(module.type == "Module") {
+        <div class="flex">
+            <app-custom-button [theme]="'hover-only-dark'" [size]="'symbol'">
+                <app-icon 
+                    [icon]="'Bookmark'" 
+                    [size]="24"
+                /> 
+            </app-custom-button>
+            <app-custom-button [theme]="'hover-only-dark'" [size]="'symbol'">
+                <app-icon 
+                    [icon]="'MenuDots'" 
+                    [size]="24"
+                    class="rotate-90"
+                /> 
+            </app-custom-button>
+        </div>
+    }
 }

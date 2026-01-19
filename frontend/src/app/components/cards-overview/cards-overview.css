@@ -6,6 +6,7 @@
   height: fit-content;
   padding: 1rem;
   background-color: var(--lightGrey);
+  color: var(--dark-accent);
   border-radius: 2rem;
 }
 

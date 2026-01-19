@@ -1,11 +1,15 @@
 @if(folders$ | async; as folders) {
-    @for(folder of folders; track folder) {
-        <app-module-item [module]="{
-            title: folder.title,
-            objects: folder.objects,
-            hasImage: false,
-            type: 'Folder',
-            href: ''
-        }" />
+    @if(folders.length !== 0) {
+        @for(folder of folders; track folder) {
+            <app-module-item [module]="{
+                title: folder.title,
+                objects: folder.objects,
+                hasImage: false,
+                type: 'Folder',
+                href: `/user/${username()}/folder/${folder.slug}`
+            }" />
+        }   
+        }@else {
+        <span>Нічого не знайдено</span>
     }
 }

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Module, UserModules } from '../../interfaces/quizCard.interface';
+import { Module, ModulesSummary, UserModules } from '../../interfaces/quizCard.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +14,10 @@ export class ModuleService {
 
   public getModule(id: number): Observable<Module> {
     return this.http.get<Module>(`${this.apiRoute}/${id}`)
+  }
+
+  public getModuleByName(name: string): Observable<ModulesSummary> {
+    return this.http.get<ModulesSummary>(`${this.apiRoute}/search?name=${name}`)
   }
 
   public getUserModules(username: string, name?: string, lastId?: number): Observable<UserModules> {

@@ -9,7 +9,7 @@ import { UserInfo } from '../../interfaces/user.interface';
 import { UserModule } from '../../components/user-modules-component/user-modules-component';
 import { UserFolder } from '../../components/user-folders-component/user-folders-component';
 import { UserStoreService } from '../../services/userStoreService/user-store-service';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 
 @Component({

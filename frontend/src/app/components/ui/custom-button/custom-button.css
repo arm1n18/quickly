@@ -68,12 +68,12 @@
   background-color: var(--secondary);
 }
 
-.btn.hover-only-gray {
-  fill: #99a1af;
-  color: #99a1af;
+.btn.hover-only-dark {
+  fill: var(--dark-accent);
+  color: var(--dark-accent);
 }
 
-.btn.hover-only-gray:hover {
+.btn.hover-only-dark:hover {
   color: var(--accent);
   fill: var(--accent);
   background-color: var(--secondary);
@@ -97,11 +97,11 @@
 }
 
 .rounded-right-sm {
-  border-radius: 1.5rem 0.5rem 0.5rem 1.5rem;
+  border-radius: 0.75rem 0.5rem 0.5rem 0.75rem;
 }
 
 .rounded-left-sm {
-  border-radius: 0.5rem 1.5rem 1.5rem 0.5rem;
+  border-radius: 0.5rem 0.75rem 0.75rem 0.5rem;
 }
 
 .rounded-sm {

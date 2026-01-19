@@ -1,3 +1,5 @@
+import { UserInfo } from "./user.interface";
+
 export type GameMode = 'default' | 'match' | 'test' | 'flashcards'
 
 interface Keyword {
@@ -35,6 +37,7 @@ export interface Module {
   keywords: Keyword[] | null;
   cards: Card[];
 }
+
 
 export interface MatchCard {
   id: string;
@@ -98,4 +101,17 @@ export interface UserModule {
 
 export interface UserModules {
   modules: UserModule[];
+}
+
+export interface ModuleSummary {
+  id: number;
+  title: string;
+  slug: string;
+  author: UserInfo;
+  keywords: Keyword[];
+  objects: number;
+  hasImages: boolean;
+}
+export interface ModulesSummary {
+  modules: ModuleSummary[];
 }

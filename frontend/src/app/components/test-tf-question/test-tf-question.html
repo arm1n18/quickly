@@ -7,7 +7,7 @@
          Термін
          @if(question!.question.text){
            <app-custom-button theme="hover-only" size="symbol">
-             <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText(question!.question.text, $event)"/>
+             <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText(question!.question.text, $event)"/>
            </app-custom-button>
          }
        </div>
@@ -67,7 +67,7 @@
           Визначення
           @if(question!.question.text){
             <app-custom-button theme="hover-only" size="symbol">
-              <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText(question!.answer.text!, $event)"/>
+              <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText(question!.answer.text!, $event)"/>
             </app-custom-button>
           }
         </div>
@@ -171,7 +171,7 @@
       <div class="mx-auto">Пропущено</div>
     } @else {
       <div
-        class="mx-auto text-[var(--accent)]"
+        class="mx-auto text-[var(--accent)] hover:underline"
         (click)="skipQuestion()"
         [ngClass]="{
           'opacity-50 cursor-default': showAnswer,

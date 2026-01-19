@@ -8,6 +8,7 @@ import { SelectMissingWordsPage } from './pages/select-missing-words-page/select
 import { UserProfile } from './pages/user-profile/user-profile';
 import { UserModulesComponent } from './components/user-modules-component/user-modules-component';
 import { UserFoldersComponent } from './components/user-folders-component/user-folders-component';
+import { FolderPage } from './pages/folder-page/folder-page';
 
 export const routes: Routes = [
   {
@@ -28,6 +29,10 @@ export const routes: Routes = [
         component: UserFoldersComponent
       }
     ]
+  },
+  {
+    path: 'user/:username/folder/:slug',
+    component: FolderPage,
   },
   {
     path: 'module/:id',

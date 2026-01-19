@@ -48,8 +48,8 @@ export class CardsMatch implements OnInit {
       { title: 'Головна', onClick: () => this.changeGameMode('default'), icon: {
         name: 'House',
         color: 'var(--accent)'
-      } },
-      { title: 'Пошук', onClick: () => this.changeGameMode('default') }
+        } 
+      }
     ]
   ];
 

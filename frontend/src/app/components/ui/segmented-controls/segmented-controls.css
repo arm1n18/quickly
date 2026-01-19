@@ -3,7 +3,7 @@
     background-color: var(--secondary);
     height: 2.75rem;
     width: fit-content;
-    border-radius: calc(infinity * 1px);
+    border-radius: 1rem;
     overflow: hidden;
 }
 
@@ -11,7 +11,7 @@
     display: flex;
     align-items: center;
     padding: 0.25rem 2rem;
-    border-radius: calc(infinity * 1px);
+    border-radius: 1rem;
     color: var(--accent);
     cursor: pointer;
 }

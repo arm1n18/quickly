@@ -9,23 +9,26 @@
         <div class="quiz-card-inner" 
           [class.no-transition]="noTransition"
           [class.flipped]="isFlipped()"
+          [ngClass]="{
+            'full-screen': fullScreen
+          }"
         >
           <!-- FRONT -->
           <div class="quiz-card-front" [ngClass]="animationClass()">
             
             <!-- HEADER -->  
             <div class="quiz-card-header">
-              <div class="grow">
-              @if(cardInput.description.text) {
-                <div class="clue-block" [class.selected]="showClue()" (click)="toggleClue($event)">
-                  <app-icon [icon]="'Lightbulb'" [size]="24" [fill]="!showClue() ? '#4765FF' : '#FFF'" />
-                  {{ !showClue() ? "Показати підказку" : getClue}}
-                </div>
-              }
+              <div class="grow max-md:hidden">
+                @if(cardInput.description.text) {
+                  <div class="clue-block" [class.selected]="showClue()" (click)="toggleClue($event)">
+                    <app-icon [icon]="'Lightbulb'" [size]="24" [fill]="!showClue() ? '#6d4aff' : '#FFF'" />
+                    {{ !showClue() ? "Показати підказку" : getClue}}
+                  </div>
+                }
               </div>
 
               @if(cardInput.title.text){
-                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText($event)"/>
+                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText($event)"/>
               }
             </div>
 
@@ -76,7 +79,7 @@
             <!-- HEADER -->
             @if(cardInput.description.text) {
               <div class="quiz-card-header end">
-                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText($event)"/>
+                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText($event)"/>
               </div>
             }
 
@@ -134,7 +137,7 @@
           >
             <div class="quiz-card-header">
               @if(cardInput.title.text){
-                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" class="ml-auto" (click)="speakText($event)"/>
+                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" class="ml-auto" (click)="speakText($event)"/>
               }
             </div>
 
@@ -187,7 +190,7 @@
           >
             <div class="quiz-card-header">
               @if(cardInput.description.text){
-                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" class="ml-auto" (click)="speakText($event)"/>
+                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" class="ml-auto" (click)="speakText($event)"/>
               }
             </div>
 
