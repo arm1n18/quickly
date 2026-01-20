@@ -7,12 +7,11 @@ interface Keyword {
   slug: string;
 }
 
-type MediaType = 'audio' | 'video' | 'image'
+export type MediaType = 'audio' | 'video' | 'image'
 
 interface Media {
   type: MediaType;
   content: string;
-  alt?: string;
 }
 
 export interface ContentBlock {
@@ -99,7 +98,7 @@ export interface UserModule {
   hasImages: boolean;
 }
 
-export interface UserModules {
+export interface UserModulesResponse {
   modules: UserModule[];
 }
 

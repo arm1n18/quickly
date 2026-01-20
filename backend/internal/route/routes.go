@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"web-quiz/internal/handlers"
+	handlers "web-quiz/internal/handler"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"

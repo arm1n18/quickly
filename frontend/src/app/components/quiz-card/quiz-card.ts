@@ -17,14 +17,25 @@ export class QuizCard implements OnChanges {
   @Input() dualCard: boolean = false;
 
   public animationClass: WritableSignal<string> = signal('');
+  public animate: WritableSignal<boolean> = signal(false);
   private isChanged:  WritableSignal<boolean> = signal(false);
 
   public isFlipped: WritableSignal<boolean> = signal(false);
-  public noTransition = false;
+  // public noTransition = false;
   public showClue: WritableSignal<boolean> = signal(false);
 
   public toggleFlip(skipDuringAutoPlay: boolean = false) {
     if(skipDuringAutoPlay && this.isFlipped()) return
+
+    this.animate.set(true);
+    // this.noTransition = true;
+    
+    // setTimeout(() => {
+    //   this.noTransition = false;
+    // }, 0);
+    setTimeout(() => {
+      this.animate.set(false);
+    }, 200);
 
     this.isFlipped.set(!this.isFlipped())
 
@@ -54,10 +65,11 @@ export class QuizCard implements OnChanges {
 
   public triggerSlideInAnimation(action: 'right' | 'left') {
     this.animationClass.set(action === 'right' ? 'slide-in-right' : 'slide-in-left');
-    this.noTransition = true;
-    setTimeout(() => {
-      this.noTransition = false;
-    }, 0);
+    // this.noTransition = true;
+
+    // setTimeout(() => {
+    //   this.noTransition = false;
+    // }, 0);
     setTimeout(() => {
       this.animationClass.set('');
     }, 200);

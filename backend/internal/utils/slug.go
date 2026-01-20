@@ -28,3 +28,13 @@ func Slug(str string) string {
 
 	return output.String()
 }
+
+func Contains[T any](array []T, f func(T) bool) bool {
+	for _, v := range array {
+		if f(v) {
+			return true
+		}
+	}
+
+	return false
+}

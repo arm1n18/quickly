@@ -7,6 +7,7 @@ import (
 	"web-quiz/internal/model"
 	"web-quiz/internal/utils"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,10 +17,13 @@ type Query struct {
 }
 
 type ModuleRepository interface {
-	FetchModule(ctx context.Context, id int) (*model.Module, error)
-	FetchModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error)
-	FetchModulesByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummary, error)
-	FetchUserModules(ctx context.Context, username string, queryParams Query) (*model.UserModules, error)
+	GetByID(ctx context.Context, id int) (*model.Module, error)
+	FindByName(ctx context.Context, name string, lastId int) (*model.ModulesSummaryResponse, error)
+	FindByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummaryResponse, error)
+	ListByUserID(ctx context.Context, username string, queryParams Query) (*model.UserModulesResponse, error)
+
+	CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
+	DeleteModule(ctx context.Context, userId int, moduleId int) error
 
 	InsertKeywords(ctx context.Context, keywords []string) error
 }
@@ -32,7 +36,7 @@ func NewModuleRepository(psql *pgxpool.Pool) ModuleRepository {
 	return &moduleRepo{psql: psql}
 }
 
-func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, error) {
+func (m *moduleRepo) GetByID(ctx context.Context, id int) (*model.Module, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -100,7 +104,7 @@ func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, er
 	return &module, nil
 }
 
-func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error) {
+func (m *moduleRepo) FindByName(ctx context.Context, name string, lastId int) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -176,10 +180,10 @@ func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId
 		modules = append(modules, module)
 	}
 
-	return &model.ModulesSummary{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummary, error) {
+func (m *moduleRepo) FindByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -262,10 +266,10 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 		modules = append(modules, module)
 	}
 
-	return &model.ModulesSummary{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, queryParams Query) (*model.UserModules, error) {
+func (m *moduleRepo) ListByUserID(ctx context.Context, username string, queryParams Query) (*model.UserModulesResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -333,11 +337,164 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, quer
 		modules = append(modules, module)
 	}
 
-	return &model.UserModules{Modules: modules}, nil
+	return &model.UserModulesResponse{Modules: modules}, nil
+}
+
+func (m *moduleRepo) CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
+	if len(module.Cards) == 0 {
+		return nil, fmt.Errorf("сards can not be empty")
+	}
+
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	queryCreateModule := `INSERT INTO modules 
+		(user_id, title, slug, has_images) 
+		VALUES ($1, $2, $3, $4) 
+		RETURNING module_id
+	`
+
+	var moduleId int
+	hasImages := utils.Contains(module.Cards, func(card model.CreateCard) bool {
+		return card.Title.Media.Content != nil || card.Description.Media.Content != nil
+	})
+
+	err = tx.QueryRow(ctx, queryCreateModule, userId, module.Title, utils.Slug(module.Title), hasImages).Scan(&moduleId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, card := range module.Cards {
+		if err = insertCard(tx, ctx, moduleId, card); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return &model.CreateModuleResponse{Id: moduleId}, nil
+}
+
+func (m *moduleRepo) DeleteModule(ctx context.Context, userId int, moduleId int) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	query := `DELETE FROM modules WHERE module_id = $1 AND user_id = $2`
+
+	commandTag, err := tx.Exec(ctx, query, moduleId, userId)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("module not found")
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *moduleRepo) UpdateModule(ctx context.Context, userId int, moduleId, module model.UpdateModuleRequest) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM modules WHERE module_id=$1 AND user_id=$2)", moduleId, userId).Scan(&exists)
+	if err != nil || !exists {
+		return fmt.Errorf("module not found")
+	}
+
+	if module.Title != nil {
+		cmdTag, err := tx.Exec(ctx, `UPDATE modules SET title=$1, slug=$2 WHERE module_id=$3 AND user_id=$4`,
+			module.Title, utils.Slug(*module.Title), moduleId, userId)
+		if err != nil {
+			return err
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			return fmt.Errorf("module not found")
+		}
+	}
+
+	for _, card := range module.Cards {
+		if card.Delete && card.Id != nil {
+			if err = deleteCard(tx, ctx, module.Id, *card.Id); err != nil {
+				return err
+			}
+		} else if card.Id == nil {
+			if err = insertCard(tx, ctx, module.Id, model.CreateCard{
+				Title:       card.Title,
+				Description: card.Description,
+			}); err != nil {
+				return err
+			}
+		} else {
+			if err = updateCard(tx, ctx, module.Id, card); err != nil {
+				return err
+			}
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) error {
 	if len(keywords) == 0 {
+		// add err
 		return nil
 	}
 
@@ -354,6 +511,10 @@ func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) erro
 		return err
 	}
 
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	queryInsertKw := `INSERT INTO keywords (kw_slug, is_translatable) VALUES ($1, $2) ON CONFLICT (kw_slug) DO NOTHING RETURNING kw_id`
 	queryInsertKwTranslation := `INSERT INTO keyword_translations (kw_id, lang, name) VALUES ($1, 'ua', $2) ON CONFLICT (kw_id, lang) DO NOTHING`
 
@@ -362,17 +523,70 @@ func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) erro
 
 		err := tx.QueryRow(ctx, queryInsertKw, utils.Slug(keyword), true).Scan(&kwId)
 		if err != nil {
-			tx.Rollback(ctx)
 			return err
 		}
 
 		_, err = tx.Exec(ctx, queryInsertKwTranslation, kwId, keyword)
 		if err != nil {
-			tx.Rollback(ctx)
 			return err
 		}
 	}
 
-	tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
 	return nil
+}
+
+func prepareMediaType(m *model.MediaBlock) {
+	if m.Content == nil {
+		m.Type = nil
+	} else {
+		mediaType := "image"
+		m.Type = &mediaType
+	}
+}
+
+func insertCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CreateCard) error {
+	query := `INSERT INTO module_cards
+		(module_id, title, description, title_media_type, title_media, 
+		description_media_type, description_media)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	prepareMediaType(&card.Title.Media)
+	prepareMediaType(&card.Description.Media)
+
+	_, err := tx.Exec(ctx, query, moduleId,
+		card.Title.Text, card.Description.Text, card.Title.Media.Type, card.Title.Media.Content,
+		card.Description.Media.Type, card.Description.Media.Content,
+	)
+
+	return err
+}
+
+func updateCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CardUpdate) error {
+	prepareMediaType(&card.Title.Media)
+	prepareMediaType(&card.Description.Media)
+
+	_, err := tx.Exec(ctx, `UPDATE module_cards SET
+		title=$1, description=$2, title_media_type=$3, title_media=$4, 
+		description_media_type=$5, description_media=$6
+	WHERE card_id=$7 AND module_id=$8`,
+		card.Title.Text, card.Description.Text, card.Title.Media.Type,
+		card.Title.Media.Content, card.Description.Media.Type,
+		card.Description.Media.Content, card.Id, moduleId)
+
+	return err
+}
+
+func deleteCard(tx pgx.Tx, ctx context.Context, moduleId, cardId int) error {
+	cmdTag, err := tx.Exec(ctx, `DELETE FROM module_cards WHERE card_id=$1 AND module_id=$2`,
+		cardId, moduleId)
+
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("card not found")
+	}
+
+	return err
 }

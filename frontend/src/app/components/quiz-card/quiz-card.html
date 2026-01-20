@@ -7,8 +7,8 @@
       }"
     > 
         <div class="quiz-card-inner" 
-          [class.no-transition]="noTransition"
           [class.flipped]="isFlipped()"
+          [class.animate]="animate()"
           [ngClass]="{
             'full-screen': fullScreen
           }"
@@ -126,12 +126,13 @@
         </div>
     </div>
   } @else {
-    <div class="quiz-card"
+    <div class="quiz-card h-full"
       [ngClass]="{
         'full-screen': fullScreen
       }"
     >
-      <div class="quiz-card-inner flex flex-col gap-4" [class.no-transition]="noTransition">
+      <!-- <div class="quiz-card-inner flex flex-col gap-4" [class.no-transition]="noTransition"> -->
+      <div class="quiz-card-inner flex flex-col gap-4">
         <div class="quiz-card dual"
           [ngClass]="animationClass()"
           >

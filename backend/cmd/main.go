@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"web-quiz/internal/routes"
+	routes "web-quiz/internal/route"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"

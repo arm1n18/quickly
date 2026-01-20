@@ -1,0 +1,16 @@
+:host {
+    display: block;
+    min-height: 100dvh;
+    background-color: var(--background);
+}
+
+.draggable-card {
+    display: flex;
+    flex-direction: column;
+    grid-area: 1rem;
+    width: 100%;
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 1rem;
+    cursor: grab;
+}

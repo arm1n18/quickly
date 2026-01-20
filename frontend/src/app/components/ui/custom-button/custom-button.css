@@ -33,6 +33,10 @@
   padding: 0 1rem;
 }
 
+.btn.w-full {
+  width: 100%;
+}
+
 .btn.secondary {
   color: var(--accent);
   background-color: var(--secondary);

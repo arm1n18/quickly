@@ -1,0 +1,156 @@
+<app-main-layout />
+
+<form [formGroup]="moduleForm" class="flex flex-col w-full gap-8 max-w-300 px-3 mt-8 mx-auto items-center">
+    <div class="flex w-full justify-between max-md:flex-col gap-4">
+        <h1 class="title">Створити новий модуль</h1>
+        <app-custom-button [disabled]="!moduleForm.valid">
+            Створити
+        </app-custom-button>
+    </div>
+
+    <app-custom-input class="w-full" title="Назва" />
+
+   <div formArrayName="cards" class="flex flex-col w-full" cdkDropList [cdkDropListData]="cards.controls" (cdkDropListDropped)="dropCard($event)">
+        @for(card of cards.controls; track card) {
+            <!-- <ng-template #cardPreview> -->
+                
+                <div [formGroupName]="$index" cdkDrag cdkDragLockAxis="y" class="draggable-card" >
+                    <div class="flex w-full justify-between items-center">
+                        <span>{{$index+1}}</span>
+
+                        <app-custom-button
+                            [theme]="'hover-only-dark'"
+                            [size]="'symbol'"
+                            [disabled]="cards.length < 3"
+                            (click)="removeCard($index)"
+                        >
+                            <app-icon [icon]="'Trash'" [size]="24"/>
+                        </app-custom-button>
+                    </div>
+
+                    <div class="flex gap-6 w-full max-md:flex-col">
+                        <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
+                            <div class="flex gap-4">
+                                <app-text-area 
+                                    class="w-full" [delay]="0" 
+                                    (inputChange)="card.get('title.text')?.setValue(normalizeText($event))"
+                                />
+                                
+                                @if(card.get('title.media.content')?.value; as content) {
+                                    <div class="relative">
+                                        <img 
+                                            appImageModalDirective
+                                            class="media-block sm"
+                                            alt="imh"
+                                            [src]="content"
+                                            [allowModal]="true"
+                                            [width]="'64px'"
+                                            [height]="'64px'"
+                                        />
+
+                                        <div 
+                                            class="absolute top-0 right-0 p-2 rounded-full bg-[var(--secondary)] cursor-pointer"
+                                            (click)="updateCardMediaContent('title', $index, '')"
+                                        >
+                                            <app-icon [icon]="'Trash'" [size]="16" fill="var(--hover-secondary2)" />
+                                        </div>
+                                    </div>
+                                } @else {
+                                    <app-custom-button
+                                        [theme]="'hover-only-dark'"
+                                        [size]="'symbol'"
+                                        (click)="loadImage.set('title')"
+                                    >
+                                        <app-icon [icon]="'Image'" [size]="24"/>
+                                    </app-custom-button>
+                                }
+                            </div>
+
+                            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (card.get('title')?.get('text')?.value?.length ?? 0) > 500 }">
+                                ТЕРМІН
+                                ({{card.get('title')?.get('text')?.value?.length ?? 0}}/500)
+                            </span>
+                        </div>
+
+                        <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
+                            <div class="flex gap-4">
+                                <app-text-area 
+                                    class="w-full" [delay]="0" 
+                                    (inputChange)="card.get('description.text')?.setValue(normalizeText($event))"
+                                />
+                                
+                                @if(card.get('description.media.content')?.value; as content) {
+                                    <div class="relative">
+                                        <img 
+                                            appImageModalDirective
+                                            class="media-block sm"
+                                            alt="imh"
+                                            [src]="content"
+                                            [allowModal]="true"
+                                            [width]="'64px'"
+                                            [height]="'64px'"
+                                        />
+
+                                        <div 
+                                            class="absolute top-0 right-0 p-2 rounded-full bg-[var(--secondary)] cursor-pointer"
+                                            (click)="updateCardMediaContent('description', $index, '')"
+                                        >
+                                            <app-icon [icon]="'Trash'" [size]="16" fill="var(--hover-secondary2)" />
+                                        </div>
+                                    </div>
+                                } @else {
+                                    <app-custom-button
+                                        [theme]="'hover-only-dark'"
+                                        [size]="'symbol'"
+                                        (click)="loadImage.set('description')"
+                                    >
+                                        <app-icon [icon]="'Image'" [size]="24"/>
+                                    </app-custom-button>
+                                }
+                            </div>
+
+                            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (card.get('description')?.get('text')?.value?.length?? 0) > 500 }">
+                                ОПИС
+                                ({{card.get('description')?.get('text')?.value?.length ?? 0}}/500)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    @if(loadImage()) {
+                        <div class="flex w-full gap-4 items-center max-sm:flex-col">
+                            <app-custom-input 
+                                class="w-full" 
+                                [title]="'Посилання на зображення ' + (loadImage() === 'title' ? 'для терміну' : 'для опису')"
+                                (inputChange)="updateCardMediaContent(loadImage()!, $index, $event)"
+                            />
+
+                            <app-custom-button [theme]="'hover-only'" (click)="loadImage.set(undefined)" [size]="'w-full'" class="w-full">
+                                Приховати
+                                <app-icon [icon]="'ChevronFillUp'"
+                                    [size]="24"
+                                    [fill]="'var(--accent)'"
+                                />
+                            </app-custom-button>
+                        </div>
+                    }
+                </div>
+                @if($index != cards.length-1) {
+                    <div class="relative w-full flex justify-center h-6 opacity-0 hover:opacity-100">
+                        <app-custom-button
+                            [theme]="'primary'"
+                            [size]="'symbol'"
+                            class="absolute -top-2.5"
+                            (click)="addCard($index)"
+                        >
+                            <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
+                        </app-custom-button>
+                    </div>
+                }
+            <!-- </ng-template> -->
+        }
+   </div>
+
+   <app-custom-button [theme]="'secondary'" (click)="addCard(cards.length)">
+        Додати нову картку
+    </app-custom-button>
+</form>

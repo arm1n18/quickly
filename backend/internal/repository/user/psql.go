@@ -15,10 +15,9 @@ type Query struct {
 }
 
 type UserRepository interface {
-	FetchUserProfile(ctx context.Context, username string) (*model.Author, error)
-
-	FetchUserFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error)
-	FetchFolder(ctx context.Context, username, slug string) (*model.Folder, error)
+	GetProfile(ctx context.Context, username string) (*model.Author, error)
+	ListFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error)
+	GetFolder(ctx context.Context, username, slug string) (*model.Folder, error)
 }
 
 type userRepo struct {
@@ -29,7 +28,7 @@ func NewUserRepository(psql *pgxpool.Pool) UserRepository {
 	return &userRepo{psql: psql}
 }
 
-func (m *userRepo) FetchUserProfile(ctx context.Context, username string) (*model.Author, error) {
+func (m *userRepo) GetProfile(ctx context.Context, username string) (*model.Author, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -50,7 +49,7 @@ func (m *userRepo) FetchUserProfile(ctx context.Context, username string) (*mode
 	return &user, nil
 }
 
-func (m *userRepo) FetchUserFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error) {
+func (m *userRepo) ListFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -103,7 +102,7 @@ func (m *userRepo) FetchUserFolders(ctx context.Context, username string, queryP
 	return &userFolders, nil
 }
 
-func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*model.Folder, error) {
+func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model.Folder, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)

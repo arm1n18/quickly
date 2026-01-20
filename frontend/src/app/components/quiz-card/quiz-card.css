@@ -43,7 +43,11 @@
   height: 100%;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
+}
+
+.quiz-card-inner.animate {
   transition: transform 0.3s ease;
+
 }
 
 .quiz-card-inner.flipped {
