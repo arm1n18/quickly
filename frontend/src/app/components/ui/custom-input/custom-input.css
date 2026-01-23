@@ -1,0 +1,35 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.input {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 48px;
+  border-radius: 1rem;
+  padding: 0 1rem;
+  background-color: var(--secondary);
+}
+
+.input.focus {
+  outline: 2px solid var(--secondary2);
+}
+
+input:focus{
+  outline: none;
+}
+
+::placeholder {
+  color: #A7B2FF;
+  opacity: 1;
+}
+
+::-webkit-input-placeholder {
+  color: #A7B2FF;
+}
+
+:-ms-input-placeholder {
+  color: #A7B2FF;
+}

@@ -1,0 +1,74 @@
+<div class="cards-overview-block">
+  @for(card of cards; track card) {
+    <div class="card-overview">
+      <!-- FIRST SECTION -->
+      <div class="card-overview-section first">
+        <!-- TEXT -->
+        @if(card.title.text) {
+          <p class="">{{ card.title.text }}</p>
+        }
+
+        <!-- MEDIA -->
+        @if(card.title.media?.content != undefined) {
+          @switch (card.title.media!.type) {
+            @case ("audio") {
+              <audio [src]="card.title.media!.content" controls></audio>
+            }@case ("video") {
+
+              <!--TODO-->
+
+              <video width="224" height="112" class="object-contain media-block" src="{{ card.title.media?.content }}"></video>
+            }@case ("image") {
+              <img 
+                appImageModalDirective
+                class="media-block sm"
+                alt="imh"
+                [src]="card.title.media?.content"
+                [allowModal]="true"
+                [width]="'120px'"
+                [height]="'100%'"
+                [withOutline]="false"
+              />
+            }
+          }
+        }
+      </div>
+
+      <!-- SEPARATOR -->
+      <div class="md:w-0.5 bg-[var(--secondary)] shrink-0 max-md:h-0.5 w-full"></div>
+
+      <!-- SECOND SECTION -->
+      <div class="card-overview-section second blur">
+        <!-- TEXT -->
+        @if(card.description.text) {
+          <p class="">{{ card.description.text }}</p>
+        }
+
+        <!-- MEDIA -->
+        @if(card.description.media?.content != undefined) {
+          @switch (card.description.media!.type) {
+            @case ("audio") {
+              <audio [src]="card.description.media!.content" controls></audio>
+            }@case ("video") {
+
+              <!--TODO-->
+
+              <video width="224" height="112" class="object-contain media-block" src="{{ card.description.media?.content }}"></video>
+            }@case ("image") {
+              <img 
+                appImageModalDirective
+                class="media-block sm"
+                alt="imh"
+                [src]="card.description.media?.content"
+                [allowModal]="true"
+                [width]="'120px'"
+                [height]="'100%'"
+                [withOutline]="false"
+              />
+            }
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

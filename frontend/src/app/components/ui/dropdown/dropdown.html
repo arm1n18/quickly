@@ -1,0 +1,56 @@
+<div class="relative w-fit">
+  @if(hasBtn) {
+    <div (click)="toggleShow()">
+      <ng-content select="[btn]"></ng-content>
+    </div>
+  } @else {
+    <app-custom-button [theme]="config.theme || 'hover-only'" rounded="full" (click)="toggleShow()">
+      @if(config.icon) {
+        <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? '#99a1af'" />
+      }
+      {{preslectedValue ?? config.title}}
+      <app-icon [icon]="'ChevronFillDown'"
+        [size]="24"
+        [fill]="'#4765FF'"
+        [class]="'transition-all'"
+        [ngClass]="{
+        'rotate-180': show
+      }"/>
+    </app-custom-button>
+  }
+
+  @if(show) {
+    <div class="dropdown-container drop-shadow-xl shadow-stone-200 text-[#99a1af]"
+      [ngClass]="{
+        'with-line': config.divider == 'line',
+        'with-gap': config.divider == 'gap',
+        'left': position.px == 'left',
+        'right': position.px == 'right',
+        'top': position.py == 'top',
+        'bottom': position.py == 'bottom'
+      }"
+    >
+      @for(group of list; track $index) {
+          @if($index > 0 && config.divider == 'line') {
+            <div class="w-5/6 h-px rounded-3xl bg-(--secondary) mx-auto"></div>
+          }
+          <div class="dropdown-group" [ngClass]="getGroupClasses($index, group.length)">
+            @for (el of group; track el) {
+              <div
+                class="dropdown-item w-fit"
+                [ngClass]="{
+                  'selected': el.title == preslectedValue
+                }"
+                (click)="el.onClick?.(); select(el.title)"
+              >
+                @if(el.icon) {
+                  <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? '#99a1af'" />
+                }
+                {{el.title}}
+              </div>
+            }
+          </div>
+      }
+    </div>
+  }
+</div>

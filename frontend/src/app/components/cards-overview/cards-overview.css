@@ -1,0 +1,46 @@
+.cards-overview-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: fit-content;
+  padding: 1rem;
+  background-color: var(--lightGrey);
+  border-radius: 2rem;
+}
+
+.card-overview {
+  display: grid;
+  grid-template-columns: 30% 2px auto;
+  gap: 16px;
+  width: 100%;
+  padding: 1rem 20px;
+  border-radius: 1rem;
+  background-color: #FFFFFF;
+}
+
+.card-overview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.card-overview-section.first {
+  width: auto;
+}
+
+.card-overview-section.second {
+  width: auto;
+}
+
+.blur {
+  filter: blur(.2rem);
+}
+
+@media (max-width: 768px) {
+  .card-overview {
+    display: flex;
+    flex-direction: column;
+  }
+}

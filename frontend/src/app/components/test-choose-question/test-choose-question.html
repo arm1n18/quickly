@@ -1,0 +1,123 @@
+<div class="question-block justify-between min-h-150">
+  <div class="flex w-full justify-between h-12 mb-4 items-center">
+    <div class="flex gap-4 items-center">
+      Прослухати
+      @if(question!.question.text){
+        <app-custom-button theme="hover-only" size="symbol">
+          <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText(question!.question.text, $event)"/>
+        </app-custom-button>
+      }
+    </div>
+    {{ numeration.pos }} з {{ numeration.from }}
+  </div>
+
+
+  <div class="flex w-full h-full gap-4 overflow-hidden pb-11" [ngClass]="{
+          'justify-between': question!.question.text && question!.question.media?.content,
+          'justify-center': !question!.question.text && question!.question.media?.content
+        }">
+
+    @if(question!.question.text) {
+      @if(question!.question.text.length > 164) {
+        <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'title'">
+          {{question!.question.text}}
+        </p>
+        <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
+      } @else {
+        <p class="text-xl">
+          {{question!.question.text}}
+        </p>
+      }
+    }
+
+    @if(question!.question.media?.content != undefined) {
+      @switch (question!.question.media!.type) {
+        @case ("audio") {
+          <audio src="{{ question!.question.media?.content }}"></audio>
+        }@case ("video") {
+
+          <!--TODO-->
+
+          <video width="224" height="112" class="sm media-block" src="{{ question!.question.media?.content }}"></video>
+        }@case ("image") {
+            @if(question!.question.media?.content) {
+                <img 
+                  appImageModalDirective
+                  class="media-block sm"
+                  alt="imh"
+                  [src]="question!.question.media?.content!"
+                  [allowModal]="true"
+                  [width]="'208px'"
+                  [height]="'208px'"
+                />
+              <!-- <app-image [image]="question!.question.media?.content!" [config]="{width: '208px', height: '208px', allowModal: true}" /> -->
+            }
+        }
+      }
+    }
+  </div>
+
+  <div class="w-full flex flex-col gap-4">
+    <div [ngClass]="{
+        'text-[#41C550]': showAnswer && isAnsweredCorrect,
+        'text-[#FF9F4B]': showAnswer && !isAnsweredCorrect
+      }">
+      @if ((answered || answered == '') && showAnswer) {
+        {{feedbackMessage}}
+      } @else {
+        Оберіть відповідь
+      }
+    </div>
+    <div class="w-full gap-4" [ngClass]="!isGrid ? 'flex flex-col md:grid md:grid-cols-2' : 'flex flex-col'">
+      @for (answer of question?.answers; track answer; let i = $index) {
+        <div
+          class="answer-block"
+          [ngClass]="{
+            'selected': answer.text == answered, 
+            'justify-center': !isGrid,
+            'correct': showAnswer && correctAnswer == answer.text,
+            'incorrect': showAnswer && answer.text === answered && answer.text !== correctAnswer,
+            'disabled': showAnswer && answer.text !== correctAnswer && answer.text !== answered,
+          }"
+          (click)="toggleChooseAnswer(answer.text!)"
+        >
+          <div class="flex gap-2 items-center">
+            @if(showAnswer && correctAnswer == answer.text) {
+              <app-icon [icon]="'Check'" [size]="24" [stroke]="'#41C550'" [fill]="'transparent'"/>
+            } @else if (showAnswer && answer.text === answered && answer.text !== correctAnswer) {
+              <app-icon [icon]="'Cross'" [size]="24" [fill]="'#FF9F4B'" />
+            }
+            {{answer.text}}
+          </div>
+          @if (answer.media?.content) {
+            <img 
+              appImageModalDirective
+              class="media-block sm"
+              alt="imh"
+              [src]="answer.media!.content"
+              [allowModal]="true"
+              [width]="'64px'"
+              [height]="'64px'"
+            />
+            <!-- <app-image [image]="" [config]="{width: '64px', height: '64px', allowModal: true}" /> -->
+          }
+        </div>
+      }
+    </div>
+
+    @if(skipped) {
+      <div class="mx-auto">Пропущено</div>
+    } @else {
+      <div
+        class="mx-auto text-(--accent)"
+        (click)="skipQuestion()"
+        [ngClass]="{
+          'opacity-50 cursor-default': showAnswer,
+          'cursor-pointer': !showAnswer
+        }"
+      >
+        Не впевнені?
+      </div>
+    }
+  </div>
+</div>

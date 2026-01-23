@@ -1,0 +1,9 @@
+<div
+    class="avatar"
+    [ngStyle]="avatarStyle"
+    [ngClass]="avatarColorClass"
+>
+    @if(!avatarUrl) {
+        <span>{{ initials }}</span>
+    }
+</div>
