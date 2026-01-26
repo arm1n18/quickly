@@ -1,21 +1,20 @@
 <app-main-layout />
 
-<form [formGroup]="moduleForm" class="flex flex-col w-full gap-8 max-w-300 px-3 mt-8 mx-auto items-center"  (ngSubmit)="onSubmit()">
+<form [formGroup]="moduleForm" class="flex flex-col w-full gap-8 max-w-300 px-3 mt-8 mx-auto items-center">
     <div class="flex w-full justify-between max-md:flex-col gap-4">
-        <h1 class="title">Створити новий модуль</h1>
+        <h1 class="title">Оновити модуль</h1>
 
-        <app-custom-button [disabled]="!moduleForm.valid" type="submit">
-            Створити
+        <app-custom-button [disabled]="!moduleForm.valid" (click)="onSubmit()">
+            Оновити
         </app-custom-button>
     </div>
 
-    <app-custom-input class="w-full" title="Назва" (inputChange)="moduleForm.get('title')?.setValue($event)"/>
+    <app-custom-input class="w-full" title="Назва" [value]="moduleForm.get('title')?.value" (inputChange)="moduleForm.get('title')?.setValue($event)"/>
 
-   <div formArrayName="cards" class="flex flex-col w-full" cdkDropList [cdkDropListData]="cards.controls" (cdkDropListDropped)="dropCard($event)">
-        @for(card of cards.controls; track card) {
-            <!-- <ng-template #cardPreview> -->
-                
-                <div [formGroupName]="$index" cdkDrag cdkDragLockAxis="y" class="draggable-card" >
+   <div formArrayName="cards" class="flex flex-col w-full" cdkDropList>
+        @for(card of cards.controls; track card) {                
+            @if(!card.get('delete')?.value) {
+                <div [formGroupName]="$index" class="draggable-card" >
                     <div class="flex w-full justify-between items-center">
                         <span>{{$index+1}}</span>
 
@@ -33,8 +32,8 @@
                         <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
                             <div class="flex gap-4">
                                 <app-text-area 
-                                    class="w-full" [delay]="0"
-                                    (inputChange)="card.get('title.text')?.setValue(normalizeText($event))"
+                                    class="w-full" [delay]="0" [value]="card.get('title.text')?.value || ''"
+                                    (inputChange)="card.get('title.text')?.setValue($event)"
                                 />
                                 
                                 <!-- @if(card.get('title.media.content')?.value; as content) {
@@ -76,8 +75,8 @@
                         <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
                             <div class="flex gap-4">
                                 <app-text-area 
-                                    class="w-full" [delay]="0"
-                                    (inputChange)="card.get('description.text')?.setValue(normalizeText($event))"
+                                    class="w-full" [delay]="0" [value]="card.get('description.text')?.value || ''"
+                                    (inputChange)="card.get('description.text')?.setValue($event)"
                                 />
                                 
                                 @if(card.get('description.media.content')?.value; as content) {
@@ -142,17 +141,17 @@
                             [size]="'symbol'"
                             class="absolute -top-2.5"
                             [ngClass]="{'hidden': cards.length >= 50}"
-                            (click)="addCard($index)"
+                            (click)="addEmptyCard($index)"
                         >
                             <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
                         </app-custom-button>
                     </div>
                 }
-            <!-- </ng-template> -->
+            }
         }
    </div>
 
-   <app-custom-button [theme]="'secondary'" [disabled]="cards.length >= 50" (click)="addCard(cards.length)">
+   <app-custom-button [theme]="'secondary'" [disabled]="cards.length >= 50" (click)="addEmptyCard(cards.length)">
         Додати нову картку
     </app-custom-button>
 </form>

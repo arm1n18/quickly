@@ -2,25 +2,29 @@ import { Component, OnInit, signal, WritableSignal } from '@angular/core';
 import { MainLayout } from "../../layouts/main-layout/main-layout";
 import { CustomInput } from "../../components/ui/custom-input/custom-input";
 import { TextArea } from "../../components/ui/text-area/text-area";
-import { Card, MediaType } from '../../interfaces/quizCard.interface';
+import { MediaType } from '../../interfaces/quizCard.interface';
 import { CustomButton, Icon } from "../../components/ui";
 import { PortalModule } from "@angular/cdk/portal";
 import { NgClass } from '@angular/common';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ImageModalDirective } from "../../directives/imageDirective/image-modal-directive";
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { ApiService } from '../../services/api/api.service';
+import { Router } from '@angular/router';
+import { isImgUrl } from '../../utils/validate';
+import { from } from 'rxjs';
 
-interface MediaForm {
+export interface MediaForm {
   type: FormControl<MediaType | null>;
   content: FormControl<string | null>;
 }
 
-interface ContentBlockForm {
-  text: FormControl<string>;
+export interface ContentBlockForm {
+  text: FormControl<string | null>;
   media: FormGroup<MediaForm>;
 }
 
-interface CardForm {
+export interface CardForm {
   title: FormGroup<ContentBlockForm>;
   description: FormGroup<ContentBlockForm>;
 }
@@ -33,20 +37,25 @@ interface CardForm {
 })
 
 export class CreateModulePage implements OnInit {
+  constructor(private apiService: ApiService, private router: Router){}
+
   moduleForm = new FormGroup<{
     title: FormControl<string>,
-    private: FormControl<boolean>,
     cards: FormArray<FormGroup<CardForm>>
   }>({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(50)]}),
-    private: new FormControl(false, {nonNullable: true, validators: [Validators.required]}),
-    cards: new FormArray<FormGroup<CardForm>>([])
+    cards: new FormArray<FormGroup<CardForm>>([], {validators: [Validators.required, Validators.minLength(3), Validators.maxLength(50)]})
   })
 
-  public loadImage: WritableSignal<'title' | 'description' | undefined> = signal(undefined);
+  public loadImage: WritableSignal<{card: number, target: 'title' | 'description' | undefined}> = signal({card: -1, target: undefined});
+  private isSubmitting: boolean = false;
 
   public addCard(index: number){
     const cards = this.moduleForm.get('cards') as FormArray<FormGroup<CardForm>>;
+
+    if(cards.length == 50) {
+      return
+    }
     
     const newCard = new FormGroup<CardForm>({
       title: new FormGroup<ContentBlockForm>({
@@ -76,11 +85,6 @@ export class CreateModulePage implements OnInit {
     }
   }
 
-  public changeInput(target: 'title' | 'description', index: number, text: string) {
-    // const cards = [...this.cards()];
-    // cards[index][target].text = this.normalizeText(text)
-  }
-
   public normalizeText(text: string): string {
     return text
       .replace(/\u00a0/g, ' ')
@@ -90,16 +94,28 @@ export class CreateModulePage implements OnInit {
 
   public updateCardMediaContent(target: 'title' | 'description', index: number, value: string) {
     const card = this.cards.at(index);
-    const newValue = value.trim().length == 0 ? null : value
-    const type = newValue ? 'image' : null
+    if (!card) return;
 
-    const mediaControl = card.controls[target].controls.media.controls;
-    mediaControl.content.setValue(newValue);
-    mediaControl.type.setValue(type);
+    const newValue = value.trim().length === 0 ? null : value;
 
-    if(newValue == null) {
-      this.loadImage.set(undefined)
-    }
+    from(isImgUrl(newValue ?? ''))
+      .subscribe(isImage => {
+        const mediaControl = card.controls[target].controls.media.controls;
+        if(isImage) {
+          mediaControl.content.setValue(newValue);
+          mediaControl.type.setValue("image");
+        } else {
+          mediaControl.content.setValue(null);
+          mediaControl.type.setValue(null);
+          this.loadImage.update(prev => ({ ...prev, target: undefined }));
+        }
+      })
+  }
+
+  public changeSelectedCard(index: number, target: "title" | "description") {
+    console.log("swapped")
+    this.loadImage.set({card: -1, target: undefined});
+    this.loadImage.set({card: index, target: target})
   }
 
   public dropCard(event: CdkDragDrop<FormGroup<CardForm>[]>) {
@@ -107,8 +123,48 @@ export class CreateModulePage implements OnInit {
     moveItemInArray(cardsArray.controls, event.previousIndex, event.currentIndex);
   }
 
+  private buildPayload() {
+    return {
+      title: this.moduleForm.controls.title.value,
+      cards: this.cards.controls.map(card => ({
+        title: {
+          text: card.controls.title.controls.text.value,
+          media: {
+            type: card.controls.title.controls.media.value.type,
+            content: card.controls.title.controls.media.value.content,
+          },
+        },
+        description: {
+          text: card.controls.description.controls.text.value,
+          media: {
+            type: card.controls.description.controls.media.value.type,
+            content: card.controls.description.controls.media.value.content,
+          },
+        },
+      })),
+    };
+  }
+
+  public onSubmit() {
+    if (this.moduleForm.invalid) {
+      this.moduleForm.markAllAsTouched();
+      return;
+    }
+
+    if(this.isSubmitting) return
+
+    const payload = this.buildPayload();
+
+    this.apiService.module.postModule(payload)
+      .subscribe(response => this.router.navigate(['/module', response.id], { replaceUrl: true }))
+  }
+
   get cards() {
     return this.moduleForm.get('cards') as FormArray<FormGroup<CardForm>>;
+  }
+
+  get submitting() {
+    return this.isSubmitting
   }
 
   ngOnInit(): void {

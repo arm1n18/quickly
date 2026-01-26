@@ -1,8 +1,13 @@
 import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
 import  { Icon } from '../ui'
 import { NgClass } from '@angular/common';
-import {Card} from '../../interfaces/quizCard.interface';
+import {Card, ContentBlock} from '../../interfaces/quizCard.interface';
 import { ImageModalDirective } from "../../directives/imageDirective/image-modal-directive";
+
+interface QuizCardProps {
+  title: ContentBlock;
+  description: ContentBlock;
+}
 
 @Component({
   selector: 'app-quiz-card',
@@ -12,7 +17,7 @@ import { ImageModalDirective } from "../../directives/imageDirective/image-modal
 })
 
 export class QuizCard implements OnChanges {
-  @Input({ required: true }) cardInput: Card | undefined = undefined;
+  @Input({ required: true }) cardInput: QuizCardProps | undefined = undefined;
   @Input() fullScreen: boolean = false;
   @Input() dualCard: boolean = false;
 

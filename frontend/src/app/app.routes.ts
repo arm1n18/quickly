@@ -10,6 +10,7 @@ import { UserModulesComponent } from './components/user-modules-component/user-m
 import { UserFoldersComponent } from './components/user-folders-component/user-folders-component';
 import { FolderPage } from './pages/folder-page/folder-page';
 import { CreateModulePage } from './pages/create-module-page/create-module-page';
+import { UpdateModulePage } from './pages/update-module-page/update-module-page';
 
 export const routes: Routes = [
   {
@@ -38,6 +39,10 @@ export const routes: Routes = [
   {
     path: 'module/create',
     component: CreateModulePage
+  },
+  {
+    path: 'module/:id/update',
+    component: UpdateModulePage
   },
   {
     path: 'module/:id',

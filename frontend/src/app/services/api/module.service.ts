@@ -12,8 +12,8 @@ export class ModuleService {
 
   constructor(private http: HttpClient) {}
 
-  public getModule(id: number): Observable<Module> {
-    return this.http.get<Module>(`${this.apiRoute}/${id}`)
+  public getModule(id: number): Observable<{module: Module}> {
+    return this.http.get<{module: Module}>(`${this.apiRoute}/${id}`)
   }
 
   public getModuleByName(name: string): Observable<ModulesSummary> {
@@ -28,5 +28,13 @@ export class ModuleService {
     const query = p.toString() ? `?${p.toString()}` : '';
     
     return this.http.get<UserModulesResponse>(`${this.apiRoute}/user/${username}${query}`)
+  }
+
+  public postModule(module: any): Observable<{id: number}> {
+    return this.http.post<{id: number}>(`${this.apiRoute}`, module)
+  }
+
+  public patchModule(id: number, module: any): Observable<{message: string}> {
+    return this.http.patch<{message: string}>(`${this.apiRoute}/${id}`, module)
   }
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"web-quiz/internal/model"
+	"web-quiz/internal/protocol"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,8 +17,8 @@ type Query struct {
 
 type UserRepository interface {
 	GetProfile(ctx context.Context, username string) (*model.Author, error)
-	ListFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error)
-	GetFolder(ctx context.Context, username, slug string) (*model.Folder, error)
+	ListFolders(ctx context.Context, userId int, username string, queryParams Query) (*model.FoldersSummary, error)
+	GetFolder(ctx context.Context, userId int, username, slug string) (*model.Folder, error)
 }
 
 type userRepo struct {
@@ -32,11 +33,11 @@ func (m *userRepo) GetProfile(ctx context.Context, username string) (*model.Auth
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
-	query := `SELECT username, avatar_url FROM users WHERE username = $1`
+	query := `SELECT username, avatar FROM users WHERE username = $1`
 
 	user := model.Author{}
 
@@ -49,16 +50,16 @@ func (m *userRepo) GetProfile(ctx context.Context, username string) (*model.Auth
 	return &user, nil
 }
 
-func (m *userRepo) ListFolders(ctx context.Context, username string, queryParams Query) (*model.FoldersSummary, error) {
+func (m *userRepo) ListFolders(ctx context.Context, userId int, username string, queryParams Query) (*model.FoldersSummary, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
 	args := []interface{}{username}
-	placeholder := 2
+	placeholder := 3
 
 	query := `
 		SELECT COALESCE(json_agg(folder_data), '[]') AS folders
@@ -67,6 +68,7 @@ func (m *userRepo) ListFolders(ctx context.Context, username string, queryParams
 				f.folder_id,
 				f.title,
 				f.slug,
+				f.user_id = $2 as is_owner,
 				COUNT(fm.module_id) AS objects
 			FROM folders f
 			LEFT JOIN folder_modules fm ON fm.folder_id = f.folder_id
@@ -91,6 +93,8 @@ func (m *userRepo) ListFolders(ctx context.Context, username string, queryParams
 	) folder_data
 	`
 
+	args = append(args, userId)
+
 	userFolders := model.FoldersSummary{}
 
 	err = conn.QueryRow(ctx, query, args...).Scan(&userFolders.Folders)
@@ -102,11 +106,11 @@ func (m *userRepo) ListFolders(ctx context.Context, username string, queryParams
 	return &userFolders, nil
 }
 
-func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model.Folder, error) {
+func (m *userRepo) GetFolder(ctx context.Context, userId int, username, slug string) (*model.Folder, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
@@ -114,7 +118,8 @@ func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model
 		SELECT
 			f.title,
 			f.slug,
-			json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
+			json_build_object('name', u.username, 'avatar', u.avatar) AS author,
+			m.user_id = $3 as is_owner,
 			folders.modules
 			FROM users u
 			LEFT JOIN folders f ON f.user_id = u.user_id
@@ -126,6 +131,7 @@ func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model
 						'id', m.module_id,
 						'title', m.title,
 						'slug', m.slug,
+						'isOwner', m.user_id = $3,
 						'objects', (
 							SELECT COUNT(*) FROM modules m WHERE m.module_id = fm.module_id
 						)
@@ -133,7 +139,7 @@ func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model
 					)
 				) as modules
 				FROM modules m
-				WHERE m.module_id = fm.module_id
+				WHERE m.module_id = fm.module_id AND (NOT m.is_private OR m.user_id = $3)
 			) folders ON TRUE
 			
 		WHERE u.username = $1 and f.slug = $2
@@ -141,10 +147,11 @@ func (m *userRepo) GetFolder(ctx context.Context, username, slug string) (*model
 
 	folder := model.Folder{}
 
-	err = conn.QueryRow(ctx, query, username, slug).Scan(
+	err = conn.QueryRow(ctx, query, username, slug, userId).Scan(
 		&folder.Title,
 		&folder.Slug,
 		&folder.Author,
+		&folder.IsOwner,
 		&folder.Modules,
 	)
 	if err != nil {

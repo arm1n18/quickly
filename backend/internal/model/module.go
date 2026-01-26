@@ -11,7 +11,7 @@ type CardContent struct {
 }
 
 type Card struct {
-	Id          int         `json:"id"` // <--- todo
+	ID          int         `json:"id"` // <---- todo
 	Title       CardContent `json:"title"`
 	Description CardContent `json:"description"`
 }
@@ -27,31 +27,34 @@ type Keyword struct {
 }
 
 type Module struct {
-	Id       int       `json:"id"`
+	ID       int       `json:"id"`
 	Title    string    `json:"title"`
 	Slug     string    `json:"slug"`
 	Author   Author    `json:"author"`
 	Keywords []Keyword `json:"keywords"`
 	Objects  int       `json:"objects"`
 	Cards    []Card    `json:"cards"`
+	IsOwner  bool      `json:"isOwner"`
 }
 
 type ModuleSummary struct {
-	Id        int       `json:"id"`
+	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Slug      string    `json:"slug"`
 	Author    Author    `json:"author"`
 	Keywords  []Keyword `json:"keywords"`
 	Objects   int       `json:"objects"`
 	HasImages bool      `json:"hasImages"`
+	IsOwner   bool      `json:"isOwner"`
 }
 
 type UserModule struct {
-	Id        int    `json:"id"`
+	ID        int    `json:"id"`
 	Title     string `json:"title"`
 	Slug      string `json:"slug"`
 	Objects   int    `json:"objects"`
 	HasImages bool   `json:"hasImages"`
+	IsOwner   bool   `json:"isOwner"`
 }
 
 type CreateCard struct {
@@ -74,18 +77,18 @@ type CreateModuleRequest struct {
 }
 
 type CreateModuleResponse struct {
-	Id int `json:"id"`
+	ID int `json:"id"`
 }
 
 type CardUpdate struct {
-	Id          *int        `json:"id,omitempty"`
+	ID          *int        `json:"id,omitempty"`
 	Title       CardContent `json:"title"`
 	Description CardContent `json:"description"`
 	Delete      bool        `json:"delete,omitempty"`
 }
 
 type UpdateModuleRequest struct {
-	Id    int          `json:"id,omitempty"`
+	ID    int          `json:"id,omitempty"`
 	Title *string      `json:"title,omitempty"`
 	Cards []CardUpdate `json:"cards,omitempty"`
 }

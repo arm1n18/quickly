@@ -3,8 +3,10 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"web-quiz/internal/model"
 	"web-quiz/internal/repository/user"
 	"web-quiz/internal/service"
+	"web-quiz/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,8 +32,14 @@ func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
 			lastId = 0
 		}
 
+		userData, ok := utils.GetLocals[model.UserAccessToken](c, "user")
+		if !ok {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
 		folders, err := svc.ListUserFolders(
 			c.Context(),
+			userData.SUB,
 			c.Params("username"),
 			user.Query{
 				Name:   c.Query("name"),
@@ -49,8 +57,14 @@ func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
 	})
 
 	router.Get("/:username/folder/:slug", func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[model.UserAccessToken](c, "user")
+		if !ok {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
 		folder, err := svc.GetUserFolder(
 			c.Context(),
+			user.SUB,
 			c.Params("username"),
 			c.Params("slug"),
 		)

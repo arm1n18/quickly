@@ -5,6 +5,7 @@ type Folder struct {
 	Slug    string       `json:"slug"`
 	Author  Author       `json:"author"`
 	Objects int          `json:"objects"`
+	IsOwner bool         `json:"isOwner"`
 	Modules []UserModule `json:"modules"`
 }
 
@@ -12,6 +13,7 @@ type FolderSummary struct {
 	Title   string `json:"title"`
 	Slug    string `json:"slug"`
 	Objects int    `json:"objects"`
+	IsOwner bool   `json:"isOwner"`
 }
 
 type FoldersSummary struct {

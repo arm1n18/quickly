@@ -15,11 +15,12 @@ interface Media {
 }
 
 export interface ContentBlock {
-  text?: string;
+  text: string;
   media?: Media;
 }
 
 export interface Card {
+  id: number;
   title: ContentBlock;
   description: ContentBlock;
 }
@@ -111,6 +112,13 @@ export interface ModuleSummary {
   objects: number;
   hasImages: boolean;
 }
+
 export interface ModulesSummary {
   modules: ModuleSummary[];
+}
+
+export interface CreateModuleRequest {
+  title: string;
+  private: boolean;
+  cards: Card[];
 }

@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {CardsState} from '../../state/cards-state/cards-state';
-import {RouterOutlet} from '@angular/router';
+import {ActivatedRoute, RouterOutlet} from '@angular/router';
 import { ApiService } from '../../services/api/api.service';
 
 @Component({
@@ -14,10 +14,13 @@ import { ApiService } from '../../services/api/api.service';
 export class CardsRootPage implements OnInit {
   constructor(
     private cardsState: CardsState,
+    private route: ActivatedRoute,
     private apiService: ApiService
   ) {}
 
   ngOnInit() {
-    this.apiService.module.getModule(1).subscribe(module => this.cardsState.setModule(module))
+    const params = this.route.snapshot.paramMap
+    this.apiService.module.getModule(Number(params.get("id")!))
+      .subscribe(resp => this.cardsState.setModule(resp.module))
   }
 }

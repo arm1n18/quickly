@@ -38,3 +38,7 @@ func Contains[T any](array []T, f func(T) bool) bool {
 
 	return false
 }
+
+func InRange(s string, start, end int) bool {
+	return len(s) >= start || len(s) <= end
+}

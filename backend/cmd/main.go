@@ -2,16 +2,36 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"web-quiz/config"
 	routes "web-quiz/internal/route"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
-func connectPSQL(db string) *pgxpool.Pool {
-	conn, err := pgxpool.New(context.Background(), db)
+func connectRedis(ctx context.Context, host, port, password string) *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", host, port),
+		Password: password,
+		DB:       0,
+	})
+
+	_, err := rdb.Ping(ctx).Result()
+	if err != nil {
+		log.Fatalf("Failed to ping Redis: %v", err)
+	}
+
+	log.Println("Successfully connected to Redis")
+
+	return rdb
+}
+
+func connectPSQL(ctx context.Context, url string) *pgxpool.Pool {
+	conn, err := pgxpool.New(ctx, url)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
@@ -25,8 +45,14 @@ func connectPSQL(db string) *pgxpool.Pool {
 }
 
 func main() {
-	psqlConn := connectPSQL("postgresql://postgres:1231@localhost/web_quiz")
+	ctx := context.Background()
+	config := config.LoadMainConfig()
+
+	psqlConn := connectPSQL(ctx, config.PSQL)
 	defer psqlConn.Close()
+
+	redisConn := connectRedis(ctx, config.RedisHost, config.RedisPort, config.RedisPassword)
+	defer redisConn.Close()
 
 	app := fiber.New(fiber.Config{
 		Prefork: true,
@@ -38,15 +64,18 @@ func main() {
 	})
 
 	app.Use(cors.New((cors.Config{
-		AllowOrigins: "http://localhost:4200",
+		AllowOrigins: "http://" + config.Host + ":4200",
 	})))
 
 	initRouter := routes.InitRouter{
-		App:  app,
-		Psql: psqlConn,
+		App:    app,
+		Psql:   psqlConn,
+		Redis:  redisConn,
+		EKEY:   config.EKEY,
+		JWTKEY: config.JWTKEY,
 	}
 
 	initRouter.InitRoutes()
 
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(config.Host + ":" + config.Port))
 }
