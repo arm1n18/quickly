@@ -6,12 +6,12 @@
   } @else {
     <app-custom-button [theme]="config.theme || 'hover-only'" rounded="full" (click)="toggleShow()">
       @if(config.icon) {
-        <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? '#99a1af'" />
+        <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? 'var(--text-secondary)'" />
       }
       {{preslectedValue ?? config.title}}
       <app-icon [icon]="'ChevronFillDown'"
         [size]="24"
-        [fill]="'#4765FF'"
+        [fill]="'#6d4aff'"
         [class]="'transition-all'"
         [ngClass]="{
         'rotate-180': show
@@ -20,7 +20,7 @@
   }
 
   @if(show) {
-    <div class="dropdown-container drop-shadow-xl shadow-stone-200 text-[#99a1af]"
+    <div class="dropdown-container drop-shadow-xl shadow-stone-200 text-[var(--text-secondary)]"
       [ngClass]="{
         'with-line': config.divider == 'line',
         'with-gap': config.divider == 'gap',
@@ -44,7 +44,7 @@
                 (click)="el.onClick?.(); select(el.title)"
               >
                 @if(el.icon) {
-                  <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? '#99a1af'" />
+                  <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? 'var(--text-secondary)'" />
                 }
                 {{el.title}}
               </div>

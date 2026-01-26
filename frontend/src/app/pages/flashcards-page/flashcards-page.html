@@ -1,6 +1,6 @@
 @if(getModule; as module) {
-  <div class="flex flex-col gap-4 w-full min-h-screen bg-(--background) items-center">
-    <div class="sticky z-1 top-0 w-full">
+  <div class="flex flex-col gap-4 w-full h-dvh items-center pb-8">
+    <div class="w-full">
         <div class="game-header">
 
         <app-dropdown 
@@ -19,7 +19,7 @@
         <div class="flex gap-2 game-header-right">
             @if(true) {
             <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
-                <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'" />
+                <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
             </app-custom-button>
             } @else {
             <app-custom-button theme="secondary" rounded="full">
@@ -30,18 +30,18 @@
             </app-custom-button>
             }
             <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
-                <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+                <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
             </app-custom-button>
         </div>
         </div>
         <div class="w-full h-px rounded-3xl bg-(--secondary)">
-        <div [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
+          <div [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
         </div>
     </div>
 
-    
-
-    <app-quiz-cards [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
+    <div class="w-full max-w-5xl px-3 h-full">
+      <app-quiz-cards  class="h-full" [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
+    </div>
 </div>
 
 <app-modal [show]="show.showSettingsModal" (shownChange)="show.showSettingsModal = $event">
@@ -74,7 +74,7 @@
         Поєднання клавіш
         <div class="flex items-center gap-2 text-[var(--accent)] cursor-pointer" (click)="show.shortcut = !show.shortcut">
           Переглянути
-          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#4765FF'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
+          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
         </div>
       </div>
       <div [class]="'w-full grid grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': !show.shortcut}">

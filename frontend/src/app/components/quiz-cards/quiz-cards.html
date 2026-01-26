@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-4 h-full">
     <app-quiz-card
         [cardInput]="{
             title: config.side !== 'description' ? currentCard.title : currentCard.description,
@@ -7,61 +7,57 @@
         [dualCard]="config.dualCard"
         [fullScreen]="config.fullscreen || false"
     />
-    <div class="quiz-footer-nav">
-        <div class="quiz-footer-left">
-        <app-custom-button
-            (click)="toggleAutoPlay()"
-            [theme]="'secondary'"
-            [size]="'symbol'"
-            [rounded]="'full'"
-        >
-            <app-icon [icon]="isActive().isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#4765FF'" />
-        </app-custom-button>
 
-        <app-custom-button
-            (click)="toggleShuffle()"
-            [theme]="isActive().isShuffleActive ? 'primary' : 'secondary'"
-            [size]="'symbol'"
-            [rounded]="'full'"
-        >
-            <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isActive().isShuffleActive ? '#FFF' : '#4765FF'" />
-        </app-custom-button>
+    <div class="quiz-footer-nav-md">
+        <div class="quiz-footer-left">
+            <app-custom-button
+                (click)="toggleAutoPlay()"
+                [theme]="'secondary'"
+                [size]="'symbol'"
+            >
+                <app-icon [icon]="isActive().isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
+            </app-custom-button>
+
+            <app-custom-button
+                (click)="toggleShuffle()"
+                [theme]="isActive().isShuffleActive ? 'primary' : 'secondary'"
+                [size]="'symbol'"
+            >
+                <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isActive().isShuffleActive ? '#FFF' : '#6d4aff'" />
+            </app-custom-button>
         </div>
 
         <div class="quiz-footer-center">
-        <app-custom-button
-            (click)="this.changeCard('prev')"
-            [theme]="'secondary'"
-            [size]="'symbol'"
-            [rounded]="'full'"
-            [disabled]="currentCardIndex() === 0"
-        >
-            <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#4765FF'" />
-        </app-custom-button>
+            <app-custom-button
+                (click)="this.changeCard('prev')"
+                [theme]="'secondary'"
+                [size]="'symbol'"
+                [disabled]="currentCardIndex() === 0"
+            >
+                <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
+            </app-custom-button>
 
-        <div>{{ currentCardIndex()+1 }}/{{ this.cards.length }}</div>
+            <div class="text-[var(--dark-accent)]">{{ currentCardIndex()+1 }}/{{ this.cards.length }}</div>
 
-        <app-custom-button
-            (click)="this.changeCard('next')"
-            [theme]="'secondary'"
-            [size]="'symbol'"
-            [rounded]="'full'"
-            [disabled]="currentCardIndex() === this.cards.length-1"
-        >
-            <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#4765FF'" />
-        </app-custom-button>
+            <app-custom-button
+                (click)="this.changeCard('next')"
+                [theme]="'secondary'"
+                [size]="'symbol'"
+                [disabled]="currentCardIndex() === this.cards.length-1"
+            >
+                <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
+            </app-custom-button>
         </div>
 
 
         @if(config.dualBtn) {
-            <div class="flex gap-1 h-11 p-1 items-center bg-[var(--secondary)] w-fit rounded-full overflow-hidden quiz-footer-right">
+            <div class="flex gap-1 h-11 p-1 items-center bg-[var(--secondary)] w-fit rounded-2xl overflow-hidden quiz-footer-right">
                 <app-custom-button
                     [theme]="'secondary'"
                     [size]="'dual-child'"
                     [rounded]="'right-sm'"
-                    [className]="'rounded-r-none'"
                 >
-                    <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'"/>
+                    <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'"/>
                 </app-custom-button>
                 <div class="w-0.5 h-1/2 bg-[var(--hover-secondary2)]"></div>
                 <app-custom-button
@@ -69,10 +65,50 @@
                     [size]="'dual-child'"
                     [rounded]="'left-sm'"
                 >
-                    <app-icon [icon]="'FullScreen'" [size]="32" [stroke]="'#4765FF'"/>
+                    <app-icon [icon]="'FullScreen'" [size]="24" [stroke]="'#6d4aff'"/>
                 </app-custom-button>
             </div>
         }
+    </div>
+
+    <div class="quiz-footer-nav-sm">
+        <div class="flex gap-4 items-center mx-auto">
+            <app-custom-button
+                (click)="this.changeCard('prev')"
+                [theme]="'secondary'"
+                [disabled]="currentCardIndex() === 0"
+            >
+                <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
+            </app-custom-button>
+
+            <div class="text-[var(--dark-accent)]">{{ currentCardIndex()+1 }}/{{ this.cards.length }}</div>
+
+            <app-custom-button
+                (click)="this.changeCard('next')"
+                [theme]="'secondary'"
+                [disabled]="currentCardIndex() === this.cards.length-1"
+            >
+                <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
+            </app-custom-button>
+        </div>
+
+        <div class="w-full flex justify-between">
+            <app-custom-button
+                (click)="toggleAutoPlay()"
+                [theme]="'secondary'"
+                [size]="'symbol'"
+            >
+                <app-icon [icon]="isActive().isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
+            </app-custom-button>
+
+            <app-custom-button
+                (click)="toggleShuffle()"
+                [theme]="isActive().isShuffleActive ? 'primary' : 'secondary'"
+                [size]="'symbol'"
+            >
+                <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isActive().isShuffleActive ? '#FFF' : '#6d4aff'" />
+            </app-custom-button>
+        </div>
     </div>
 
     @if(config.progressBar) {

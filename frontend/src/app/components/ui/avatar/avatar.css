@@ -1,6 +1,4 @@
 .avatar {
-  width: 2.75rem;
-  height: 2.75rem;
   border-radius: 1rem;
   background-size: cover;
   background-position: center;
@@ -10,38 +8,42 @@
   font-weight: 500;
 }
 
+.avatar.md {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+.avatar.sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 12px;
+}
+
 .avatar.blue {
-  background: rgb(57,96,171);
-  background: linear-gradient(0deg, rgba(57,96,171,1) 0%, rgba(130,173,255,1) 100%); 
+  background: #0091ff;
   color: white;
 }
 
 .avatar.green {
-  background: rgb(80,189,71);
-  background: linear-gradient(0deg, rgba(80,189,71,1) 0%, rgba(169,236,109,1) 100%); 
+  background: #45d90a;
   color: white;
 }
 
 .avatar.purple {
-  background: rgb(112,100,224);
-  background: linear-gradient(0deg, rgba(112,100,224,1) 0%, rgba(178,145,248,1) 100%); 
+  background: #6d4aff;
   color: white;
 }
 
 .avatar.red {
-  background: rgb(197,26,26);
-  background: linear-gradient(0deg, rgba(197,26,26,1) 0%, rgba(249,140,79,1) 100%); 
+  background: #ee2323;
   color: white;
 }
 
 .avatar.orange {
-  background: rgb(238,116,28);
-  background: linear-gradient(0deg, rgba(238,116,28,1) 0%, rgba(255,197,130,1) 100%); 
+  background: #ff9900;
   color: white;
 }
 
 .avatar.pink {
-  background: rgb(219,88,119);
-  background: linear-gradient(0deg, rgb(255, 73, 116) 0%, rgba(253,135,169,1) 100%); 
+  background: #ee2393;
   color: white;
 }

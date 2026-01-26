@@ -1,3 +1,5 @@
+import { UserInfo } from "./user.interface";
+
 export type GameMode = 'default' | 'match' | 'test' | 'flashcards'
 
 interface Keyword {
@@ -5,20 +7,20 @@ interface Keyword {
   slug: string;
 }
 
-type MediaType = 'audio' | 'video' | 'image'
+export type MediaType = 'audio' | 'video' | 'image'
 
 interface Media {
   type: MediaType;
   content: string;
-  alt?: string;
 }
 
 export interface ContentBlock {
-  text?: string;
+  text: string;
   media?: Media;
 }
 
 export interface Card {
+  id: number;
   title: ContentBlock;
   description: ContentBlock;
 }
@@ -35,6 +37,7 @@ export interface Module {
   keywords: Keyword[] | null;
   cards: Card[];
 }
+
 
 export interface MatchCard {
   id: string;
@@ -87,3 +90,35 @@ export type TestMap = {
 }; 
 
 export type TestItem<T> = T extends (infer R)[] ? R : never
+
+export interface UserModule {
+  id: number;
+  title: string;
+  slug: string;
+  objects: number;
+  hasImages: boolean;
+}
+
+export interface UserModulesResponse {
+  modules: UserModule[];
+}
+
+export interface ModuleSummary {
+  id: number;
+  title: string;
+  slug: string;
+  author: UserInfo;
+  keywords: Keyword[];
+  objects: number;
+  hasImages: boolean;
+}
+
+export interface ModulesSummary {
+  modules: ModuleSummary[];
+}
+
+export interface CreateModuleRequest {
+  title: string;
+  private: boolean;
+  cards: Card[];
+}

@@ -25,10 +25,12 @@ export class CardsPage implements OnInit {
   dropdownList: DropdownItem[][] = [
     [
       {title: 'Створити копію', icon: {
-        name: 'Copy'
+        name: 'Copy',
+        color: 'var(--accent)'
       }},
       {title: 'Друкувати', icon: {
-        name: 'Print'
+        name: 'Print',
+        color: 'var(--accent)'
       }}
     ]
   ];
@@ -41,13 +43,11 @@ export class CardsPage implements OnInit {
 
   changeGameMode(mode: GameMode) {
     switch (mode) {
-      case 'match':
-        void this.router.navigate(['match'], { relativeTo: this.route });
-        break;
-      case 'test':
-        void this.router.navigate(['test'], { relativeTo: this.route });
+      case 'default':
+        void this.router.navigate(['default'], { relativeTo: this.route });
         break;
       default:
+        void this.router.navigate([mode], { relativeTo: this.route });
         break;
     }
   }

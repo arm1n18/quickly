@@ -1,18 +1,19 @@
 .cards-overview-block {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
   height: fit-content;
   padding: 1rem;
   background-color: var(--lightGrey);
+  color: var(--dark-accent);
   border-radius: 2rem;
 }
 
 .card-overview {
   display: grid;
   grid-template-columns: 30% 2px auto;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
   padding: 1rem 20px;
   border-radius: 1rem;
@@ -22,7 +23,7 @@
 .card-overview-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
   justify-content: space-between;
 }
 

@@ -2,17 +2,23 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"web-quiz/internal/model"
+	"web-quiz/internal/protocol"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type UserRepository interface {
-	FetchUserProfile(ctx context.Context, username string) (*model.Author, error)
+type Query struct {
+	Name   string
+	LastId int
+}
 
-	FetchUserFolders(ctx context.Context, username string) (*model.FoldersSummary, error)
-	FetchFolder(ctx context.Context, username, slug string) (*model.Folder, error)
+type UserRepository interface {
+	GetProfile(ctx context.Context, username string) (*model.Author, error)
+	ListFolders(ctx context.Context, userId int, username string, queryParams Query) (*model.FoldersSummary, error)
+	GetFolder(ctx context.Context, userId int, username, slug string) (*model.Folder, error)
 }
 
 type userRepo struct {
@@ -23,15 +29,15 @@ func NewUserRepository(psql *pgxpool.Pool) UserRepository {
 	return &userRepo{psql: psql}
 }
 
-func (m *userRepo) FetchUserProfile(ctx context.Context, username string) (*model.Author, error) {
+func (m *userRepo) GetProfile(ctx context.Context, username string) (*model.Author, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
-	query := `SELECT username, avatar_url FROM users WHERE username = $1`
+	query := `SELECT username, avatar FROM users WHERE username = $1`
 
 	user := model.Author{}
 
@@ -44,41 +50,54 @@ func (m *userRepo) FetchUserProfile(ctx context.Context, username string) (*mode
 	return &user, nil
 }
 
-func (m *userRepo) FetchUserFolders(ctx context.Context, username string) (*model.FoldersSummary, error) {
+func (m *userRepo) ListFolders(ctx context.Context, userId int, username string, queryParams Query) (*model.FoldersSummary, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
-	query := `SELECT
-			json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
-			folders.folders
-			FROM users u
-			LEFT JOIN LATERAL (
-				SELECT json_agg(
-					json_build_object(
-						'title', f.title,
-						'slug', f.slug,
-						'objects', (
-							SELECT COUNT(*) FROM modules m WHERE m.module_id = fm.module_id
-						)
-						
-					)
-				) as folders
-				FROM folders f
-				LEFT JOIN folder_modules fm ON fm.module_id = f.folder_id
-				LEFT JOIN modules m ON m.module_id = fm.module_id
-				WHERE f.user_id = u.user_id
-				GROUP BY f.user_id
-			) folders ON TRUE
-		WHERE u.username = $1
+	args := []interface{}{username}
+	placeholder := 3
+
+	query := `
+		SELECT COALESCE(json_agg(folder_data), '[]') AS folders
+		FROM (
+			SELECT
+				f.folder_id,
+				f.title,
+				f.slug,
+				f.user_id = $2 as is_owner,
+				COUNT(fm.module_id) AS objects
+			FROM folders f
+			LEFT JOIN folder_modules fm ON fm.folder_id = f.folder_id
+			WHERE f.user_id = (SELECT user_id FROM users WHERE username = $1)
 	`
+
+	if queryParams.LastId > 0 {
+		query += fmt.Sprintf(" AND f.folder_id > $%d", placeholder)
+		args = append(args, queryParams.LastId)
+		placeholder++
+	}
+
+	if len(queryParams.Name) > 0 {
+		query += fmt.Sprintf(" AND f.title ILIKE '%%' || $%d || '%%'", placeholder)
+		args = append(args, queryParams.Name)
+		placeholder++
+	}
+
+	query += `
+		GROUP BY f.folder_id, f.title, f.slug
+		ORDER BY f.folder_id
+	) folder_data
+	`
+
+	args = append(args, userId)
 
 	userFolders := model.FoldersSummary{}
 
-	err = conn.QueryRow(ctx, query, username).Scan(&userFolders.Author, &userFolders.Folders)
+	err = conn.QueryRow(ctx, query, args...).Scan(&userFolders.Folders)
 	if err != nil {
 		log.Printf("error query modules: %v\n", err)
 		return nil, err
@@ -87,11 +106,11 @@ func (m *userRepo) FetchUserFolders(ctx context.Context, username string) (*mode
 	return &userFolders, nil
 }
 
-func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*model.Folder, error) {
+func (m *userRepo) GetFolder(ctx context.Context, userId int, username, slug string) (*model.Folder, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
@@ -99,7 +118,8 @@ func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*mod
 		SELECT
 			f.title,
 			f.slug,
-			json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
+			json_build_object('name', u.username, 'avatar', u.avatar) AS author,
+			m.user_id = $3 as is_owner,
 			folders.modules
 			FROM users u
 			LEFT JOIN folders f ON f.user_id = u.user_id
@@ -111,6 +131,7 @@ func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*mod
 						'id', m.module_id,
 						'title', m.title,
 						'slug', m.slug,
+						'isOwner', m.user_id = $3,
 						'objects', (
 							SELECT COUNT(*) FROM modules m WHERE m.module_id = fm.module_id
 						)
@@ -118,7 +139,7 @@ func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*mod
 					)
 				) as modules
 				FROM modules m
-				WHERE m.module_id = fm.module_id
+				WHERE m.module_id = fm.module_id AND (NOT m.is_private OR m.user_id = $3)
 			) folders ON TRUE
 			
 		WHERE u.username = $1 and f.slug = $2
@@ -126,14 +147,15 @@ func (m *userRepo) FetchFolder(ctx context.Context, username, slug string) (*mod
 
 	folder := model.Folder{}
 
-	err = conn.QueryRow(ctx, query, username, slug).Scan(
+	err = conn.QueryRow(ctx, query, username, slug, userId).Scan(
 		&folder.Title,
 		&folder.Slug,
 		&folder.Author,
+		&folder.IsOwner,
 		&folder.Modules,
 	)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
+		log.Printf("error query folder: %v\n", err)
 		return nil, err
 	}
 

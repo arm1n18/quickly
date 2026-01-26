@@ -5,10 +5,47 @@ import {CardsTestPage} from './pages/cards-test-page/cards-test-page';
 import { CardsPrintPage } from './pages/cards-print-page/cards-print-page';
 import { FlashcardsPage } from './pages/flashcards-page/flashcards-page';
 import { SelectMissingWordsPage } from './pages/select-missing-words-page/select-missing-words-page';
+import { UserProfile } from './pages/user-profile/user-profile';
+import { UserModulesComponent } from './components/user-modules-component/user-modules-component';
+import { UserFoldersComponent } from './components/user-folders-component/user-folders-component';
+import { FolderPage } from './pages/folder-page/folder-page';
+import { CreateModulePage } from './pages/create-module-page/create-module-page';
+import { UpdateModulePage } from './pages/update-module-page/update-module-page';
 
 export const routes: Routes = [
   {
-    path: ':id',
+    path: 'user/:username',
+    component: UserProfile,
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'modules'
+      },
+      {
+        path: 'modules',
+        component: UserModulesComponent
+      },
+      {
+        path: 'folders',
+        component: UserFoldersComponent
+      }
+    ]
+  },
+  {
+    path: 'user/:username/folder/:slug',
+    component: FolderPage,
+  },
+  {
+    path: 'module/create',
+    component: CreateModulePage
+  },
+  {
+    path: 'module/:id/update',
+    component: UpdateModulePage
+  },
+  {
+    path: 'module/:id',
     component: CardsRootPage,
     children: [
       {
@@ -33,8 +70,4 @@ export const routes: Routes = [
       },
     ]
   },
-  {
-    path: 'select-missing-words/:id',
-    component: SelectMissingWordsPage,
-  }
 ];

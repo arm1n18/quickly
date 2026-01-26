@@ -2,18 +2,30 @@ package module
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"web-quiz/internal/model"
+	"web-quiz/internal/protocol"
 	"web-quiz/internal/utils"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Query struct {
+	Name   string
+	LastId int
+}
+
 type ModuleRepository interface {
-	FetchModule(ctx context.Context, id int) (*model.Module, error)
-	FetchModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error)
-	FetchModulesByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummary, error)
-	FetchUserModules(ctx context.Context, username string, lastId int) (*model.UserModules, error)
+	GetByID(ctx context.Context, userId, id int) (*model.Module, error)
+	FindByTitle(ctx context.Context, userId int, title string, lastId int) (*model.ModulesSummaryResponse, error)
+	FindByKeywords(ctx context.Context, userId int, keywords []string) (*model.ModulesSummaryResponse, error)
+	ListByUserID(ctx context.Context, userId int, username string, queryParams Query) (*model.UserModulesResponse, error)
+
+	CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
+	UpdateModule(ctx context.Context, userId int, module model.UpdateModuleRequest) error
+	DeleteModule(ctx context.Context, userId int, moduleId int) error
 
 	InsertKeywords(ctx context.Context, keywords []string) error
 }
@@ -26,11 +38,11 @@ func NewModuleRepository(psql *pgxpool.Pool) ModuleRepository {
 	return &moduleRepo{psql: psql}
 }
 
-func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, error) {
+func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
@@ -38,7 +50,8 @@ func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, er
 			m.module_id as id,
 			m.title,
 			m.slug,
-			json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
+			json_build_object('name', u.username, 'avatar', u.avatar) AS author,
+			m.user_id = $2 as is_owner,
 			kw.keywords,
 			c.cards
 		FROM modules m
@@ -73,15 +86,17 @@ func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, er
 			) c ON TRUE
 		WHERE
 			m.module_id = $1
+			AND (NOT m.is_private OR m.user_id = $2)
 	`
 
 	module := model.Module{}
 
-	if err = conn.QueryRow(ctx, query, id).Scan(
-		&module.Id,
+	if err = conn.QueryRow(ctx, query, id, userId).Scan(
+		&module.ID,
 		&module.Title,
 		&module.Slug,
 		&module.Author,
+		&module.IsOwner,
 		&module.Keywords,
 		&module.Cards,
 	); err != nil {
@@ -94,22 +109,23 @@ func (m *moduleRepo) FetchModule(ctx context.Context, id int) (*model.Module, er
 	return &module, nil
 }
 
-func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId int) (*model.ModulesSummary, error) {
+func (m *moduleRepo) FindByTitle(ctx context.Context, userId int, title string, lastId int) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
-	args := []interface{}{name}
+	args := []interface{}{title}
 
 	query := `SELECT
 		m.module_id as id,
 		m.title,
 		m.slug,
 		m.has_images,
-		json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
+		json_build_object('name', u.username, 'avatar', u.avatar) AS author,
+		m.user_id = $2 as is_owner,
 		kw.keywords,
 		mc.objects
 	FROM modules m
@@ -134,6 +150,7 @@ func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId
 		) kw ON TRUE
 	WHERE
 		m.title ILIKE '%' || $1 || '%'
+		AND (NOT m.is_private OR m.user_id = $2)
 	`
 
 	if lastId > 0 {
@@ -142,6 +159,8 @@ func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId
 	}
 
 	query += ` LIMIT 10`
+
+	args = append(args, userId)
 
 	modules := []model.ModuleSummary{}
 
@@ -155,11 +174,12 @@ func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId
 		module := model.ModuleSummary{}
 
 		if err := rows.Scan(
-			&module.Id,
+			&module.ID,
 			&module.Title,
 			&module.Slug,
 			&module.HasImages,
 			&module.Author,
+			&module.IsOwner,
 			&module.Keywords,
 			&module.Objects,
 		); err != nil {
@@ -170,14 +190,14 @@ func (m *moduleRepo) FetchModulesByName(ctx context.Context, name string, lastId
 		modules = append(modules, module)
 	}
 
-	return &model.ModulesSummary{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []string) (*model.ModulesSummary, error) {
+func (m *moduleRepo) FindByKeywords(ctx context.Context, userId int, keywords []string) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
@@ -192,12 +212,13 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 			JOIN keywords k ON k.kw_id = mk.kw_id
 		WHERE
 			k.kw_slug = ANY($1)
+			AND (NOT m.is_private OR m.user_id = $2)
 			GROUP BY m.module_id
 			HAVING COUNT (DISTINCT k.kw_slug) = array_length($1, 1)
 		LIMIT 10
 	)`
 
-	err = conn.QueryRow(ctx, queryModulesIds, keywords).Scan(&ids)
+	err = conn.QueryRow(ctx, queryModulesIds, keywords, userId).Scan(&ids)
 	if err != nil {
 		log.Printf("error query modules: %v\n", err)
 		return nil, err
@@ -208,7 +229,8 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 		m.title,
 		m.slug,
 		m.has_images,
-		json_build_object('name', u.username, 'avatar', u.avatar_url) AS author,
+		json_build_object('name', u.username, 'avatar', u.avatar) AS author,
+		m.user_id = $2 as is_owner,
 		kw.keywords,
 		mc.objects
 	FROM modules m
@@ -240,12 +262,13 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 	for _, id := range ids {
 		module := model.ModuleSummary{}
 
-		if err = conn.QueryRow(ctx, queryModule, id).Scan(
-			&module.Id,
+		if err = conn.QueryRow(ctx, queryModule, id, userId).Scan(
+			&module.ID,
 			&module.Title,
 			&module.Slug,
 			&module.HasImages,
 			&module.Author,
+			&module.IsOwner,
 			&module.Keywords,
 			&module.Objects,
 		); err != nil {
@@ -256,23 +279,25 @@ func (m *moduleRepo) FetchModulesByKeywords(ctx context.Context, keywords []stri
 		modules = append(modules, module)
 	}
 
-	return &model.ModulesSummary{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, lastId int) (*model.UserModules, error) {
+func (m *moduleRepo) ListByUserID(ctx context.Context, userId int, username string, queryParams Query) (*model.UserModulesResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, err
+		return nil, protocol.ErrInternal
 	}
 	defer conn.Release()
 
 	args := []interface{}{username}
+	placeholder := 3
 
 	query := `SELECT
 		m.module_id as id,
 		m.title,
 		m.slug,
+		m.user_id = $2 as is_owner,
 		m.has_images,
 		mc.objects
 	FROM modules m
@@ -285,14 +310,24 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, last
 		) mc ON TRUE
 	WHERE
 		u.username = $1
+		AND (NOT m.is_private OR m.user_id = $2)
 	`
 
-	if lastId > 0 {
-		query += ` AND m.module_id < $2`
-		args = append(args, lastId)
+	if len(queryParams.Name) > 0 {
+		query += fmt.Sprintf(" AND m.title ILIKE '%%' || $%d || '%%'", placeholder)
+		args = append(args, queryParams.Name)
+		placeholder++
+	}
+
+	if queryParams.LastId > 0 {
+		query += fmt.Sprintf(" AND m.module_id > $%d", placeholder)
+		args = append(args, queryParams.LastId)
+		placeholder++
 	}
 
 	query += ` ORDER BY m.module_id LIMIT 10`
+
+	args = append(args, userId)
 
 	modules := []model.UserModule{}
 
@@ -306,9 +341,10 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, last
 		module := model.UserModule{}
 
 		if err := rows.Scan(
-			&module.Id,
+			&module.ID,
 			&module.Title,
 			&module.Slug,
+			&module.IsOwner,
 			&module.HasImages,
 			&module.Objects,
 		); err != nil {
@@ -319,11 +355,164 @@ func (m *moduleRepo) FetchUserModules(ctx context.Context, username string, last
 		modules = append(modules, module)
 	}
 
-	return &model.UserModules{Modules: modules}, nil
+	return &model.UserModulesResponse{Modules: modules}, nil
+}
+
+func (m *moduleRepo) CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
+	if len(module.Cards) == 0 {
+		return nil, fmt.Errorf("сards can not be empty")
+	}
+
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return nil, protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return nil, err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	queryCreateModule := `INSERT INTO modules 
+		(user_id, title, slug, has_images) 
+		VALUES ($1, $2, $3, $4) 
+		RETURNING module_id
+	`
+
+	var moduleId int
+	hasImages := utils.Contains(module.Cards, func(card model.CreateCard) bool {
+		return card.Title.Media.Content != nil || card.Description.Media.Content != nil
+	})
+
+	err = tx.QueryRow(ctx, queryCreateModule, userId, module.Title, utils.Slug(module.Title), hasImages).Scan(&moduleId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, card := range module.Cards {
+		if err = insertCard(tx, ctx, moduleId, card); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return &model.CreateModuleResponse{ID: moduleId}, nil
+}
+
+func (m *moduleRepo) DeleteModule(ctx context.Context, userId int, moduleId int) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	query := `DELETE FROM modules WHERE module_id = $1 AND user_id = $2`
+
+	commandTag, err := tx.Exec(ctx, query, moduleId, userId)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("module not found")
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *moduleRepo) UpdateModule(ctx context.Context, userId int, module model.UpdateModuleRequest) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM modules WHERE module_id=$1 AND user_id=$2)", module.ID, userId).Scan(&exists)
+	if err != nil || !exists {
+		return fmt.Errorf("module not found")
+	}
+
+	if module.Title != nil {
+		cmdTag, err := tx.Exec(ctx, `UPDATE modules SET title=$1, slug=$2 WHERE module_id=$3 AND user_id=$4`,
+			module.Title, utils.Slug(*module.Title), module.ID, userId)
+		if err != nil {
+			return err
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			return fmt.Errorf("module not found")
+		}
+	}
+
+	for _, card := range module.Cards {
+		if card.Delete && card.ID != nil {
+			if err = deleteCard(tx, ctx, module.ID, *card.ID); err != nil {
+				return err
+			}
+		} else if card.ID == nil {
+			if err = insertCard(tx, ctx, module.ID, model.CreateCard{
+				Title:       card.Title,
+				Description: card.Description,
+			}); err != nil {
+				return err
+			}
+		} else {
+			if err = updateCard(tx, ctx, module.ID, card); err != nil {
+				return err
+			}
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) error {
 	if len(keywords) == 0 {
+		// add err
 		return nil
 	}
 
@@ -340,6 +529,10 @@ func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) erro
 		return err
 	}
 
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
 	queryInsertKw := `INSERT INTO keywords (kw_slug, is_translatable) VALUES ($1, $2) ON CONFLICT (kw_slug) DO NOTHING RETURNING kw_id`
 	queryInsertKwTranslation := `INSERT INTO keyword_translations (kw_id, lang, name) VALUES ($1, 'ua', $2) ON CONFLICT (kw_id, lang) DO NOTHING`
 
@@ -348,17 +541,70 @@ func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) erro
 
 		err := tx.QueryRow(ctx, queryInsertKw, utils.Slug(keyword), true).Scan(&kwId)
 		if err != nil {
-			tx.Rollback(ctx)
 			return err
 		}
 
 		_, err = tx.Exec(ctx, queryInsertKwTranslation, kwId, keyword)
 		if err != nil {
-			tx.Rollback(ctx)
 			return err
 		}
 	}
 
-	tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
 	return nil
+}
+
+func prepareMediaType(m *model.MediaBlock) {
+	if m.Content == nil {
+		m.Type = nil
+	} else {
+		mediaType := "image"
+		m.Type = &mediaType
+	}
+}
+
+func insertCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CreateCard) error {
+	query := `INSERT INTO module_cards
+		(module_id, title, description, title_media_type, title_media, 
+		description_media_type, description_media)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+
+	prepareMediaType(&card.Title.Media)
+	prepareMediaType(&card.Description.Media)
+
+	_, err := tx.Exec(ctx, query, moduleId,
+		card.Title.Text, card.Description.Text, card.Title.Media.Type, card.Title.Media.Content,
+		card.Description.Media.Type, card.Description.Media.Content,
+	)
+
+	return err
+}
+
+func updateCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CardUpdate) error {
+	prepareMediaType(&card.Title.Media)
+	prepareMediaType(&card.Description.Media)
+
+	_, err := tx.Exec(ctx, `UPDATE module_cards SET
+		title=$1, description=$2, title_media_type=$3, title_media=$4, 
+		description_media_type=$5, description_media=$6
+	WHERE card_id=$7 AND module_id=$8`,
+		card.Title.Text, card.Description.Text, card.Title.Media.Type,
+		card.Title.Media.Content, card.Description.Media.Type,
+		card.Description.Media.Content, card.ID, moduleId)
+
+	return err
+}
+
+func deleteCard(tx pgx.Tx, ctx context.Context, moduleId, cardId int) error {
+	cmdTag, err := tx.Exec(ctx, `DELETE FROM module_cards WHERE card_id=$1 AND module_id=$2`,
+		cardId, moduleId)
+
+	if cmdTag.RowsAffected() == 0 {
+		return fmt.Errorf("card not found")
+	}
+
+	return err
 }

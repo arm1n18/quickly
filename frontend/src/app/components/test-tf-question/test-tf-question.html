@@ -7,7 +7,7 @@
          Термін
          @if(question!.question.text){
            <app-custom-button theme="hover-only" size="symbol">
-             <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText(question!.question.text, $event)"/>
+             <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText(question!.question.text, $event)"/>
            </app-custom-button>
          }
        </div>
@@ -67,7 +67,7 @@
           Визначення
           @if(question!.question.text){
             <app-custom-button theme="hover-only" size="symbol">
-              <app-icon [icon]="'Volume'" [size]="24" [fill]="'#4765FF'" (click)="speakText(question!.answer.text!, $event)"/>
+              <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText(question!.answer.text!, $event)"/>
             </app-custom-button>
           }
         </div>
@@ -96,9 +96,6 @@
           @case ("audio") {
             <audio src="{{ question!.answer.media?.content }}"></audio>
           }@case ("video") {
-
-            <!--TODO-->
-
             <video width="96" height="96" class="object-cover media-block" src="{{ question!.answer.media?.content }}"></video>
           }@case ("image") {
             <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.answer.media?.content + ')'"></div> -->
@@ -174,7 +171,7 @@
       <div class="mx-auto">Пропущено</div>
     } @else {
       <div
-        class="mx-auto text-[var(--accent)]"
+        class="mx-auto text-[var(--accent)] hover:underline"
         (click)="skipQuestion()"
         [ngClass]="{
           'opacity-50 cursor-default': showAnswer,

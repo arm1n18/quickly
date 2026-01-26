@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, Inject, Input } from '@angular/core';
+import { Component, HostBinding, HostListener, Inject, Input } from '@angular/core';
 import { Portal } from '../../../services/portal/portal';
 
 @Component({
@@ -14,5 +14,10 @@ export class ImageModal {
 
   closeModal() {
     this.portal.close()
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape() {
+    this.closeModal();
   }
 }

@@ -1,5 +1,5 @@
 @if(getModule; as module) {
-  <div class="w-full min-h-screen bg-(--background)">
+  <div class="w-full h-dvh bg-(--background)">
   <header class="sticky z-1 top-0 w-full">
     <div class="game-header">
       
@@ -12,17 +12,18 @@
         class="game-header-left"
       />
 
-      <div class="justify-self-center flex flex-col items-center">
+      <div class="justify-self-center flex flex-col items-center text-[var(--dark-accent)]">
         <div>{{ showConfig.showAnswers ? getResult.correct.length : getResult.answered }} / {{ testConfig().maxQuestions }}</div>
         <div>{{ module.title }}</div>
       </div>
+
       <div class="flex gap-2 game-header-right">
         @if(true) {
-          <app-custom-button theme="secondary" rounded="full">
+          <!-- <app-custom-button theme="secondary" rounded="full">
             Друк
-          </app-custom-button>
+          </app-custom-button> -->
           <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
-            <app-icon [icon]="'Settings'" [size]="24" [fill]="'#4765FF'" />
+            <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
           </app-custom-button>
         } @else {
           <app-custom-button theme="secondary" rounded="full">
@@ -33,7 +34,7 @@
           </app-custom-button>
         }
         <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
-          <app-icon [icon]="'Cross'" [size]="36" [fill]="'#4765FF'" />
+          <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
         </app-custom-button>
       </div>
     </div>
@@ -50,19 +51,19 @@
         <div class="flex gap-8 items-center">
           <app-doughnut-chart [correct]="getResult.correct.length" [incorrect]="getResult.incorrect.length" />
           <div class="flex flex-col w-60 gap-2">
-            <div class="text-[#4765FF] flex justify-between">
+            <div class="text-[#6d4aff] flex justify-between">
               <div class="flex gap-2 items-center">
-                <app-icon [icon]="'Check'" [size]="24" [stroke]="'#4765FF'" [fill]="'transparent'"/>
+                <app-icon [icon]="'Check'" [size]="24" [stroke]="'#6d4aff'" [fill]="'transparent'"/>
                 Правильно
               </div>
-            <div class="bg-[#EEF0FF] border-[#4765FF] border rounded-xl flex justify-center w-14">{{getResult.correct.length}}</div>
+            <div class="bg-[#e2dbff] border-[#6d4aff] border rounded-xl flex justify-center w-14">{{getResult.correct.length}}</div>
             </div>
             <div class="flex justify-between text-[#A7B2FF]">
               <div class="flex gap-2 items-center">
                 <app-icon [icon]="'Cross'" [size]="24" [fill]="'#A7B2FF'" />
                 Неправильно
               </div>
-              <div class="bg-[#EEF0FF] text-[#4765FF] border-[#A7B2FF] border rounded-xl flex justify-center w-14">{{getResult.incorrect.length}}</div>
+              <div class="bg-[#e2dbff] text-[#6d4aff] border-[#A7B2FF] border rounded-xl flex justify-center w-14">{{getResult.incorrect.length}}</div>
             </div>
           </div>
         </div>
@@ -200,7 +201,7 @@
         Формат питань
         <div class="flex items-center gap-2 text-[var(--accent)] cursor-pointer" (click)="showConfig.showAnswerMode = !showConfig.showAnswerMode">
           Переглянути
-          <app-icon [icon]="'ChevronDown'" [size]="24" [fill]="'#4765FF'" [class]="'transition-all'" [ngClass]="{'rotate-180': showConfig.showAnswerMode}"/>
+          <app-icon [icon]="'ChevronDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': showConfig.showAnswerMode}"/>
         </div>
       </div>
       <div [class]="'w-full flex flex-col gap-4 pl-4'" [ngClass]="{'hidden': !showConfig.showAnswerMode}">

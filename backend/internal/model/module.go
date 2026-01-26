@@ -11,7 +11,7 @@ type CardContent struct {
 }
 
 type Card struct {
-	Id          int         `json:"id"`
+	ID          int         `json:"id"` // <---- todo
 	Title       CardContent `json:"title"`
 	Description CardContent `json:"description"`
 }
@@ -27,37 +27,68 @@ type Keyword struct {
 }
 
 type Module struct {
-	Id       int       `json:"id"`
+	ID       int       `json:"id"`
 	Title    string    `json:"title"`
 	Slug     string    `json:"slug"`
 	Author   Author    `json:"author"`
 	Keywords []Keyword `json:"keywords"`
-	Cards    []Card    `json:"cards"`
 	Objects  int       `json:"objects"`
+	Cards    []Card    `json:"cards"`
+	IsOwner  bool      `json:"isOwner"`
 }
 
 type ModuleSummary struct {
-	Id        int       `json:"id"`
+	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Slug      string    `json:"slug"`
 	Author    Author    `json:"author"`
 	Keywords  []Keyword `json:"keywords"`
 	Objects   int       `json:"objects"`
 	HasImages bool      `json:"hasImages"`
-}
-
-type ModulesSummary struct {
-	Modules []ModuleSummary `json:"modules"`
+	IsOwner   bool      `json:"isOwner"`
 }
 
 type UserModule struct {
-	Id        int    `json:"id"`
+	ID        int    `json:"id"`
 	Title     string `json:"title"`
 	Slug      string `json:"slug"`
 	Objects   int    `json:"objects"`
 	HasImages bool   `json:"hasImages"`
+	IsOwner   bool   `json:"isOwner"`
 }
 
-type UserModules struct {
+type CreateCard struct {
+	Title       CardContent `json:"title"`
+	Description CardContent `json:"description"`
+}
+
+type ModulesSummaryResponse struct {
+	Modules []ModuleSummary `json:"modules"`
+}
+
+type UserModulesResponse struct {
 	Modules []UserModule `json:"modules"`
+}
+
+type CreateModuleRequest struct {
+	Title   string       `json:"title"`
+	Private bool         `json:"private"`
+	Cards   []CreateCard `json:"cards"`
+}
+
+type CreateModuleResponse struct {
+	ID int `json:"id"`
+}
+
+type CardUpdate struct {
+	ID          *int        `json:"id,omitempty"`
+	Title       CardContent `json:"title"`
+	Description CardContent `json:"description"`
+	Delete      bool        `json:"delete,omitempty"`
+}
+
+type UpdateModuleRequest struct {
+	ID    int          `json:"id,omitempty"`
+	Title *string      `json:"title,omitempty"`
+	Cards []CardUpdate `json:"cards,omitempty"`
 }

@@ -1,9 +1,9 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, Output, signal, ViewChild, WritableSignal } from '@angular/core';
-import { QuizCard } from "../quiz-card/quiz-card";
 import { CustomButton, Icon } from "../ui";
 import { Card } from '../../interfaces/quizCard.interface';
 import { single, Subject, Subscription, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { NgStyle } from '@angular/common';
+import { QuizCard } from "../quiz-card/quiz-card";
 
 interface QuizCardsInterface {
   side: sideType
@@ -22,7 +22,7 @@ type sideType = 'title' | 'description' | 'both'
 
 @Component({
   selector: 'app-quiz-cards',
-  imports: [QuizCard, CustomButton, Icon, NgStyle],
+  imports: [CustomButton, Icon, NgStyle, QuizCard],
   templateUrl: './quiz-cards.html',
   styleUrl: './quiz-cards.css',
 })

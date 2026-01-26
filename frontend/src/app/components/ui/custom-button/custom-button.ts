@@ -1,7 +1,7 @@
 import {Component, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {NgClass} from '@angular/common';
 
-export type ButtonTheme = 'primary' | 'secondary' | 'hover-only' | 'hover-only-gray'
+export type ButtonTheme = 'primary' | 'secondary' | 'hover-only' | 'hover-only-dark'
 
 @Component({
   selector: 'app-custom-button',
@@ -16,6 +16,6 @@ export class CustomButton {
   @Input() className: string = '';
   @Input() rounded: 'none' | 'sm' | 'md' | 'full' | 'right-sm' | 'left-sm' = 'md';
   @Input() theme: ButtonTheme = 'primary';
-  @Input() size: 'symbol' | 'text' | 'dual-child' = 'text';
+  @Input() size: 'symbol' | 'text' | 'dual-child' | 'w-full' = 'text';
   @Input() disabled: boolean = false;
 }
