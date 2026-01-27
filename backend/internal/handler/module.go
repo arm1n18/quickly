@@ -93,10 +93,7 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			})
 		}
 
-		user, ok := utils.GetLocals[model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
+		user, _ := utils.GetLocals[model.UserAccessToken](c, "user")
 
 		module, err := svc.GetModuleByID(c.Context(), user.SUB, id)
 		if err != nil {

@@ -181,6 +181,7 @@ export class UpdateModulePage {
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap
-    this.apiService.module.getModule(Number(params.get("id")!)).subscribe(module => this.setModule(module))
+    this.apiService.module.getModule(Number(params.get("id")!))
+      .subscribe(resp => this.setModule(resp.module))
   }
 }

@@ -46,6 +46,8 @@ func (a *authRepo) SetVerificationCode(ctx context.Context, email string, code m
 			code.Requests = 1
 		}
 
+		code.Iat = time.Now()
+
 		checkAndBan(&code)
 
 		_, err = tx.TxPipelined(ctx, func(p redis.Pipeliner) error {
@@ -83,6 +85,7 @@ func (a *authRepo) UpdateVerificationCode(ctx context.Context, email string, new
 
 		code.Requests++
 		code.Code = newCode
+		code.Iat = time.Now()
 
 		checkAndBan(code)
 

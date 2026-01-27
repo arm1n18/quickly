@@ -1,0 +1,10 @@
+@for(i of otp; track i) {
+    <input 
+        #otpInput
+        class="input"
+        [value]="values[$index] || ''"
+        appNumberOnly
+        (input)="onInput($event, $index)"
+        (keydown)="onKeyDown($event, i)"
+    />
+}

@@ -25,10 +25,11 @@
   --background: #FAFAFA;
 
   --text-secondary: #cecece;
+  --text-secondary2: #6f7883;
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 1.75rem;
   color: var(--dark-accent);
 }
 

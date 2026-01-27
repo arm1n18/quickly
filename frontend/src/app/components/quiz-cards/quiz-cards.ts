@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, Output, signal, ViewChild, WritableSignal } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, signal, ViewChild, WritableSignal } from '@angular/core';
 import { CustomButton, Icon } from "../ui";
 import { Card } from '../../interfaces/quizCard.interface';
 import { single, Subject, Subscription, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { NgStyle } from '@angular/common';
 import { QuizCard } from "../quiz-card/quiz-card";
+import { ModalStateService } from '../../services/modalStateService/modal-state-service';
 
 interface QuizCardsInterface {
   side: sideType
@@ -28,6 +29,8 @@ type sideType = 'title' | 'description' | 'both'
 })
 
 export class QuizCards {
+  constructor(private modalState: ModalStateService){}
+
   private _config: QuizCardsInterface = {
     side: 'title',
     fullscreen: false,
@@ -45,7 +48,6 @@ export class QuizCards {
 
   private changeCardTimeout: ReturnType<typeof setTimeout> | null = null;
   private stopAutoPlay$ = new Subject<void>();
-  private keySubscription = new Subscription();
 
   public currentCardIndex: WritableSignal<number> = signal(0);
   private shuffledCards: WritableSignal<Card[] | null> = signal(null);
@@ -176,7 +178,11 @@ export class QuizCards {
     }
   }
 
-  private handleKeyPress = (e: KeyboardEvent) => {
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyPress (e: KeyboardEvent) {
+    if (this.modalState.isAnyOpen()) return;
+
     switch (e.code) {
       case "ArrowLeft":
         this.changeCard('prev')
@@ -205,14 +211,5 @@ export class QuizCards {
         this.quizCard.toggleClue(e);
         break;
     }
-  }
-
-  ngOnInit(): void {
-    window.addEventListener('keydown', this.handleKeyPress);
-  }
-
-  ngOnDestroy(): void {
-    this.keySubscription.unsubscribe()
-    window.removeEventListener('keydown', this.handleKeyPress)
   }
 }

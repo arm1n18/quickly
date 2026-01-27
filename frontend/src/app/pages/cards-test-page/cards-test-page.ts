@@ -1,10 +1,9 @@
 import {
   Component,
-  computed,
   ElementRef,
   OnDestroy,
   OnInit,
-  QueryList, Signal, signal,
+  QueryList, signal,
   ViewChild,
   ViewChildren, WritableSignal
 } from '@angular/core';
@@ -30,7 +29,6 @@ import {Subject, takeUntil, tap, timer} from 'rxjs';
 import {Validator} from '../../services/validator/validator';
 import { DoughnutChart } from '../../components/ui/doughnut-chart/doughnut-chart/doughnut-chart';
 import { shuffleArray } from '../../utils/random';
-import { TestLayout } from "../../layouts/test-layout/test-layout";
 
 export type TestMode = 'true-false' | 'choose' | 'match' | 'input';
 

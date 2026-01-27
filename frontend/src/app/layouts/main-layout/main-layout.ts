@@ -5,21 +5,32 @@ import { Avatar } from "../../components/ui/avatar/avatar";
 import { ModuleSummary } from '../../interfaces/quizCard.interface';
 import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
+import { AuthForm } from "../../components/auth-form/auth-form";
+import { ModalStateService } from '../../services/modalStateService/modal-state-service';
+
+interface ShowConfigInterface {
+  showAuthModal: boolean;
+  showSearchDropdown: boolean;
+}
 
 @Component({
   selector: 'app-main-layout',
-  imports: [CustomButton, Icon, CustomInput, Avatar],
+  imports: [CustomButton, Icon, CustomInput, Avatar, AuthForm],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
 
 export class MainLayout {
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
-  public show: WritableSignal<boolean> = signal(false);
+  public showConfig: ShowConfigInterface = {
+    showAuthModal: false,
+    showSearchDropdown: false,
+  }
 
   constructor(
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private modalState: ModalStateService
   ) {}
 
   public navigateToModule(id: number, e: Event) {
@@ -32,5 +43,15 @@ export class MainLayout {
 
     this.apiService.module.getModuleByName(text)
       .subscribe(modules => this.modules.set(modules.modules))
+  }
+
+  public toggleAuthModal(state: boolean) {
+    if (state && !this.modalState.isAnyOpen()) {
+      this.modalState.open();
+      this.showConfig.showAuthModal = state;
+    } else if (!state && this.modalState.isAnyOpen()) {
+      this.modalState.close();
+      this.showConfig.showAuthModal = state;
+    }
   }
 }

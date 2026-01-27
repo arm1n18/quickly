@@ -11,8 +11,19 @@
     }
     <input
         class="w-full h-full"
-        [placeholder]="title"
+        [attr.type]="type"
+        [id]="inputId"
+        [placeholder]="title ?? ''"
         [value]="value ?? ''"
         (input)="onInputChange($event)"
     />
+     @if(password){
+        <div class="flex items-center justify-center cursor-pointer p-1 hover:bg-indigo-100 rounded-lg">
+            <app-icon 
+                [icon]="type == 'password' ? 'EyeClose' : 'Eye'" 
+                [size]="24" [fill]="'#A7B2FF'"
+                (click)="showPassword()"
+            />
+        </div>
+    }
 </div>

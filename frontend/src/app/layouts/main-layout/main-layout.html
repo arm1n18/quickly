@@ -6,7 +6,7 @@
         [title]="'Пошук'"
         [icon]="{show: true}"
         (inputChange)="findModules($event)"
-        (inputFocused)="show.set($event)"
+        (inputFocused)="showConfig.showSearchDropdown = $event"
     />
 
     <div class="header-end">
@@ -16,11 +16,15 @@
         >
             <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
         </app-custom-button>
-        <app-avatar [name]="'Denis'" />
+        @if(false) {
+            <app-avatar [name]="'Denis'" />
+        } @else {
+            <app-custom-button (click)="toggleAuthModal(true)">Вхід</app-custom-button>
+        }
     </div>
 </div>
 
-@if(show() && modules().length > 0) {
+@if(showConfig.showSearchDropdown && modules().length > 0) {
     <div class="search-wrapper drop-shadow-xl shadow-stone-200">   
         @for(module of modules(); track module) {
             <div class="search-item flex-col" (click)="navigateToModule(module.id, $event)">
@@ -40,3 +44,10 @@
         }
     </div>
 }
+
+
+<app-auth-form 
+    [show]="showConfig.showAuthModal" 
+    (shownChange)="toggleAuthModal($event)"
+>
+</app-auth-form>

@@ -14,6 +14,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class CustomInput {
   @Input() title: any;
   @Input() value: any;
+  @Input() password: boolean = false;
+  @Input() inputId: string | undefined;
   @Input() set delay(value: number) {
     this._delay$.next(value ?? 500);
   };
@@ -25,6 +27,7 @@ export class CustomInput {
   private _delay$ = new BehaviorSubject<number>(500);
   private input$ = new Subject<string>();
   public focused: boolean = false
+  public type: string | null = null;
 
   constructor(private elementRef: ElementRef) {
     this.input$.pipe(debounceTime(this.delay), takeUntilDestroyed()).subscribe(value => {
@@ -36,6 +39,14 @@ export class CustomInput {
     const newValue = (event.target as HTMLInputElement).value
     this.value = newValue
     this.input$.next(newValue)
+  }
+
+  public showPassword() {
+    if(this.type == "password") {
+      this.type = null
+    } else {
+      this.type = "password"
+    }
   }
 
   @HostListener('document:click', ['$event'])
@@ -53,6 +64,12 @@ export class CustomInput {
         input.blur();
         this.inputFocused.emit(false);
       }
+    }
+  }
+
+  ngOnInit() {
+    if(this.password) {
+      this.showPassword()
     }
   }
 }
