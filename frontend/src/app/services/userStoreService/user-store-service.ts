@@ -10,19 +10,6 @@ import { BehaviorSubject } from 'rxjs';
 })
 
 export class UserStoreService {
-  // constructor(private apiService: ApiService){}
-
-  // user: WritableSignal<UserInfo | null> = signal(null);
-  // modules: WritableSignal<UserModule[] | null> = signal(null);
-  // folders: WritableSignal<UserFolder[] | null> = signal(null);
-
-  // loadUser(username: string) {
-  //   if(this.user() != null) return
-
-  //   this.apiService.user.getUserProfile(username)
-  //     .subscribe(user => this.user.set(user))
-  // }
-
   private _user$ = new BehaviorSubject<UserInfo | null>(null);
   public user$ = this._user$.asObservable();
 

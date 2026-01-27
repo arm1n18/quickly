@@ -7,6 +7,7 @@ import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { AuthForm } from "../../components/auth-form/auth-form";
 import { ModalStateService } from '../../services/modalStateService/modal-state-service';
+import { AuthStateService } from '../../services/AuthStateService/auth-state-service';
 
 interface ShowConfigInterface {
   showAuthModal: boolean;
@@ -28,6 +29,7 @@ export class MainLayout {
   }
 
   constructor(
+    public auth: AuthStateService,
     private apiService: ApiService,
     private router: Router,
     private modalState: ModalStateService

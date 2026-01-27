@@ -102,8 +102,9 @@ func (a *authRepo) CheckUserCredentials(ctx context.Context, email, password str
 		username     string
 		hashPassword string
 	)
-	err = conn.QueryRow(ctx, "SELECT user_id, username, password FROM users WHERE email=$1)", email).Scan(&userId, &username, &hashPassword)
+	err = conn.QueryRow(ctx, "SELECT user_id, username, password_hash FROM users WHERE email=$1", email).Scan(&userId, &username, &hashPassword)
 	if err != nil {
+		log.Println(err)
 		return nil, protocol.ErrUserNotFound
 	}
 
@@ -190,11 +191,11 @@ func (a *authRepo) InsertRefreshToken(ctx context.Context, token model.UserSessi
 		return protocol.ErrInternal
 	}
 
-	query := `INSERT INTO sessions (user_id, os, device, token, jti, expires_at)
-	VALUES ($1, $2, $3, $4, $5, NOW() + INTERVAL '30 day')`
+	query := `INSERT INTO sessions (user_id, os, device, browser, token, jti, expires_at)
+	VALUES ($1, $2, $3, $4, $5, $6, NOW() + INTERVAL '30 day')`
 
 	_, err = dbConn.Exec(ctx, query, token.ID, token.OS,
-		token.Device, string(hashToken), token.JTI)
+		token.Device, token.Browser, string(hashToken), token.JTI)
 	if err != nil {
 		return protocol.ErrInternal
 	}

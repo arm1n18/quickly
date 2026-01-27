@@ -35,6 +35,6 @@ func ReturnError(status int, err error) *model.ErrorResponse {
 
 func ReturnErrorJSON(c *fiber.Ctx, status int, err error) error {
 	return c.Status(status).JSON(fiber.Map{
-		"error": err.Error(),
+		"message": err.Error(),
 	})
 }

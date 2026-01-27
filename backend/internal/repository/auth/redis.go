@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	ErrCodeBanned   = errors.New("перевищено ліміт спроб. Будь ласка, спробуйте пізніше")
-	ErrCodeNotFound = errors.New("код не знайдено або не можливо оновити")
+	ErrCodeBanned   = errors.New("Перевищено ліміт спроб. Будь ласка, спробуйте пізніше")
+	ErrCodeNotFound = errors.New("Код не знайдено або не можливо оновити")
 	DefaultCodeTTL  = 15 * time.Minute
 	MaxRequests     = 5
 	MaxAttempts     = 5

@@ -102,7 +102,7 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) (*mod
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return nil, protocol.ReturnError(500, err)
 	}
 	log.Println(code)
 
@@ -118,8 +118,7 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) (*model.
 	user, err := a.repo.CheckUserCredentials(ctx, req.Email, req.Password)
 	if err != nil {
 		log.Println(err)
-
-		return nil, protocol.ReturnError(403, protocol.ErrInvalidCredentials)
+		return nil, protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
 	}
 
 	if err = a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
@@ -141,7 +140,7 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) (*model.
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return nil, protocol.ReturnError(500, err)
 	}
 
 	log.Println(code)
@@ -164,13 +163,13 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 
 	err = a.validateCode(*code, req)
 	if err != nil {
-		return nil, protocol.ReturnError(403, protocol.ErrCodeExpired)
+		return nil, protocol.ReturnError(403, fmt.Errorf("Код не є дійсним"))
 	}
 
 	user, err := a.repo.GetUserFromRedis(ctx, req.Email)
 	if err != nil && err != redis.Nil {
 		log.Println("Не вдалося знайти користувача")
-		return nil, protocol.ReturnError(500, protocol.ErrUserNotFound)
+		return nil, protocol.ReturnError(500, fmt.Errorf("Не вдалося знайти користувача"))
 	}
 
 	jti := uuid.New().String()
@@ -206,13 +205,17 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 }
 
 func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) (*model.SuccessResponse, *model.ErrorResponse) {
+	if req.Purpose != "login" && req.Purpose != "register" {
+		return nil, protocol.ReturnError(400, protocol.ErrInvalidPurpose)
+	}
+
 	code := utils.GenerateCode(6)
 
 	log.Println(code)
 
 	err := a.repo.UpdateVerificationCode(ctx, req.Email, code, req.Purpose)
 	if err != nil {
-		return nil, protocol.ReturnError(403, protocol.ErrTooManyAttempts)
+		return nil, protocol.ReturnError(403, err)
 	}
 
 	return &model.SuccessResponse{Success: true, Message: "Новий код було успішно надіслано"}, nil

@@ -5,13 +5,13 @@
         [formGroup]="authForm"
       >
       <div class="flex justify-between w-full items-center mb-4">
-        <h1 class="title">{{isRegisterMode ? "Реєстрація" : "Вхід"}}</h1>
+        <h1 class="title">{{isRegisterMode() ? "Реєстрація" : "Вхід"}}</h1>
         <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="closeModal($event)">
             <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
           </app-custom-button>
       </div>
 
-        @if(!isReceiveCode) {
+        @if(!isReceiveCode()) {
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col gap-2">
                     <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
@@ -36,8 +36,12 @@
                     <span class="text-xs text-[var(--text-secondary2)]">Пароль повинен бути довжиною від 6 до 50 символів.</span>
                 </div>
 
-                <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">Увіти</app-custom-button>
-                @if(isRegisterMode) {
+                @if(errorMessage()){
+                    <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
+                }
+
+                <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{isRegisterMode() ? "Зареєструватися" : "Увійти"}}</app-custom-button>
+                @if(isRegisterMode()) {
                     <span class="text-sm text-[var(--dark-accent)] mx-auto">
                         У вас вже є обліковий запис?
                         <span 
@@ -78,7 +82,11 @@
                         Код надіслано на {{authForm.get('email')?.value}}
                     </span>
 
-                    <app-otp-input [length]="6" class="mx-auto" />
+                    <app-otp-input 
+                        [length]="6" 
+                        class="mx-auto" 
+                        (inputChange)="onOtpChange($event)"
+                    />
                </div>
 
                @if(timer() > 0) {
@@ -107,11 +115,15 @@
                         </span>
                     }
 
+                @if(errorMessage()){
+                    <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
+                }
+
                 <div class="flex flex-col gap-4">
                     <app-custom-button 
                     size="w-full" 
                     [disabled]="!(authForm.valid && remainingGenerations > 0 || remainingAttempts > 0)"
-                    (click)="sendData()"
+                    (click)="newAttempt()"
                 >
                     Підтвердити
                 </app-custom-button>

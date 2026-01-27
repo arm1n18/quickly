@@ -69,7 +69,16 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
-		return c.Status(fiber.StatusOK).JSON(success)
+		c.Cookie(&fiber.Cookie{
+			Name:     "token",
+			Value:    success.RefreshToken,
+			HTTPOnly: true,
+			SameSite: "Lax",
+			Path:     "/",
+			MaxAge:   60 * 60 * 24 * 30,
+		})
+
+		return c.Status(fiber.StatusOK).JSON(success.AccessToken)
 	})
 
 	router.Post("/send-code", func(c *fiber.Ctx) error {
