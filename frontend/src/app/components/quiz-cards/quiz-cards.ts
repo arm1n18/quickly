@@ -7,7 +7,8 @@ import { QuizCard } from "../quiz-card/quiz-card";
 import { ModalStateService } from '../../services/modalStateService/modal-state-service';
 
 interface QuizCardsInterface {
-  side: sideType
+  side: sideType,
+  canEdit: boolean,
   fullscreen: boolean,
   progressBar: boolean,
   dualBtn: boolean,
@@ -33,6 +34,7 @@ export class QuizCards {
 
   private _config: QuizCardsInterface = {
     side: 'title',
+    canEdit: false,
     fullscreen: false,
     progressBar: false,
     dualBtn: false,

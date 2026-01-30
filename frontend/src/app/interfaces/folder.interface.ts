@@ -5,6 +5,7 @@ export interface FolderSummary {
     title: string;
     slug: string;
     objects: number;
+    isOwner: boolean;
 }
 
 export interface FoldersSummary {
@@ -15,6 +16,7 @@ export interface Folder {
     title: string;
     slug: string;
     author: UserInfo;
+    isOwner: boolean;
     objects: number;
     modules: UserModule[];
 }

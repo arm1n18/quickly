@@ -19,26 +19,30 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  public auth(auth: 'login' | 'register', email: string, password: string): Observable<SuccessResponse> {
-    return this.http.post<SuccessResponse>(`${this.apiRoute}/${auth}`, {email, password} )
+  public auth(auth: 'login' | 'register', email: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.apiRoute}/${auth}`, {email, password}, { responseType: 'text' as 'json' } )
   }
   
-  public verify(body: VerifyBody): Observable<string> {
+  public verify(body: VerifyBody): Observable<{accessToken: string}> {
     const ua = getUserDeviceInfo();
     
-    return this.http.post<string>(
+    return this.http.post<{accessToken: string}>(
       `${this.apiRoute}/verify`, body, 
       {
         headers: new HttpHeaders({
-          "X-OS": ua.OS,
-          "X-Device": ua.Device,
-          "X-Browser": ua.Browser,
+          "app-os": ua.OS,
+          "app-device": ua.Device,
+          "app-browser": ua.Browser,
         })
       } 
     )
   }
 
-  public resendCode(email: string, purpose: 'login' | 'register'): Observable<SuccessResponse> {    
-    return this.http.post<SuccessResponse>(`${this.apiRoute}/send-code`, {email, purpose},)
+  public resendCode(email: string, purpose: 'login' | 'register'): Observable<void> {    
+    return this.http.post<void>(`${this.apiRoute}/send-code`, {email, purpose}, { responseType: 'text' as 'json' })
+  }
+
+  public refresh(): Observable<{accessToken: string}> {    
+    return this.http.get<{accessToken: string}>(`${this.apiRoute}/refresh`)
   }
 }

@@ -1,11 +1,10 @@
 @if(getModule; as module) {
-  <div class="w-full h-dvh bg-(--background)">
   <header class="sticky z-1 top-0 w-full">
     <div class="game-header">
       
       <app-dropdown 
         [list]="dropdownList"
-        [config]="{title: 'Тестування', divider: 'line', icon: {
+        [config]="{title: {text: 'Тестування'}, divider: 'line', icon: {
           name: 'Document',
           color: 'var(--accent)'
         }}" 
@@ -19,21 +18,18 @@
 
       <div class="flex gap-2 game-header-right">
         @if(true) {
-          <!-- <app-custom-button theme="secondary" rounded="full">
-            Друк
-          </app-custom-button> -->
-          <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
+          <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="openModal()">
             <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
           </app-custom-button>
         } @else {
-          <app-custom-button theme="secondary" rounded="full">
+          <app-custom-button theme="secondary" rounded="md">
             Вхід
           </app-custom-button>
-          <app-custom-button rounded="full">
+          <app-custom-button rounded="md">
             Зареєструватись
           </app-custom-button>
         }
-        <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+        <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
           <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
         </app-custom-button>
       </div>
@@ -119,15 +115,11 @@
     }
 
     @if(!showConfig.showAnswers) {
-      <app-custom-button #finishButton rounded="full" (click)="finishTest()">Завершити тест</app-custom-button>
+      <app-custom-button #finishButton rounded="md" (click)="finishTest()">Завершити тест</app-custom-button>
     }
   </div>
-</div>
 
-<app-modal [show]="showConfig.showSettingsModal" (shownChange)="showConfig.showSettingsModal = $event; resetTestConfig()">
-  <div header>
-    Параметри
-  </div>
+<ng-template #modalTemplate>
   <div main class="flex flex-col gap-4 mb-16 ">
     <div class="w-full flex justify-between items-center">
       <div class="flex gap-2">
@@ -233,12 +225,12 @@
     </div>
   </div>
   <div footer [class]="'flex gap-4 justify-end w-full'">
-    <app-custom-button theme="secondary" rounded="full" (click)="resetTestConfig()">
+    <app-custom-button theme="secondary" rounded="md" (click)="resetTestConfig()">
       Скасувати
     </app-custom-button>
-    <app-custom-button theme="primary" rounded="full" (click)="applyTestConfig()">
+    <app-custom-button theme="primary" rounded="md" (click)="applyTestConfig()">
       Створити тест
     </app-custom-button>
   </div>
-</app-modal>
+</ng-template>
 }

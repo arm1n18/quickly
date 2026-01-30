@@ -1,43 +1,51 @@
 import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
-import  { Icon } from '../ui'
+import { Icon } from '../ui'
 import { NgClass } from '@angular/common';
-import {Card, ContentBlock} from '../../interfaces/quizCard.interface';
+import { ContentBlock } from '../../interfaces/quizCard.interface';
 import { ImageModalDirective } from "../../directives/imageDirective/image-modal-directive";
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { EditCardButton } from "../edit-card-button/edit-card-button";
 
 interface QuizCardProps {
+  id: number;
   title: ContentBlock;
   description: ContentBlock;
 }
 
 @Component({
   selector: 'app-quiz-card',
-  imports: [Icon, NgClass, ImageModalDirective],
+  imports: [Icon, NgClass, ReactiveFormsModule, ImageModalDirective, EditCardButton],
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.css'
 })
 
 export class QuizCard implements OnChanges {
+  @Input() canEdit: boolean = false;
   @Input({ required: true }) cardInput: QuizCardProps | undefined = undefined;
   @Input() fullScreen: boolean = false;
   @Input() dualCard: boolean = false;
+
+  public showEditModal: boolean = false;
 
   public animationClass: WritableSignal<string> = signal('');
   public animate: WritableSignal<boolean> = signal(false);
   private isChanged:  WritableSignal<boolean> = signal(false);
 
   public isFlipped: WritableSignal<boolean> = signal(false);
-  // public noTransition = false;
   public showClue: WritableSignal<boolean> = signal(false);
+
+  editForm = new FormGroup<{
+    title: FormControl<string>,
+    description: FormControl<string>;
+  }>({
+    title: new FormControl(this.cardInput?.title.text || '', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
+    description: new FormControl(this.cardInput?.description.text || '', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
+  })
 
   public toggleFlip(skipDuringAutoPlay: boolean = false) {
     if(skipDuringAutoPlay && this.isFlipped()) return
 
     this.animate.set(true);
-    // this.noTransition = true;
-    
-    // setTimeout(() => {
-    //   this.noTransition = false;
-    // }, 0);
     setTimeout(() => {
       this.animate.set(false);
     }, 200);
@@ -70,11 +78,6 @@ export class QuizCard implements OnChanges {
 
   public triggerSlideInAnimation(action: 'right' | 'left') {
     this.animationClass.set(action === 'right' ? 'slide-in-right' : 'slide-in-left');
-    // this.noTransition = true;
-
-    // setTimeout(() => {
-    //   this.noTransition = false;
-    // }, 0);
     setTimeout(() => {
       this.animationClass.set('');
     }, 200);
@@ -107,6 +110,9 @@ export class QuizCard implements OnChanges {
       this.isFlipped.set(false)
       this.showClue.set(false)
       this.isChanged.set(true);
+
+      this.editForm.get('title')?.setValue(this.cardInput?.title.text || '')
+      this.editForm.get('description')?.setValue(this.cardInput?.description.text || '')
 
       setTimeout(() => {
         this.isChanged.set(false);

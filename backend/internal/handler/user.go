@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"web-quiz/internal/middleware"
 	"web-quiz/internal/model"
 	"web-quiz/internal/repository/user"
 	"web-quiz/internal/service"
@@ -10,10 +11,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
-func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
+func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string) {
 	svc := service.NewUserService(psql)
+	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey)
 
 	router.Get("/:username", func(c *fiber.Ctx) error {
 		profile, err := svc.GetUserProfile(c.Context(), c.Params("username"))
@@ -26,20 +29,15 @@ func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
 		return c.Status(fiber.StatusOK).JSON(profile)
 	})
 
-	router.Get("/:username/folders", func(c *fiber.Ctx) error {
+	router.Get("/:username/folders", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		lastId, err := strconv.Atoi(c.Query("lastId"))
 		if err != nil {
 			lastId = 0
 		}
 
-		userData, ok := utils.GetLocals[model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		folders, err := svc.ListUserFolders(
 			c.Context(),
-			userData.SUB,
+			utils.GetUserId(c),
 			c.Params("username"),
 			user.Query{
 				Name:   c.Query("name"),
@@ -56,8 +54,8 @@ func RegisterUserRoutes(router fiber.Router, psql *pgxpool.Pool) {
 		return c.Status(fiber.StatusOK).JSON(folders)
 	})
 
-	router.Get("/:username/folder/:slug", func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[model.UserAccessToken](c, "user")
+	router.Get("/:username/folder/:slug", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
 		if !ok {
 			return c.SendStatus(fiber.StatusUnauthorized)
 		}

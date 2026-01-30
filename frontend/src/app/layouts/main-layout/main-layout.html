@@ -16,8 +16,8 @@
         >
             <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
         </app-custom-button>
-        @if(auth.isLoggedIn) {
-            <app-avatar [name]="auth.getPayload()!.username" />
+        @if(authState.isAuthenticated$ | async) {
+            <app-avatar [name]="authState.getPartial('username')!" />
         } @else {
             <app-custom-button (click)="toggleAuthModal(true)">Вхід</app-custom-button>
         }

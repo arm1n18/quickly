@@ -18,6 +18,7 @@ import (
 	"web-quiz/internal/repository/auth"
 	"web-quiz/internal/utils"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -58,27 +59,27 @@ func NewAuthService(psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string
 	}
 }
 
-func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) (*model.SuccessResponse, *model.ErrorResponse) {
+func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *model.ErrorResponse {
 	if err := utils.ValidateCredentials(req.Email, req.Password); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(400, err)
+		return protocol.ReturnError(400, err)
 	}
 
 	exists, err := a.repo.IsUserExists(ctx, req.Email)
 	if err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, err)
 	}
 
 	if exists {
-		return nil, protocol.ReturnError(403, protocol.ErrUserAlreadyExists)
+		return protocol.ReturnError(403, protocol.ErrUserAlreadyExists)
 	}
 
 	user, err := a.repo.CreateUser(ctx, req.Email, req.Password)
 	if err != nil {
-		return nil, protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, err)
 	}
 
 	if err = a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
@@ -88,7 +89,7 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) (*mod
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	code := utils.GenerateCode(6)
@@ -102,23 +103,23 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) (*mod
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, err)
 	}
 	log.Println(code)
 
-	return &model.SuccessResponse{Success: true, Message: "Код було успішно надіслано"}, nil
+	return nil
 }
 
-func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) (*model.SuccessResponse, *model.ErrorResponse) {
+func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) *model.ErrorResponse {
 	if err := utils.ValidateCredentials(req.Email, req.Password); err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(400, err)
+		return protocol.ReturnError(400, err)
 	}
 
 	user, err := a.repo.CheckUserCredentials(ctx, req.Email, req.Password)
 	if err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
+		return protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
 	}
 
 	if err = a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
@@ -128,7 +129,7 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) (*model.
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	code := utils.GenerateCode(6)
@@ -137,15 +138,16 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) (*model.
 		Code:    code,
 		Purpose: "login",
 		Iat:     time.Now(),
+		Exp:     time.Now().Add(15 * time.Minute),
 	}); err != nil {
 		log.Println(err)
 
-		return nil, protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, err)
 	}
 
 	log.Println(code)
 
-	return &model.SuccessResponse{Success: true, Message: "Код було успішно надіслано"}, nil
+	return nil
 }
 
 func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, headers model.UaHeaders) (*model.Tokens, *model.ErrorResponse) {
@@ -163,7 +165,7 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 
 	err = a.validateCode(*code, req)
 	if err != nil {
-		return nil, protocol.ReturnError(403, fmt.Errorf("Код не є дійсним"))
+		return nil, protocol.ReturnError(403, err)
 	}
 
 	user, err := a.repo.GetUserFromRedis(ctx, req.Email)
@@ -204,9 +206,9 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 	return tokens, nil
 }
 
-func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) (*model.SuccessResponse, *model.ErrorResponse) {
+func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *model.ErrorResponse {
 	if req.Purpose != "login" && req.Purpose != "register" {
-		return nil, protocol.ReturnError(400, protocol.ErrInvalidPurpose)
+		return protocol.ReturnError(400, protocol.ErrInvalidPurpose)
 	}
 
 	code := utils.GenerateCode(6)
@@ -215,10 +217,10 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) (*mod
 
 	err := a.repo.UpdateVerificationCode(ctx, req.Email, code, req.Purpose)
 	if err != nil {
-		return nil, protocol.ReturnError(403, err)
+		return protocol.ReturnError(403, err)
 	}
 
-	return &model.SuccessResponse{Success: true, Message: "Новий код було успішно надіслано"}, nil
+	return nil
 }
 
 func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.UpdateToken, *model.ErrorResponse) {
@@ -267,37 +269,37 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 	return &model.UpdateToken{AccessToken: tokens.AccessToken}, nil
 }
 
-func (a *AuthService) Logout(ctx context.Context, req model.Tokens) (*model.SuccessResponse, *model.ErrorResponse) {
+func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.ErrorResponse {
 	accessToken, err := a.ParseUserAccessToken(req.AccessToken)
 	if err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(403, protocol.ErrInvalidCredentials)
+		return protocol.ReturnError(403, protocol.ErrInvalidCredentials)
 	}
 
 	if accessToken.Expired {
-		return nil, protocol.ReturnError(400, protocol.ErrInvalidCredentials)
+		return protocol.ReturnError(400, protocol.ErrInvalidCredentials)
 	}
 
 	_, err = a.ParseUserRefreshToken(req.RefreshToken)
 	if err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(403, protocol.ErrInvalidCredentials)
+		return protocol.ReturnError(403, protocol.ErrInvalidCredentials)
 	}
 
 	dbToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI)
 	if err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, err)
 	}
 
 	if valid := utils.VerifyHash(req.RefreshToken, []byte(dbToken.Token)); !valid {
-		return nil, protocol.ReturnError(403, protocol.ErrSessionInvalid)
+		return protocol.ReturnError(403, protocol.ErrSessionInvalid)
 	}
 
 	err = a.repo.TerminateSessionInRedis(accessToken.JTI)
 	if err != nil {
 		log.Println(err)
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	err = a.repo.TerminateRefreshToken(ctx, dbToken.Id)
@@ -305,10 +307,10 @@ func (a *AuthService) Logout(ctx context.Context, req model.Tokens) (*model.Succ
 		if err := a.redis.Del(ctx, fmt.Sprintf("terminated:session:%s", accessToken.JTI)).Err(); err != nil {
 			log.Printf("rollback failed (%s): %v\n", accessToken.JTI, err)
 		}
-		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	return &model.SuccessResponse{Success: true, Message: "Ви вийшли з акаунту"}, nil
+	return nil
 }
 
 /* ---- additional functions ---- */
@@ -330,7 +332,7 @@ func (a *AuthService) generateJWT(data model.GenerateJWTData, withRefresh bool) 
 		"username": data.Username,
 		"avatar":   data.Avatar,
 		"jti":      data.JTI,
-		"exp":      time.Now().Add(time.Minute * 15).Unix(),
+		"exp":      time.Now().Add(time.Second * 10).Unix(),
 		"iat":      time.Now().Unix(),
 	})
 
@@ -632,6 +634,7 @@ func (a *AuthService) validateCode(code model.VerificationCode, req model.Verify
 		return fmt.Errorf("невірний код для цієї операції")
 	}
 
+	log.Printf("Exp: %v, Now: %v\n", code.Exp, now)
 	if code.Exp.Before(now) {
 		return fmt.Errorf("верифікаційний код не є дійсним")
 	}
@@ -644,4 +647,16 @@ func (a *AuthService) validateCode(code model.VerificationCode, req model.Verify
 	}
 
 	return nil
+}
+
+func (a *AuthService) SetCookie(c *fiber.Ctx, token string) {
+	cookie := new(fiber.Cookie)
+	cookie.Name = "token"
+	cookie.Value = token
+	cookie.Expires = time.Now().Add(time.Hour * 24 * 30)
+	cookie.MaxAge = 60 * 60 * 24 * 30
+	cookie.Path = "/"
+	cookie.HTTPOnly = true
+	cookie.Secure = false
+	c.Cookie(cookie)
 }

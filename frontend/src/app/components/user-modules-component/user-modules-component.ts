@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { ModuleItem } from "../ui/module-item/module-item";
 import { Observable } from 'rxjs';
-import { UserStoreService } from '../../services/userStoreService/user-store-service';
+import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
 import { AsyncPipe } from '@angular/common';
 
 export interface UserModule {
@@ -22,7 +22,7 @@ export interface UserModule {
 export class UserModulesComponent {
   public modules$!: Observable<UserModule[]>;
 
-  constructor(private store: UserStoreService){}
+  constructor(private store: ProfileStateService){}
 
   ngOnInit() {
     this.modules$ = this.store.modules$

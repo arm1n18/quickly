@@ -1,11 +1,11 @@
 import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
 import { ModuleItem } from "../ui/module-item/module-item";
 import { Observable } from 'rxjs';
-import { UserStoreService } from '../../services/userStoreService/user-store-service';
 import { AsyncPipe } from '@angular/common';
 import { UserInfo } from '../../interfaces/user.interface';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
 
 export interface UserFolder {
   title: string;
@@ -25,7 +25,7 @@ export class UserFoldersComponent implements OnInit {
   public username: WritableSignal<string> = signal("");
   
   constructor(
-    private store: UserStoreService,
+    private store: ProfileStateService,
     private route: ActivatedRoute
   ){}
 

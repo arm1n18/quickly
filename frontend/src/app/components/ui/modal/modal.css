@@ -1,3 +1,30 @@
 :host {
     color: var(--dark-accent)
 }
+
+.modal-containter {
+    background-color: white;
+    width: 100%;
+    max-width: 42rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 4.5rem);
+    overflow: hidden;
+    /* padding: 2.25rem; */
+    margin: auto;
+    z-index: 2;
+    position: fixed;
+    top: 2.2rem;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
+
+.modal-content {
+    padding: 2.25rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0, 0, 0, 0.1) transparent;
+}

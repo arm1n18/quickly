@@ -117,6 +117,12 @@ func (a *authRepo) IncrementVerificationAttempts(ctx context.Context, email, pur
 
 func (a *authRepo) GetVerificationCode(ctx context.Context, email, purpose string) (*model.VerificationCode, error) {
 	key := fmt.Sprintf("verification:code:%s:%s", email, purpose)
+
+	err := a.IncrementVerificationAttempts(ctx, email, purpose)
+	if err != nil {
+		log.Println(err)
+	}
+
 	return a.getCode(ctx, key)
 }
 

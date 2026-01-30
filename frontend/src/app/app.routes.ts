@@ -11,6 +11,7 @@ import { UserFoldersComponent } from './components/user-folders-component/user-f
 import { FolderPage } from './pages/folder-page/folder-page';
 import { CreateModulePage } from './pages/create-module-page/create-module-page';
 import { UpdateModulePage } from './pages/update-module-page/update-module-page';
+import { NotFoundPage } from './pages/not-found-page/not-found-page';
 
 export const routes: Routes = [
   {
@@ -70,4 +71,5 @@ export const routes: Routes = [
       },
     ]
   },
+  { path: '**', component: NotFoundPage },
 ];

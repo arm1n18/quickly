@@ -7,7 +7,8 @@ import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { AuthForm } from "../../components/auth-form/auth-form";
 import { ModalStateService } from '../../services/modalStateService/modal-state-service';
-import { AuthStateService } from '../../services/AuthStateService/auth-state-service';
+import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
+import { AsyncPipe } from '@angular/common';
 
 interface ShowConfigInterface {
   showAuthModal: boolean;
@@ -16,7 +17,7 @@ interface ShowConfigInterface {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [CustomButton, Icon, CustomInput, Avatar, AuthForm],
+  imports: [AsyncPipe, CustomButton, Icon, CustomInput, Avatar, AuthForm],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
@@ -29,7 +30,7 @@ export class MainLayout {
   }
 
   constructor(
-    public auth: AuthStateService,
+    public authState: AuthStateService,
     private apiService: ApiService,
     private router: Router,
     private modalState: ModalStateService

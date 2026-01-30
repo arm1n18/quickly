@@ -5,7 +5,7 @@
 
         <app-dropdown 
             [list]="dropdownList"
-            [config]="{title: 'Картки', divider: 'line', icon: {
+            [config]="{title: {text: 'Картки'}, divider: 'line', icon: {
               name: 'Slider',
               color: 'var(--accent)'
             }}" 
@@ -18,18 +18,18 @@
         </div>
         <div class="flex gap-2 game-header-right">
             @if(true) {
-            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="toggleShowModal()">
+            <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="openModal()">
                 <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
             </app-custom-button>
             } @else {
-            <app-custom-button theme="secondary" rounded="full">
+            <app-custom-button theme="secondary" rounded="md">
                 Вхід
             </app-custom-button>
-            <app-custom-button rounded="full">
+            <app-custom-button rounded="md">
                 Зареєструватись
             </app-custom-button>
             }
-            <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+            <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
                 <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
             </app-custom-button>
         </div>
@@ -43,16 +43,14 @@
       <app-quiz-cards  class="h-full" [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
     </div>
 </div>
+}
 
-<app-modal [show]="show.showSettingsModal" (shownChange)="show.showSettingsModal = $event">
-  <div header>
-    Параметри
-  </div>
-  <div main class="flex flex-col gap-4">
+<ng-template #modalTemplate>
+  <div class="flex flex-col gap-4">
 
     <div class="w-full flex justify-between items-center">
       Передня сторона
-      <app-dropdown [list]="dropdownList2" [config]="{divider: 'line'}" [position]="{px: 'right', py: 'bottom'}" />
+      <app-dropdown [list]="dropdownList2" [config]="{divider: 'line', rememberSelection: true }" [position]="{px: 'right', py: 'bottom'}" />
     </div>
 
     <div class="w-full flex justify-between items-center">
@@ -109,5 +107,4 @@
       </div>
     </div>
   </div>
-</app-modal>
-}
+</ng-template>

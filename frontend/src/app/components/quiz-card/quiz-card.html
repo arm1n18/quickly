@@ -27,9 +27,14 @@
                 }
               </div>
 
-              @if(cardInput.title.text){
-                <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText($event)"/>
-              }
+              <div class="flex gap-8">
+                @if(canEdit) {
+                  <app-edit-card-button [card]="cardInput" />
+                }
+                @if(cardInput.title.text){
+                  <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText($event)"/>
+                }
+              </div>
             </div>
 
             <!-- CONTENT -->
@@ -77,11 +82,16 @@
           <div class="quiz-card-back" [ngClass]="animationClass()">
 
             <!-- HEADER -->
-            @if(cardInput.description.text) {
-              <div class="quiz-card-header end">
+            <div class="quiz-card-header flex gap-8 end">
+              @if(canEdit) {
+                <app-edit-card-button [card]="cardInput" />
+              }
+
+              @if(cardInput.description.text) {
+
                 <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText($event)"/>
-              </div>
-            }
+              }
+            </div>
 
             <!-- CONTENT -->
             <div class="quiz-card-content">

@@ -1,6 +1,6 @@
 import {CardsOverview} from '../../components';
 import { CustomButton, Icon, Dropdown, DropdownItem } from '../../components/ui';
-import {Component, OnInit,} from '@angular/core';
+import {Component, OnInit, signal, WritableSignal,} from '@angular/core';
 import {Module, GameMode} from '../../interfaces/quizCard.interface';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CardsState} from '../../state/cards-state/cards-state';
@@ -19,21 +19,23 @@ import { AsyncPipe } from '@angular/common';
   templateUrl: './cards-page.html',
   styleUrl: './cards-page.css'
 })
-export class CardsPage implements OnInit {
-  module$!: Observable<Module | null>;
+export class CardsPage implements OnInit {  
+  
+  public isLoading: WritableSignal<boolean> = signal(true);
+  public module$!: Observable<Module | null>;
 
-  dropdownList: DropdownItem[][] = [
+  public dropdownList: WritableSignal<DropdownItem[][]> = signal([
     [
-      {title: 'Створити копію', icon: {
+      {title: {text: 'Створити копію'}, icon: {
         name: 'Copy',
         color: 'var(--accent)'
       }},
-      {title: 'Друкувати', icon: {
+      {title: {text: 'Друкувати'}, icon: {
         name: 'Print',
         color: 'var(--accent)'
       }}
     ]
-  ];
+  ]);
 
   constructor(
     private router: Router,
@@ -41,7 +43,7 @@ export class CardsPage implements OnInit {
     private cardsState: CardsState
   ) {}
 
-  changeGameMode(mode: GameMode) {
+  public changeGameMode(mode: GameMode) {
     switch (mode) {
       case 'default':
         void this.router.navigate(['default'], { relativeTo: this.route });
@@ -52,11 +54,26 @@ export class CardsPage implements OnInit {
     }
   }
 
-  onCopyUrl(): void {
+  public onCopyUrl(): void {
     copyToClipboard(window.location.href);
   }
 
   ngOnInit(): void {
     this.module$ = this.cardsState.module$
+
+    this.module$
+    .subscribe(module => {
+      if(!module) return
+      this.isLoading.set(false)
+
+      if (module.isOwner && this.dropdownList()[0].length == 2) {
+        this.dropdownList.update(values => [
+          [
+            ...values[0],
+            { title: {text: 'Видалити', color: 'red'}, icon: { name: 'Trash', color: 'red' }}
+          ]
+        ])
+      }
+    })
   }
 }

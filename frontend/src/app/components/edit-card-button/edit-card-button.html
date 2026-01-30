@@ -1,0 +1,39 @@
+<app-icon 
+    class="cursor-pointer"
+    [icon]="'Edit'" [size]="size" 
+    [fill]="color" (click)="openModal($event)"
+/>
+
+
+<ng-template #modalTemplate>
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto">
+        
+        <app-text-area 
+        [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+        (inputChange)="editForm.get('title')?.setValue($event)"
+        />
+        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 500 }">
+            ТЕРМІН
+            ({{editForm.get('title')?.value?.length ?? 0}}/500)
+        </span>
+
+        <app-text-area 
+        [value]="this.editForm.get('description')?.value || ''" [delay]="0"
+        (inputChange)="editForm.get('description')?.setValue($event)"
+        />
+        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('description')?.get('text')?.value?.length ?? 0) > 500 }">
+            ОПИС
+            ({{editForm.get('description')?.value?.length ?? 0}}/500)
+        </span>
+        
+        <div [class]="'flex gap-4 justify-end w-full'">
+            <app-custom-button theme="secondary" rounded="full" (click)="closeModal()">
+            Скасувати
+            </app-custom-button>
+            <app-custom-button theme="primary" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+            Зберегти
+            </app-custom-button>
+        </div>
+
+    </form>
+</ng-template>

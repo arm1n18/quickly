@@ -1,20 +1,25 @@
-@if(show) {
-  <div #overlay [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2'" (click)="closeModal($event)"></div>
-  <div
-      class="bg-white w-full max-w-2xl rounded-xl flex flex-col px-9 py-9 h-fit mx-auto z-2 fixed top-9 left-0 right-0 my-auto">
-      <div class="flex justify-between w-full items-center mb-4">
-        <ng-content select="[header]"></ng-content>
-        @if(config.showCross) {
-          <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="closeModal($event)">
-            <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
-          </app-custom-button>
-        }
-      </div>
 
-      <ng-content select="[main]"></ng-content>
+<div #overlay [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2'" (click)="closeModal($event)"></div>
 
-      <div class="sticky bottom-0 flex justify-center">
-        <ng-content select="[footer]"></ng-content>
-      </div>
+<div
+  class="modal-containter">
+  <div class="modal-content">
+    <div class="flex justify-between w-full items-center mb-8">
+      @if(config.title) {
+        <h1 class="title">{{ config.title }}</h1>
+      }
+      @if(config.showCross) {
+        <app-custom-button 
+          class="absolute top-9 right-9"
+          theme="secondary" 
+          rounded="md" size="symbol" 
+          (click)="closeModal($event)"
+        >
+          <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
+        </app-custom-button>
+      }
     </div>
-}
+
+    <ng-container *ngTemplateOutlet="config.template"></ng-container>
+  </div>
+</div>

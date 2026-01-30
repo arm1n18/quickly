@@ -23,7 +23,7 @@ func NewModuleService(psql *pgxpool.Pool) *ModuleService {
 	}
 }
 
-func (m *ModuleService) GetModuleByID(ctx context.Context, userId, id int) (*model.Module, error) {
+func (m *ModuleService) GetModuleByID(ctx context.Context, userId, id int) (*model.Module, *model.ErrorResponse) {
 	return m.repo.GetByID(ctx, userId, id)
 }
 
@@ -72,6 +72,16 @@ func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module mod
 	err = m.repo.UpdateModule(ctx, userId, module)
 	log.Println(err)
 	return err
+}
+
+func (m *ModuleService) UpdateModuleCard(ctx context.Context, userId int, card model.UpdateModuleCard) error {
+	if !utils.InRange(card.Title, 2, 500) || !utils.InRange(card.Description, 2, 500) {
+		err := fmt.Errorf("Invalid range")
+		log.Println(err)
+		return err
+	}
+
+	return m.repo.UpdateModuleCard(ctx, userId, card)
 }
 
 func (m *ModuleService) AddKeywords(ctx context.Context, keywords []string) error {

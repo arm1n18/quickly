@@ -59,14 +59,14 @@ export class CreateModulePage implements OnInit {
     
     const newCard = new FormGroup<CardForm>({
       title: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true }),
+        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
           type: new FormControl<MediaType | null>(null),
           content: new FormControl<string | null>(null),
         }),
       }),
       description: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true }),
+        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
           type: new FormControl<MediaType | null>(null),
           content: new FormControl<string | null>(null),

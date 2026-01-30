@@ -35,25 +35,25 @@ export class TestLayout implements OnInit {
 
   public dropdownList: DropdownItem[][] = [
     [
-      { title: 'Картки', onClick: () => this.changeGameMode('flashcards'), icon : {
+      { title: {text: 'Картки'}, onClick: () => this.changeGameMode('flashcards'), icon : {
         name: 'Slider',
         color: 'var(--accent)'
       } },
-      { title: 'Підбір', onClick: () => this.changeGameMode('match'), icon: {
+      { title: {text: 'Підбір'}, onClick: () => this.changeGameMode('match'), icon: {
         name: 'Notes',
         color: 'var(--accent)'
       } },
-      { title: 'Тестування', onClick: () => this.changeGameMode('test'), icon: {
+      { title: {text: 'Тестування'}, onClick: () => this.changeGameMode('test'), icon: {
         name: 'Document',
         color: 'var(--accent)'
       } }
     ],
     [
-      { title: 'Головна', onClick: () => this.changeGameMode('default'), icon: {
+      { title: {text: 'Головна'}, onClick: () => this.changeGameMode('default'), icon: {
         name: 'House',
         color: 'var(--accent)'
       } },
-      { title: 'Пошук', onClick: () => this.changeGameMode('default') }
+      { title: {text: 'Пошук'}, onClick: () => this.changeGameMode('default') }
     ]
   ];
 
@@ -74,7 +74,7 @@ export class TestLayout implements OnInit {
   }
 
   private getCurrentMode(mode: string): Partial<DropdownConfig>  {
-    const currentModeIndex = this.dropdownList[0].findIndex(i => i.title == mode);
+    const currentModeIndex = this.dropdownList[0].findIndex(i => i.title.text == mode);
     this.dropdownList[0][currentModeIndex].preselected = true
 
     return {

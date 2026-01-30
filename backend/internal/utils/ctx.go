@@ -1,6 +1,10 @@
 package utils
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"web-quiz/internal/model"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func GetLocals[T any](c *fiber.Ctx, key string) (T, bool) {
 	v := c.Locals(key)
@@ -15,4 +19,13 @@ func GetLocals[T any](c *fiber.Ctx, key string) (T, bool) {
 	}
 
 	return val, true
+}
+
+func GetUserId(c *fiber.Ctx) int {
+	user, ok := GetLocals[*model.UserAccessToken](c, "user")
+	if !ok || user == nil {
+		return 0
+	}
+
+	return user.SUB
 }

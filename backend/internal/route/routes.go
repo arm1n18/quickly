@@ -20,6 +20,6 @@ func (i InitRouter) InitRoutes() {
 	api := i.App.Group("/api")
 
 	handlers.RegisterModuleRoutes(api.Group("/module"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
-	handlers.RegisterUserRoutes(api.Group("/user"), i.Psql)
+	handlers.RegisterUserRoutes(api.Group("/user"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 	handlers.RegisterAuthRoutes(api.Group("/auth"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 }

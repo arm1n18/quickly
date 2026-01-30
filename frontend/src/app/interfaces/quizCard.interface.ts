@@ -34,6 +34,7 @@ export interface Module {
   title: string;
   slug: string;
   author: Author;
+  isOwner: boolean;
   keywords: Keyword[] | null;
   cards: Card[];
 }
@@ -96,6 +97,7 @@ export interface UserModule {
   title: string;
   slug: string;
   objects: number;
+  isOwner: boolean;
   hasImages: boolean;
 }
 
@@ -108,6 +110,7 @@ export interface ModuleSummary {
   title: string;
   slug: string;
   author: UserInfo;
+  isOwner: boolean;
   keywords: Keyword[];
   objects: number;
   hasImages: boolean;

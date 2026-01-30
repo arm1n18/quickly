@@ -18,3 +18,11 @@ export async function isImgUrl(url: string): Promise<boolean> {
     return false;
   }
 }
+
+export function isTestMode(value: any): boolean {
+  return ['true-false', 'choose', 'matching', 'input'].includes(value);
+}
+  
+export function isAnswerMode(value: any): boolean {
+  return ['title', 'description'].includes(value);
+}

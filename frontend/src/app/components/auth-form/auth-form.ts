@@ -5,9 +5,10 @@ import { CustomInput } from "../ui/custom-input/custom-input";
 import { ReactiveFormsModule, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
 import { OtpInput } from "../ui/otp-input/otp-input";
 import { timer } from 'rxjs/internal/observable/timer';
-import { Subject, takeUntil, takeWhile, tap } from 'rxjs';
+import { Subject, takeUntil, tap } from 'rxjs';
 import { ApiService } from '../../services/api/api.service';
-import { LocalStorageService } from '../../services/localstorage/localStorage.service';
+import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
+import { AuthStorageService } from '../../services/auth/authStorageService/auth-storage.service';
 
 @Component({
   selector: 'app-auth-form',
@@ -28,10 +29,7 @@ export class AuthForm {
   public errorMessage: WritableSignal<string | null> = signal(null);
   public isLoading = false;
 
-  public codeGenerations = {
-    requests: 1,
-    attempts: 0
-  }
+  private codeGenerations = 1;
 
   private prevEmail: string = ''
   authForm = new FormGroup<{
@@ -47,8 +45,9 @@ export class AuthForm {
   })
 
   constructor(
-    private apiService: ApiService,
-    private localStorage: LocalStorageService,
+    private api: ApiService,
+    private storage: AuthStorageService,
+    private state: AuthStateService,
   ){}
 
   public closeModal(e: Event) {
@@ -89,17 +88,15 @@ export class AuthForm {
 
     this.isLoading = true
 
-    this.apiService.auth.auth(
+    this.api.auth.auth(
         this.isRegisterMode() ? 'register' : 'login',
         this.authForm.get('email')!.value,
         this.authForm.get('password')!.value
     ).subscribe({
-        next: resp => {
+        next: () => {
           this.isLoading = false
           this.errorMessage.set(null)
-          if (resp.success) {
-            this.receiveCodeStage();
-          }
+          this.receiveCodeStage();
         },
         error: err => {
           this.isLoading = false
@@ -112,10 +109,7 @@ export class AuthForm {
     const currentEmail = this.authForm.get('email')!.value;
 
     if (this.prevEmail && this.prevEmail !== currentEmail) {
-      this.codeGenerations = {
-        attempts: 0,
-        requests: 1,
-      };
+      this.codeGenerations = 1
     }
     
     this.prevEmail = currentEmail;
@@ -147,7 +141,7 @@ export class AuthForm {
     const code = Number(this.authForm.get('code')!.value?.join(''))
 
     this.isLoading = true
-    this.apiService.auth.verify({
+    this.api.auth.verify({
         email: this.authForm.get('email')!.value,
         code: code,
         purpose: this.isRegisterMode() ? 'register' : 'login'
@@ -156,7 +150,8 @@ export class AuthForm {
         next: resp => {
           this.isLoading = false
           this.errorMessage.set(null)
-          this.localStorage.setToLocalStorage("token", resp)
+          this.storage.saveToken(resp.accessToken)
+          this.state.setPayload(this.state.decode(resp.accessToken))
           this.shownChange.emit(false);
         },
         error: err => {
@@ -164,33 +159,31 @@ export class AuthForm {
           this.errorMessage.set(err.error?.message || 'Щось пішло не так')
         }
     })
-    
-    this.codeGenerations.attempts++
   }
 
   public generateNewCode() {
     if(this.isLoading) return
 
-    if(this.codeGenerations.requests >= 5) {
+    if(this.codeGenerations >= 5) {
       return
     }
 
     this.isLoading = true
-    this.apiService.auth.resendCode(
+    this.api.auth.resendCode(
         this.authForm.get('email')!.value,
         this.isRegisterMode() ? 'register' : 'login'
     ).subscribe({
-        next: resp => {
+        next: () => {
           this.isLoading = false
           this.errorMessage.set(null)
-          this.codeGenerations.requests++
-          if(this.codeGenerations.requests < 5) {
+          this.codeGenerations++
+          if(this.codeGenerations < 5) {
             this.startTimer()
           }
         },
         error: err => {
           this.isLoading = false
-          this.codeGenerations.requests++
+          this.codeGenerations++
           this.errorMessage.set(err.error?.message || 'Щось пішло не так')
         }
     })
@@ -200,11 +193,7 @@ export class AuthForm {
     this.isReceiveCode.set(false)
   }
 
-  get remainingAttempts() {
-    return 5 - this.codeGenerations.attempts;
-  }
-
   get remainingGenerations() {
-    return 5 - this.codeGenerations.requests;
+    return 5 - this.codeGenerations;
   }
 }

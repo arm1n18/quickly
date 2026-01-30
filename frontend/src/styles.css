@@ -357,6 +357,11 @@ input:checked + .slider:before {
   /* font-weight: 500; */
 }
 
+.skeletone {
+  background-color: var(--secondary);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 @media (max-width: 414px) {
   .quiz-footer-nav-md {
     display: none;

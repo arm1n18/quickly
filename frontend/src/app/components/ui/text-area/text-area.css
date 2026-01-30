@@ -17,5 +17,7 @@
 }
 
 .text-area:focus {
-  outline: 2px solid var(--secondary2);
+  /* outline: 2px solid var(--secondary2); */
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--secondary2);
 }

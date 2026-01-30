@@ -4,6 +4,7 @@ import {
   OnDestroy,
   OnInit,
   QueryList, signal,
+  TemplateRef,
   ViewChild,
   ViewChildren, WritableSignal
 } from '@angular/core';
@@ -21,19 +22,19 @@ import {
   GameMode
 } from '../../interfaces/quizCard.interface';
 import {CardsState} from '../../state/cards-state/cards-state';
-import {CustomButton, Dropdown, DropdownItem, Icon, Modal} from '../../components/ui';
+import {CustomButton, Dropdown, DropdownItem, Icon, ModalComponent, DoughnutChart} from '../../components/ui';
 import {NgClass, NgStyle} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Subject, takeUntil, tap, timer} from 'rxjs';
-import {Validator} from '../../services/validator/validator';
-import { DoughnutChart } from '../../components/ui/doughnut-chart/doughnut-chart/doughnut-chart';
 import { shuffleArray } from '../../utils/random';
+import { isAnswerMode, isTestMode } from '../../utils/validate';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { Portal } from '../../services/portal/portal';
 
 export type TestMode = 'true-false' | 'choose' | 'match' | 'input';
 
 interface ShowConfigInterface {
-  showSettingsModal: boolean;
   showModeDropdown: boolean;
   showAnswerMode: boolean;
   showAnswers: boolean;
@@ -50,7 +51,7 @@ interface TestConfigInterface {
   selector: 'app-cards-test-page',
   imports: [
     DoughnutChart, TestChooseQuestion, TestTfQuestion, TestMatchQuestion, 
-    TestInputQuestion, CustomButton, Icon, Modal, NgClass, FormsModule, 
+    TestInputQuestion, CustomButton, Icon, NgClass, FormsModule, 
     NgStyle, Dropdown
   ],
   templateUrl: './cards-test-page.html',
@@ -61,12 +62,12 @@ export class CardsTestPage implements OnInit, OnDestroy {
   private stopTimer$ = new Subject<void>();
   private destroy$ = new Subject<void>();
   
+  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @ViewChild('finishButton', { read: ElementRef }) finisButtonElement!: ElementRef;
   @ViewChildren('questionRef', { read: ElementRef })
   public questionElements!: QueryList<ElementRef>;
 
   public showConfig: ShowConfigInterface = {
-    showSettingsModal: false,
     showModeDropdown: false,
     showAnswerMode: false,
     showAnswers: false
@@ -88,21 +89,21 @@ export class CardsTestPage implements OnInit, OnDestroy {
 
   public dropdownList: DropdownItem[][] = [
     [
-      { title: 'Картки', onClick: () => this.changeGameMode('flashcards'), icon : {
+      { title: {text: 'Картки'}, onClick: () => this.changeGameMode('flashcards'), icon : {
         name: 'Slider',
         color: 'var(--accent)'
       } },
-      { title: 'Підбір', onClick: () => this.changeGameMode('match'), icon: {
+      { title: {text: 'Підбір'}, onClick: () => this.changeGameMode('match'), icon: {
         name: 'Notes',
         color: 'var(--accent)'
       } },
-      { title: 'Тестування', preselected: true, onClick: () => this.changeGameMode('test'), icon: {
+      { title: {text: 'Тестування'}, preselected: true, onClick: () => this.changeGameMode('test'), icon: {
         name: 'Document',
         color: 'var(--accent)'
       } }
     ],
     [
-      { title: 'Головна', onClick: () => this.changeGameMode('default'), icon: {
+      { title: {text: 'Головна'}, onClick: () => this.changeGameMode('default'), icon: {
         name: 'House',
         color: 'var(--accent)'
       } },
@@ -113,7 +114,7 @@ export class CardsTestPage implements OnInit, OnDestroy {
     private cardsState: CardsState,
     private route: ActivatedRoute,
     private router: Router,
-    private validateService: Validator
+    private portal: Portal
   ) {}
 
   private setTest<T extends keyof TestMap>(type: T, test: TestMap[T]) {
@@ -268,7 +269,7 @@ export class CardsTestPage implements OnInit, OnDestroy {
     this.testConfig.update(() => ({...this.tempTestConfig}));
     this.resetQuestions();
     this.generateQuestions();
-    this.toggleShowModal();
+    this.portal.close();
     this.result.answers = [];
     this.result.answered = 0;
     this.showConfig.showAnswers = false;
@@ -286,8 +287,9 @@ export class CardsTestPage implements OnInit, OnDestroy {
 
   public resetTestConfig() {
     this.tempTestConfig = { ...this.testConfig() };
-    this.showConfig.showSettingsModal = false
+    this.portal.close()
   }
+
 
   public finishTest() {
     this.stopTimer();
@@ -365,8 +367,15 @@ export class CardsTestPage implements OnInit, OnDestroy {
     }
   }
 
-  public toggleShowModal() {
-    this.showConfig.showSettingsModal = !this.showConfig.showSettingsModal
+  public openModal() {
+    this.portal.open(new ComponentPortal(ModalComponent), {
+      config: {
+        showCross: true,
+        title: 'Параметри',
+        template: this.modalTemplate,
+        onClose: this.resetTestConfig()
+      }
+    })
   }
 
   private startTimer(): void {
@@ -428,8 +437,8 @@ export class CardsTestPage implements OnInit, OnDestroy {
 
         const needNavigate =
           maxQuestions > module.cards.length || maxQuestions <= 0 ||
-          !this.validateService.isTestMode(mode) ||
-          !this.validateService.isAnswerMode(answerMode);
+          isTestMode(mode) ||
+          isAnswerMode(answerMode);
 
         maxQuestions = maxQuestions > 0
           ? Math.min(maxQuestions, module.cards.length)
@@ -439,9 +448,9 @@ export class CardsTestPage implements OnInit, OnDestroy {
           let url = new URL(window.location.href);
           let params = url.searchParams;
 
-          params.set('mode', this.validateService.isTestMode(mode) ? mode : 'choose')
+          params.set('mode', isTestMode(mode) ? mode : 'choose')
           params.set('maxQuestions', String(maxQuestions))
-          params.set('answerMode', this.validateService.isAnswerMode(answerMode) ? answerMode : 'title')
+          params.set('answerMode', isAnswerMode(answerMode) ? answerMode : 'title')
 
           window.history.replaceState({}, '', url.pathname + '?' + params.toString());
         }
@@ -449,8 +458,8 @@ export class CardsTestPage implements OnInit, OnDestroy {
         this.testConfig.update(current => ({
           ...current,
           maxQuestions: maxQuestions,
-          answerMode: this.validateService.isAnswerMode(answerMode) ? answerMode : 'title',
-          mode: this.validateService.isTestMode(mode) ? mode : 'choose',
+          answerMode: isAnswerMode(answerMode) ? answerMode : 'title',
+          mode: isTestMode(mode) ? mode : 'choose',
         }));
 
         this.tempTestConfig = { ...this.testConfig() };

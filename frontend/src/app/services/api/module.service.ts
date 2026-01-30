@@ -34,7 +34,11 @@ export class ModuleService {
     return this.http.post<{id: number}>(`${this.apiRoute}`, module)
   }
 
-  public patchModule(id: number, module: any): Observable<{message: string}> {
-    return this.http.patch<{message: string}>(`${this.apiRoute}/${id}`, module)
+  public putModule(id: number, module: any): Observable<void> {
+    return this.http.put<void>(`${this.apiRoute}/${id}`, module, { responseType: 'text' as 'json' })
+  }
+
+  public patchModule(id: number, card: any): Observable<void> {
+    return this.http.patch<void>(`${this.apiRoute}/${id}`, card, { responseType: 'text' as 'json' })
   }
 }

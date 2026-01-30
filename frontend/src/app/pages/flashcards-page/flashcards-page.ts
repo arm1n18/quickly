@@ -1,20 +1,23 @@
-import { Component, signal, ViewChild, WritableSignal } from '@angular/core';
+import { Component, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
 import { GameMode, Module } from '../../interfaces/quizCard.interface';
 import { CardsState } from '../../state/cards-state/cards-state';
-import { Dropdown, CustomButton, Icon, DropdownItem, Modal } from "../../components/ui";
+import { Dropdown, CustomButton, Icon, DropdownItem, ModalComponent } from "../../components/ui";
 import { NgClass, NgStyle } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QuizCards } from "../../components/quiz-cards/quiz-cards";
+import { Portal } from '../../services/portal/portal';
+import { ComponentPortal } from '@angular/cdk/portal';
 
 @Component({
   selector: 'app-flashcards-page',
-  imports: [Dropdown, CustomButton, Icon, NgStyle, QuizCards, NgClass, Modal],
+  imports: [Dropdown, CustomButton, Icon, NgStyle, QuizCards, NgClass],
   templateUrl: './flashcards-page.html',
   styleUrl: './flashcards-page.css',
 })
 
 export class FlashcardsPage {
   @ViewChild(QuizCards) quizCards!: QuizCards;
+  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   
   private currentModule: WritableSignal<Module | null> = signal(null);
   public currentCardIndex: WritableSignal<number> = signal(0);
@@ -30,21 +33,21 @@ export class FlashcardsPage {
 
   public dropdownList: DropdownItem[][] = [
     [ 
-      { title: 'Картки', preselected: true, onClick: () => this.changeGameMode('flashcards'), icon : {
+      { title: {text: 'Картки'}, preselected: true, onClick: () => this.changeGameMode('flashcards'), icon : {
         name: 'Slider',
         color: 'var(--accent)'
       } },
-      { title: 'Підбір', onClick: () => this.changeGameMode('match'), icon: {
+      { title: {text: 'Підбір'}, onClick: () => this.changeGameMode('match'), icon: {
         name: 'Notes',
         color: 'var(--accent)'
       } },
-      { title: 'Тестування', onClick: () => this.changeGameMode('test'), icon: {
+      { title: {text: 'Тестування'}, onClick: () => this.changeGameMode('test'), icon: {
           name: 'Document',
           color: 'var(--accent)'
       } }
     ],
       [
-        { title: 'Головна', onClick: () => this.changeGameMode('default'), icon: {
+        { title: {text: 'Головна'}, onClick: () => this.changeGameMode('default'), icon: {
         name: 'House',
         color: 'var(--accent)'
       } }
@@ -53,16 +56,27 @@ export class FlashcardsPage {
 
   public dropdownList2: DropdownItem[][] = [
     [
-      { title: 'Термін', onClick: () => this.config.frontSide = 'title', preselected: this.config.frontSide === 'title' },
-      { title: 'Визначення', onClick: () => this.config.frontSide = 'description', preselected: this.config.frontSide === 'description' }
+      { title: {text: 'Термін'}, onClick: () => this.config.frontSide = 'title', preselected: this.config.frontSide === 'title' },
+      { title: {text: 'Визначення'}, onClick: () => this.config.frontSide = 'description', preselected: this.config.frontSide === 'description' }
     ]
   ]
   
   constructor(
     private cardsState: CardsState,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private portal: Portal
   ) {}
+
+  openModal() {
+    this.portal.open(new ComponentPortal(ModalComponent), {
+      config: {
+        showCross: true,
+        title: 'Параметри',
+        template: this.modalTemplate,
+      }
+    })
+  }
   
   public toggleShowModal() {
     this.show.showSettingsModal = !this.show.showSettingsModal

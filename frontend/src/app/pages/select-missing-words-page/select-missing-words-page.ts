@@ -128,7 +128,9 @@ export class SelectMissingWordsPage {
     return placeholders
       .filter(p => p.id == id)
       .map(p => p.options.map(o => ({
-          title: o,
+          title: {
+            text: o
+          },
           onClick: () => {this.answers[p.id] = {
             id: p.id,
             option: o,

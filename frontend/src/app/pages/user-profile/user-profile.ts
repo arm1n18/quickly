@@ -8,7 +8,7 @@ import { ApiService } from '../../services/api/api.service';
 import { UserInfo } from '../../interfaces/user.interface';
 import { UserModule } from '../../components/user-modules-component/user-modules-component';
 import { UserFolder } from '../../components/user-folders-component/user-folders-component';
-import { UserStoreService } from '../../services/userStoreService/user-store-service';
+import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 
@@ -44,7 +44,7 @@ export class UserProfile implements OnInit {
   ]
 
   constructor(
-    private store: UserStoreService, 
+    private store: ProfileStateService, 
     private apiService: ApiService, 
     private route: ActivatedRoute,
     private router: Router

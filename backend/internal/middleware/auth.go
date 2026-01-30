@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func JWTMiddleware(authService *service.AuthService) fiber.Handler {
+func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
@@ -30,10 +30,12 @@ func JWTMiddleware(authService *service.AuthService) fiber.Handler {
 			})
 		}
 
-		if token.Expired {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "session expired",
-			})
+		if !allowExpired {
+			if token.Expired {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error": "session expired",
+				})
+			}
 		}
 
 		c.Locals("user", token)
@@ -64,7 +66,7 @@ func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
 		}
 
 		if token.Expired {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "session expired",
 			})
 		}

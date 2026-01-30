@@ -4,11 +4,11 @@
       <ng-content select="[btn]"></ng-content>
     </div>
   } @else {
-    <app-custom-button [theme]="config.theme || 'hover-only'" rounded="full" (click)="toggleShow()">
+    <app-custom-button [theme]="config.theme || 'hover-only'" rounded="md" (click)="toggleShow()">
       @if(config.icon) {
         <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? 'var(--text-secondary)'" />
       }
-      {{preslectedValue ?? config.title}}
+      {{preslectedValue ?? config.title?.text}}
       <app-icon [icon]="'ChevronFillDown'"
         [size]="24"
         [fill]="'#6d4aff'"
@@ -38,15 +38,16 @@
             @for (el of group; track el) {
               <div
                 class="dropdown-item w-fit"
+                [style.color]="el.title.color"
                 [ngClass]="{
-                  'selected': el.title == preslectedValue
+                  'selected': el.title.text === preslectedValue
                 }"
-                (click)="el.onClick?.(); select(el.title)"
+                (click)="el.onClick?.(); select(el.title.text)"
               >
                 @if(el.icon) {
                   <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? 'var(--text-secondary)'" />
                 }
-                {{el.title}}
+                {{el.title.text}}
               </div>
             }
           </div>

@@ -24,7 +24,7 @@ interface UpdateCardForm extends CardForm {
 })
 
 export class UpdateModulePage {
-  constructor(private apiService: ApiService, private router: Router, private route: ActivatedRoute){}
+  constructor(private api: ApiService, private router: Router, private route: ActivatedRoute){}
 
   moduleForm = new FormGroup<{
     title: FormControl<string>,
@@ -167,8 +167,8 @@ export class UpdateModulePage {
     const params = this.route.snapshot.paramMap
     const id = Number(params.get("id")!)
     
-    this.apiService.module.patchModule(id, payload)
-      .subscribe(_ => this.router.navigate(['/module', id], { replaceUrl: true }))
+    this.api.module.putModule(id, payload)
+      .subscribe(() => this.router.navigate(['/module', id], { replaceUrl: true }))
   }
 
   get cards() {
@@ -181,7 +181,7 @@ export class UpdateModulePage {
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap
-    this.apiService.module.getModule(Number(params.get("id")!))
+    this.api.module.getModule(Number(params.get("id")!))
       .subscribe(resp => this.setModule(resp.module))
   }
 }

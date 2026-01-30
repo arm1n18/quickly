@@ -10,8 +10,9 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidPurpose     = errors.New("invalid purpose")
+	ErrForbidden          = errors.New("forbidden")
 	ErrCodeNotFound       = errors.New("verification code not found")
-	ErrNotFound           = errors.New(" found")
+	ErrNotFound           = errors.New("not found")
 	ErrCodeExpired        = errors.New("verification code expired")
 	ErrCodeMismatch       = errors.New("verification code mismatch")
 	ErrTooManyAttempts    = errors.New("too many attempts")

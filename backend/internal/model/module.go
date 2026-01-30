@@ -92,3 +92,10 @@ type UpdateModuleRequest struct {
 	Title *string      `json:"title,omitempty"`
 	Cards []CardUpdate `json:"cards,omitempty"`
 }
+
+type UpdateModuleCard struct {
+	ID          int    `json:"id,omitempty"`
+	CardID      int    `json:"cardId"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+}

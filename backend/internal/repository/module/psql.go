@@ -18,13 +18,14 @@ type Query struct {
 }
 
 type ModuleRepository interface {
-	GetByID(ctx context.Context, userId, id int) (*model.Module, error)
+	GetByID(ctx context.Context, userId, id int) (*model.Module, *model.ErrorResponse)
 	FindByTitle(ctx context.Context, userId int, title string, lastId int) (*model.ModulesSummaryResponse, error)
 	FindByKeywords(ctx context.Context, userId int, keywords []string) (*model.ModulesSummaryResponse, error)
 	ListByUserID(ctx context.Context, userId int, username string, queryParams Query) (*model.UserModulesResponse, error)
 
 	CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
 	UpdateModule(ctx context.Context, userId int, module model.UpdateModuleRequest) error
+	UpdateModuleCard(ctx context.Context, userId int, module model.UpdateModuleCard) error
 	DeleteModule(ctx context.Context, userId int, moduleId int) error
 
 	InsertKeywords(ctx context.Context, keywords []string) error
@@ -38,11 +39,11 @@ func NewModuleRepository(psql *pgxpool.Pool) ModuleRepository {
 	return &moduleRepo{psql: psql}
 }
 
-func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module, error) {
+func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -52,6 +53,7 @@ func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module
 			m.slug,
 			json_build_object('name', u.username, 'avatar', u.avatar) AS author,
 			m.user_id = $2 as is_owner,
+    		(NOT m.is_private OR m.user_id = $2) as accessible,
 			kw.keywords,
 			c.cards
 		FROM modules m
@@ -86,9 +88,8 @@ func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module
 			) c ON TRUE
 		WHERE
 			m.module_id = $1
-			AND (NOT m.is_private OR m.user_id = $2)
 	`
-
+	var accessible bool
 	module := model.Module{}
 
 	if err = conn.QueryRow(ctx, query, id, userId).Scan(
@@ -97,11 +98,19 @@ func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module
 		&module.Slug,
 		&module.Author,
 		&module.IsOwner,
+		&accessible,
 		&module.Keywords,
 		&module.Cards,
 	); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, protocol.ReturnError(404, protocol.ErrNotFound)
+		}
 		log.Printf("error query module: %v\n", err)
-		return nil, err
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
+	}
+
+	if !accessible {
+		return nil, protocol.ReturnError(403, protocol.ErrForbidden)
 	}
 
 	module.Objects = len(module.Cards)
@@ -501,6 +510,44 @@ func (m *moduleRepo) UpdateModule(ctx context.Context, userId int, module model.
 		if err != nil {
 			return err
 		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *moduleRepo) UpdateModuleCard(ctx context.Context, userId int, card model.UpdateModuleCard) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM modules WHERE module_id=$1 AND user_id=$2)", card.ID, userId).Scan(&exists)
+	if err != nil || !exists {
+		return fmt.Errorf("module not found")
+	}
+
+	_, err = tx.Exec(ctx, `UPDATE module_cards SET
+		title=$1, description=$2
+	WHERE card_id=$3 AND module_id=$4`, card.Title, card.Description, card.CardID, card.ID)
+	if err != nil {
+		return err
 	}
 
 	if err := tx.Commit(ctx); err != nil {

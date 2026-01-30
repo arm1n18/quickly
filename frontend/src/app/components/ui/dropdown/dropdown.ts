@@ -4,7 +4,10 @@ import { NgClass } from '@angular/common';
 import { Icon, Icons } from "../icon/icon";
 
 export interface DropdownItem {
-  title: any;
+  title: {
+    text: string,
+    color?: string;
+  };
   onClick?: () => void;
   icon?: {
     name: Icons,
@@ -15,7 +18,10 @@ export interface DropdownItem {
 }
 
 export interface DropdownConfig {
-  title: string;
+  title: {
+    text: string,
+    color?: string;
+  };
   divider: DividerType;
   rememberSelection: boolean;
   theme: ButtonTheme,
@@ -43,7 +49,6 @@ export class Dropdown {
   
   @Input({ required: true }) list: DropdownItem[][] = [];
   @Input() config: Partial<DropdownConfig> = {
-    title: '',
     divider: 'gap',
     rememberSelection: true,
     theme: 'hover-only'
@@ -93,7 +98,7 @@ export class Dropdown {
       g.some(v => v.preselected === true)
     );
 
-    return group?.find(v => v.preselected === true)?.title;
+    return group?.find(v => v.preselected === true)?.title.text;
   }
 
   @HostListener('document:click', ['$event'])

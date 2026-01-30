@@ -68,7 +68,7 @@
                 <!-- SEPARATOR -->
                 
                 
-                @if(!isRegisterMode) {
+                @if(!isRegisterMode()) {
                     <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
                     <span class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto">
                         Забули пароль?
@@ -106,7 +106,7 @@
                                 Отримати новий код
                             </span>
                         </span>
-                    } @else if(remainingAttempts <= 0) {
+                    } @else if(remainingGenerations <= 0) {
                         <span
                             class="text-sm text-[var(--text-secondary2)] mx-auto max-w-64 
                             text-center cursor-pointer"
@@ -122,7 +122,7 @@
                 <div class="flex flex-col gap-4">
                     <app-custom-button 
                     size="w-full" 
-                    [disabled]="!(authForm.valid && remainingGenerations > 0 || remainingAttempts > 0)"
+                    [disabled]="!(authForm.valid && remainingGenerations > 0)"
                     (click)="newAttempt()"
                 >
                     Підтвердити
