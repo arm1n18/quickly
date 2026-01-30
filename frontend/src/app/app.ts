@@ -1,8 +1,7 @@
 import { RouterOutlet } from '@angular/router';
 import {Component, OnInit, ViewChild} from '@angular/core';
 import { Portal } from './services/portal/portal';
-import { CdkPortalOutlet, ComponentPortal, PortalModule } from '@angular/cdk/portal';
-import { ImageModal } from './components/ui/image-modal/image-modal';
+import { CdkPortalOutlet, PortalModule } from '@angular/cdk/portal';
 
 
 @Component({

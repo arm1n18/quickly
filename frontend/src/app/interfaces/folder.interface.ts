@@ -1,4 +1,4 @@
-import { UserModule } from "./quizCard.interface";
+import { UserModule } from "./module.interface";
 import { UserInfo } from "./user.interface";
 
 export interface FolderSummary {

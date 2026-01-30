@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, catchError, filter, map, Observable, of, switchMap, take, tap, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, map, Observable, of, take, tap, throwError } from 'rxjs';
 import { jwtDecode } from "jwt-decode";
 import { ApiService } from '../../api/api.service';
 import { AuthStorageService } from '../authStorageService/auth-storage.service';
@@ -61,9 +61,12 @@ export class AuthService {
       }),
       catchError(err => {
         this.isRefreshing = false;
-        this.storage.removeToken();
-        this.state.clear()
-        this.refresh$.next(null);
+        // recheck
+        if(err.status != 0 && err.status != 500) {
+          this.storage.removeToken();
+          this.state.clear()
+          this.refresh$.next(null);
+        }
         return throwError(() => err);
       })
     )

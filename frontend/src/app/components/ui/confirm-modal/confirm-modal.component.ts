@@ -1,12 +1,12 @@
 import { Component, HostListener, Input } from '@angular/core';
 import { Portal } from '../../../services/portal/portal';
-import { CustomButton } from "../custom-button/custom-button";
-import { Icon } from "../icon/icon";
 import { NgClass } from '@angular/common';
+import { CustomButtonComponent } from '../custom-button/custom-button.component';
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-confirm-modal',
-  imports: [CustomButton, Icon, NgClass],
+  imports: [CustomButtonComponent, IconComponent, NgClass],
   templateUrl: './confirm-modal.html',
   styleUrl: './confirm-modal.css',
 })

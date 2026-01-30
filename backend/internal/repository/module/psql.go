@@ -26,7 +26,10 @@ type ModuleRepository interface {
 	CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
 	UpdateModule(ctx context.Context, userId int, module model.UpdateModuleRequest) error
 	UpdateModuleCard(ctx context.Context, userId int, module model.UpdateModuleCard) error
-	DeleteModule(ctx context.Context, userId int, moduleId int) error
+	DeleteModule(ctx context.Context, userId int, moduleID int) error
+
+	SaveModule(ctx context.Context, userId int, moduleID int) error
+	UnsaveModule(ctx context.Context, userId int, moduleID int) error
 
 	InsertKeywords(ctx context.Context, keywords []string) error
 }
@@ -53,6 +56,7 @@ func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module
 			m.slug,
 			json_build_object('name', u.username, 'avatar', u.avatar) AS author,
 			m.user_id = $2 as is_owner,
+			(SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $2 AND module_id = $1)) as is_saved,
     		(NOT m.is_private OR m.user_id = $2) as accessible,
 			kw.keywords,
 			c.cards
@@ -98,6 +102,7 @@ func (m *moduleRepo) GetByID(ctx context.Context, userId, id int) (*model.Module
 		&module.Slug,
 		&module.Author,
 		&module.IsOwner,
+		&module.IsSaved,
 		&accessible,
 		&module.Keywords,
 		&module.Cards,
@@ -240,6 +245,7 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userId int, keywords []
 		m.has_images,
 		json_build_object('name', u.username, 'avatar', u.avatar) AS author,
 		m.user_id = $2 as is_owner,
+		(SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $2 AND module_id = $1)) as is_saved,
 		kw.keywords,
 		mc.objects
 	FROM modules m
@@ -278,6 +284,7 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userId int, keywords []
 			&module.HasImages,
 			&module.Author,
 			&module.IsOwner,
+			&module.IsSaved,
 			&module.Keywords,
 			&module.Objects,
 		); err != nil {
@@ -307,6 +314,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userId int, username stri
 		m.title,
 		m.slug,
 		m.user_id = $2 as is_owner,
+		(SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $2 AND module_id = m.module_id)) as is_saved,
 		m.has_images,
 		mc.objects
 	FROM modules m
@@ -354,6 +362,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userId int, username stri
 			&module.Title,
 			&module.Slug,
 			&module.IsOwner,
+			&module.IsSaved,
 			&module.HasImages,
 			&module.Objects,
 		); err != nil {
@@ -390,23 +399,23 @@ func (m *moduleRepo) CreateModule(ctx context.Context, userId int, module model.
 	}()
 
 	queryCreateModule := `INSERT INTO modules 
-		(user_id, title, slug, has_images) 
-		VALUES ($1, $2, $3, $4) 
+		(user_id, title, description, slug, has_images) 
+		VALUES ($1, $2, $3, $4, $5) 
 		RETURNING module_id
 	`
 
-	var moduleId int
+	var moduleID int
 	hasImages := utils.Contains(module.Cards, func(card model.CreateCard) bool {
 		return card.Title.Media.Content != nil || card.Description.Media.Content != nil
 	})
 
-	err = tx.QueryRow(ctx, queryCreateModule, userId, module.Title, utils.Slug(module.Title), hasImages).Scan(&moduleId)
+	err = tx.QueryRow(ctx, queryCreateModule, userId, module.Title, module.Description, utils.Slug(module.Title), hasImages).Scan(&moduleID)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, card := range module.Cards {
-		if err = insertCard(tx, ctx, moduleId, card); err != nil {
+		if err = insertCard(tx, ctx, moduleID, card); err != nil {
 			return nil, err
 		}
 	}
@@ -414,10 +423,10 @@ func (m *moduleRepo) CreateModule(ctx context.Context, userId int, module model.
 	if err := tx.Commit(ctx); err != nil {
 		return nil, err
 	}
-	return &model.CreateModuleResponse{ID: moduleId}, nil
+	return &model.CreateModuleResponse{ID: moduleID}, nil
 }
 
-func (m *moduleRepo) DeleteModule(ctx context.Context, userId int, moduleId int) error {
+func (m *moduleRepo) DeleteModule(ctx context.Context, userId int, moduleID int) error {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -437,7 +446,7 @@ func (m *moduleRepo) DeleteModule(ctx context.Context, userId int, moduleId int)
 
 	query := `DELETE FROM modules WHERE module_id = $1 AND user_id = $2`
 
-	commandTag, err := tx.Exec(ctx, query, moduleId, userId)
+	commandTag, err := tx.Exec(ctx, query, moduleID, userId)
 	if err != nil {
 		return err
 	}
@@ -489,6 +498,18 @@ func (m *moduleRepo) UpdateModule(ctx context.Context, userId int, module model.
 		}
 	}
 
+	if module.Description != nil {
+		cmdTag, err := tx.Exec(ctx, `UPDATE modules SET description=$1 WHERE module_id=$2 AND user_id=$3`,
+			module.Description, module.ID, userId)
+		if err != nil {
+			return err
+		}
+
+		if cmdTag.RowsAffected() == 0 {
+			return fmt.Errorf("module not found")
+		}
+	}
+
 	for _, card := range module.Cards {
 		if card.Delete && card.ID != nil {
 			if err = deleteCard(tx, ctx, module.ID, *card.ID); err != nil {
@@ -514,6 +535,71 @@ func (m *moduleRepo) UpdateModule(ctx context.Context, userId int, module model.
 
 	if err := tx.Commit(ctx); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *moduleRepo) SaveModule(ctx context.Context, userID int, moduleID int) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	var accessible bool
+
+	queryHasAccess := `SELECT (NOT is_private OR user_id = $1) as accessible 
+		from modules
+		where module_id = $2`
+
+	err = conn.QueryRow(ctx, queryHasAccess, userID, moduleID).Scan(&accessible)
+	if err != nil {
+		return protocol.ErrInternal
+	}
+
+	if !accessible {
+		return protocol.ErrForbidden
+	}
+
+	query := `INSERT INTO user_saved_modules (user_id, module_id) 
+		VALUES ($1, $2) ON CONFLICT (user_id, module_id) DO NOTHING`
+
+	if _, err = conn.Exec(ctx, query, userID, moduleID); err != nil {
+		return protocol.ErrInternal
+	}
+
+	return nil
+}
+
+func (m *moduleRepo) UnsaveModule(ctx context.Context, userID int, moduleID int) error {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	var accessible bool
+
+	queryHasAccess := `SELECT (NOT is_private OR user_id = $1) as accessible 
+		from modules
+		where module_id = $2`
+
+	err = conn.QueryRow(ctx, queryHasAccess, userID, moduleID).Scan(&accessible)
+	if err != nil {
+		return protocol.ErrInternal
+	}
+
+	if !accessible {
+		return protocol.ErrForbidden
+	}
+
+	query := `DELETE FROM user_saved_modules WHERE user_id = $1 AND module_id = $2`
+
+	if _, err = conn.Exec(ctx, query, userID, moduleID); err != nil {
+		return protocol.ErrInternal
 	}
 
 	return nil
@@ -612,7 +698,7 @@ func prepareMediaType(m *model.MediaBlock) {
 	}
 }
 
-func insertCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CreateCard) error {
+func insertCard(tx pgx.Tx, ctx context.Context, moduleID int, card model.CreateCard) error {
 	query := `INSERT INTO module_cards
 		(module_id, title, description, title_media_type, title_media, 
 		description_media_type, description_media)
@@ -622,7 +708,7 @@ func insertCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CreateC
 	prepareMediaType(&card.Title.Media)
 	prepareMediaType(&card.Description.Media)
 
-	_, err := tx.Exec(ctx, query, moduleId,
+	_, err := tx.Exec(ctx, query, moduleID,
 		card.Title.Text, card.Description.Text, card.Title.Media.Type, card.Title.Media.Content,
 		card.Description.Media.Type, card.Description.Media.Content,
 	)
@@ -630,7 +716,7 @@ func insertCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CreateC
 	return err
 }
 
-func updateCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CardUpdate) error {
+func updateCard(tx pgx.Tx, ctx context.Context, moduleID int, card model.CardUpdate) error {
 	prepareMediaType(&card.Title.Media)
 	prepareMediaType(&card.Description.Media)
 
@@ -640,14 +726,14 @@ func updateCard(tx pgx.Tx, ctx context.Context, moduleId int, card model.CardUpd
 	WHERE card_id=$7 AND module_id=$8`,
 		card.Title.Text, card.Description.Text, card.Title.Media.Type,
 		card.Title.Media.Content, card.Description.Media.Type,
-		card.Description.Media.Content, card.ID, moduleId)
+		card.Description.Media.Content, card.ID, moduleID)
 
 	return err
 }
 
-func deleteCard(tx pgx.Tx, ctx context.Context, moduleId, cardId int) error {
+func deleteCard(tx pgx.Tx, ctx context.Context, moduleID, cardId int) error {
 	cmdTag, err := tx.Exec(ctx, `DELETE FROM module_cards WHERE card_id=$1 AND module_id=$2`,
-		cardId, moduleId)
+		cardId, moduleID)
 
 	if cmdTag.RowsAffected() == 0 {
 		return fmt.Errorf("card not found")

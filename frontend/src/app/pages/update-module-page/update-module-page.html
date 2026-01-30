@@ -1,5 +1,6 @@
 <app-main-layout />
 
+<main>
 <form [formGroup]="moduleForm" class="flex flex-col w-full gap-8 max-w-300 px-3 mt-8 mx-auto items-center">
     <div class="flex w-full justify-between max-md:flex-col gap-4">
         <h1 class="title">Оновити модуль</h1>
@@ -9,7 +10,32 @@
         </app-custom-button>
     </div>
 
-    <app-custom-input class="w-full" title="Назва" [value]="moduleForm.get('title')?.value" (inputChange)="moduleForm.get('title')?.setValue($event)"/>
+    <div class="flex flex-col gap-4 w-full">
+            <app-custom-input 
+                inputId="title"
+                class="w-full" 
+                title="Назва"
+                [value]="moduleForm.get('title')?.value" 
+                (inputChange)="moduleForm.get('title')?.setValue($event)"
+            />
+
+            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 500 }">
+                НАЗВА
+                ({{moduleForm.get('title')?.value?.length ?? 0}}/500)
+            </span>
+        </div>
+        <div class="flex flex-col gap-4 w-full">
+            <app-text-area
+                class="w-full" 
+                [delay]="0"
+                [value]="moduleForm.get('description')?.value || ''" 
+                (inputChange)="moduleForm.get('description')?.setValue($event)"
+            />
+            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('description')?.value?.length ?? 0) > 500 }">
+                ОПИС
+                ({{moduleForm.get('description')?.value?.length ?? 0}}/500)
+            </span>
+        </div>
 
    <div formArrayName="cards" class="flex flex-col w-full" cdkDropList>
         @for(card of cards.controls; track card) {                
@@ -155,3 +181,4 @@
         Додати нову картку
     </app-custom-button>
 </form>
+</main>

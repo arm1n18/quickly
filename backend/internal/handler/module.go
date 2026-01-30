@@ -183,6 +183,42 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
+	router.Post("/:id/save", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Can`t parse id",
+			})
+		}
+
+		err = svc.SaveModule(c.Context(), utils.GetUserId(c), id)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	router.Delete("/:id/save", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Can`t parse id",
+			})
+		}
+
+		err = svc.UnsaveModule(c.Context(), utils.GetUserId(c), id)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
 	router.Post("/keywords", func(c *fiber.Ctx) error {
 		keywords := []string{}
 

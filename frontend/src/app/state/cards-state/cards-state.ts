@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {Module} from '../../interfaces/quizCard.interface';
+import {Module} from '../../interfaces/module.interface';
 import {BehaviorSubject} from 'rxjs';
 
 @Injectable({
@@ -12,6 +12,14 @@ export class CardsState {
 
   public setModule(module: Module) {
     this._module$.next(module);
+  }
+
+  public updateModuleByKey<T extends keyof Module>(key: T, value: Module[T]) {
+    const current = this._module$.value;
+  if (!current) return;
+  
+    const newModule = { ...current, [key]: value };
+    this._module$.next(newModule);
   }
 
   public changeCard(card: {id: number, title: string, description: string}) {

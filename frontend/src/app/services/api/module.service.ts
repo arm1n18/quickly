@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Module, ModulesSummary, UserModulesResponse } from '../../interfaces/quizCard.interface';
+import { Module, ModulesSummary, UserModulesResponse } from '../../interfaces/module.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -44,5 +44,13 @@ export class ModuleService {
 
   public deleteModule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiRoute}/${id}`, { responseType: 'text' as 'json' })
+  }
+
+  public saveModule(id: number): Observable<void> {
+    return this.http.post<void>(`${this.apiRoute}/${id}/save`, null, { responseType: 'text' as 'json' })
+  }
+
+  public unsaveModule(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiRoute}/${id}/save`, { responseType: 'text' as 'json' })
   }
 }

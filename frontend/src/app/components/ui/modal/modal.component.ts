@@ -1,8 +1,8 @@
-import {Component, HostListener, Input, Output, TemplateRef} from '@angular/core';
+import {Component, HostListener, Input, TemplateRef} from '@angular/core';
 import {NgClass, NgTemplateOutlet} from '@angular/common';
-import {CustomButton} from '../custom-button/custom-button';
-import {Icon} from '../icon/icon';
 import { Portal } from '../../../services/portal/portal'
+import { CustomButtonComponent } from '../custom-button/custom-button.component';
+import { IconComponent } from '../icon/icon.component';
 
 
 interface ModalConfig {
@@ -17,8 +17,8 @@ interface ModalConfig {
   imports: [
     NgClass,
     NgTemplateOutlet,
-    CustomButton,
-    Icon,
+    CustomButtonComponent,
+    IconComponent,
   ],
   templateUrl: './modal.html',
   styleUrl: './modal.css'

@@ -39,7 +39,7 @@
     </div>
   </header>
 
-  <div class="flex flex-col gap-4 w-full p-3 items-center">
+  <main class="flex flex-col gap-4 w-full p-3 items-center">
     @if(showConfig.showAnswers) {
       <div class="flex flex-col gap-4 text-lg w-3xl">
         <div>{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
@@ -69,7 +69,7 @@
     @switch(testConfig().mode) {
       @case("choose") {
         @for(question of tests().choose; let i = $index; let len = $count; track question.question) {
-          <app-test-choose-question
+          <app-choose-question
             #questionRef
             [question]="question"
             [numeration]="{ pos: i+1, from: len }"
@@ -105,7 +105,7 @@
         }
       }
       @case("match") {
-        <app-test-match-question 
+        <app-match-question 
           [questions]="tests().match"
           [showAnswer]="showConfig.showAnswers"
           [answered]="getResult.answers"
@@ -117,7 +117,7 @@
     @if(!showConfig.showAnswers) {
       <app-custom-button #finishButton rounded="md" (click)="finishTest()">Завершити тест</app-custom-button>
     }
-  </div>
+  </main>
 
 <ng-template #modalTemplate>
   <div class="flex flex-col gap-4 mb-16 ">

@@ -1,0 +1,58 @@
+<div class="rounded-2xl bg-[var(--lightGrey)] py-8 px-32 max-lg:px-8 flex w-full flex-wrap gap-8">
+    <div class="flex flex-col gap-4 w-1/4 max-md:w-full">
+        <img src="favicon.png" height="64" width="64" />
+        <span class="text-[var(--dark-accent)]">
+            Quickly сервіс для створення карток, тестів та навчальних модулів, 
+            який допомагає краще запам’ятовувати інформацію та перевіряти знання.
+        </span>
+    </div>
+
+    <nav class="flex flex-col gap-8 w-1/5 max-md:w-1/2">
+        <h5>Навчання</h5>
+        <ul class="flex flex-col gap-4">
+            <li class="text-[var(--dark-accent)] hover:text-[var(--accent)]">
+                <a href="/">
+                    Картки
+                </a>
+            </li>
+            <li class="text-[var(--dark-accent)] hover:text-[var(--accent)]">
+                <a href="/">
+                    Тести
+                </a>
+            </li>
+             <li class="text-[var(--dark-accent)] hover:text-[var(--accent)]">
+                <a href="/">
+                    Підбір
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="flex flex-col gap-8 w-1/5 max-md:w-1/2">
+        <h5>Ідеї та розвиток</h5>
+        <ul class="flex flex-col gap-4">
+            <li class="text-[var(--dark-accent)] hover:text-[var(--accent)]">
+                <a href="/">
+                    Наші ідеї на майбутнє
+                </a>
+            </li>
+            <li class="text-[var(--dark-accent)] hover:text-[var(--accent)]">
+                <a href="/">
+                    Запропонувати ідею
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <nav class="flex flex-col gap-8 w-1/4 max-md:w-1/2">
+        <h5>Контакти</h5>
+        <ul class="flex flex-col gap-4">
+            <li class="text-[var(--dark-accent)] hover:text-[var(--accent)] flex gap-4 items-center">
+                <app-icon [size]="16" [icon]="'Letter'" />
+                <a href="/">
+                    quickly@quickly.com
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

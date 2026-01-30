@@ -1,17 +1,17 @@
 import { Routes } from '@angular/router';
-import {CardsRootPage} from './pages/cards-root-page/cards-root-page';
+import {CardsRootPage} from './pages/cards-root-page/cards-root-page.component';
 import {CardsMatch, CardsPage} from './pages';
-import {CardsTestPage} from './pages/cards-test-page/cards-test-page';
-import { CardsPrintPage } from './pages/cards-print-page/cards-print-page';
-import { FlashcardsPage } from './pages/flashcards-page/flashcards-page';
-import { SelectMissingWordsPage } from './pages/select-missing-words-page/select-missing-words-page';
-import { UserProfile } from './pages/user-profile/user-profile';
-import { UserModulesComponent } from './components/user-modules-component/user-modules-component';
-import { UserFoldersComponent } from './components/user-folders-component/user-folders-component';
-import { FolderPage } from './pages/folder-page/folder-page';
-import { CreateModulePage } from './pages/create-module-page/create-module-page';
-import { UpdateModulePage } from './pages/update-module-page/update-module-page';
-import { NotFoundPage } from './pages/not-found-page/not-found-page';
+import {CardsTestPage} from './pages/cards-test-page/cards-test-page.component';
+import { CardsPrintPage } from './pages/cards-print-page/cards-print-page.component';
+import { FlashcardsPage } from './pages/flashcards-page/flashcards-page.component';
+import { SelectMissingWordsPage } from './pages/select-missing-words-page/select-missing-words-page.component';
+import { UserProfile } from './pages/user-profile/user-profile.component';
+import { UserModulesComponent } from './components/user-modules-component/user-modules.component';
+import { UserFoldersComponent } from './components/user-folders-component/user-folders.component';
+import { FolderPage } from './pages/folder-page/folder-page.component';
+import { CreateModulePage } from './pages/create-module-page/create-module-page.component';
+import { UpdateModulePage } from './pages/update-module-page/update-module-page.component';
+import { NotFoundPage } from './pages/not-found-page/not-found-page.component';
 
 export const routes: Routes = [
   {
@@ -71,5 +71,6 @@ export const routes: Routes = [
       },
     ]
   },
+  { path: 'not-found', component: NotFoundPage },
   { path: '**', component: NotFoundPage },
 ];

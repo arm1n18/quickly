@@ -44,8 +44,12 @@ func (m *ModuleService) CreateModule(ctx context.Context, userId int, module mod
 		return nil, fmt.Errorf("Invalid range")
 	}
 
+	if !utils.InRange(module.Title, 1, 50) || !utils.InRange(module.Description, 0, 500) {
+		return nil, fmt.Errorf("Invalid range")
+	}
+
 	if utils.Contains(module.Cards, func(c model.CreateCard) bool {
-		return !utils.InRange(c.Description.Text, 2, 500) || !utils.InRange(c.Title.Text, 2, 500)
+		return !utils.InRange(c.Description.Text, 1, 500) || !utils.InRange(c.Title.Text, 1, 500)
 	}) {
 		return nil, fmt.Errorf("Invalid range")
 	}
@@ -61,12 +65,22 @@ func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module mod
 		return err
 	}
 
+	if module.Title != nil {
+		if !utils.InRange(*module.Title, 1, 50) {
+			return fmt.Errorf("Invalid range")
+		}
+	}
+
+	if module.Description != nil {
+		if !utils.InRange(*module.Description, 0, 500) {
+			return fmt.Errorf("Invalid range")
+		}
+	}
+
 	if utils.Contains(module.Cards, func(c model.CardUpdate) bool {
-		return !utils.InRange(c.Description.Text, 2, 500) || !utils.InRange(c.Title.Text, 2, 500)
+		return !utils.InRange(c.Description.Text, 1, 500) || !utils.InRange(c.Title.Text, 1, 500)
 	}) {
-		err = fmt.Errorf("Invalid range 2")
-		log.Println(err)
-		return err
+		return fmt.Errorf("Invalid range")
 	}
 
 	err = m.repo.UpdateModule(ctx, userId, module)
@@ -76,6 +90,14 @@ func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module mod
 
 func (m *ModuleService) DeleteModule(ctx context.Context, userId, moduleId int) error {
 	return m.repo.DeleteModule(ctx, userId, moduleId)
+}
+
+func (m *ModuleService) SaveModule(ctx context.Context, userId, moduleId int) error {
+	return m.repo.SaveModule(ctx, userId, moduleId)
+}
+
+func (m *ModuleService) UnsaveModule(ctx context.Context, userId, moduleId int) error {
+	return m.repo.UnsaveModule(ctx, userId, moduleId)
 }
 
 func (m *ModuleService) UpdateModuleCard(ctx context.Context, userId int, card model.UpdateModuleCard) error {

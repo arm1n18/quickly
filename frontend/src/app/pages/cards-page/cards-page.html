@@ -2,8 +2,8 @@
 <app-main-layout/>
 <!-- MAIN CONTENT -->
  
-@if(isLoading()) {
-  <div class="flex flex-col gap-4 max-w-200 mx-auto px-3">
+@if(isLoading().module) {
+  <main class="flex flex-col gap-4 max-w-200 mx-auto px-3">
       <!-- OVERVIEW -->
       <div class="flex w-full justify-between gap-4 max-md:flex-col">
         <div class="skeletone w-44 h-11 rounded-2xl"></div>
@@ -82,7 +82,7 @@
       </div>
 
       <div class="skeletone w-full h-96 rounded-2xl"></div>
-  </div>
+  </main>
 }@else {
   @if(module$ | async; as module) {
     <div class="flex flex-col gap-4 max-w-200 mx-auto px-3">
@@ -95,14 +95,16 @@
         
         <div class="flex gap-3">
           <app-custom-button
-              [theme]="'hover-only-dark'"
+              [theme]="module.isSaved ? 'primary': 'hover-only-dark'"
+              [disabled]="isLoading().save"
               [size]="'text'"
+              (click)="toggleSaveModule()"
           >
               <app-icon 
                 [icon]="'Bookmark'" 
                 [size]="24"
               /> 
-              Зберегти
+              {{(module$ | async)?.isSaved ? 'Збережено' : 'Зберегти'}}
           </app-custom-button>
 
           <app-custom-button
@@ -200,6 +202,21 @@
       </div>
       
       <app-cards-overview [module]="module" class="w-full"/>
+
+      @if(module.isOwner) {
+        <app-custom-button class="mx-auto" [theme]="'secondary'" (click)="editModule()">
+          Редагувати модуль
+
+          <app-icon 
+              class="cursor-pointer"
+              [icon]="'Edit'" 
+              [fill]="'var(--accent)'"
+              [size]="16" 
+          />
+        </app-custom-button>
+      }
     </div>
   }
 }
+
+<app-footer />

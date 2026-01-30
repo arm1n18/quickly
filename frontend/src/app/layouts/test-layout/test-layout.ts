@@ -1,9 +1,9 @@
 import { NgStyle } from '@angular/common';
-import { Component, computed, Input, OnInit, signal, WritableSignal } from '@angular/core';
-import { CustomButton, DropdownItem, Icon, Dropdown } from "../../components/ui";
-import { GameMode, Module } from '../../interfaces/quizCard.interface';
+import { Component, Input, OnInit, signal, WritableSignal } from '@angular/core';
+import { GameMode } from '../../interfaces/module.interface';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DropdownConfig } from '../../components/ui/dropdown/dropdown';
+import { DropdownComponent, DropdownConfig, DropdownItem } from '../../components/ui/dropdown/dropdown.component';
+import { CustomButtonComponent, IconComponent } from '../../components/ui';
 
 interface ProgressInterface {
   maxQuestions: number;
@@ -19,7 +19,7 @@ interface ConfigInterface {
 
 @Component({
   selector: 'app-test-layout',
-  imports: [NgStyle, CustomButton, Icon, Dropdown],
+  imports: [NgStyle, CustomButtonComponent, IconComponent, DropdownComponent],
   templateUrl: './test-layout.html',
   styleUrl: './test-layout.css',
 })

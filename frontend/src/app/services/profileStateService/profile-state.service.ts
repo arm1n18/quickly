@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { UserModule } from '../../components/user-modules-component/user-modules-component';
-import { UserFolder } from '../../components/user-folders-component/user-folders-component';
+import { UserModule } from '../../components/user-modules-component/user-modules.component';
+import { UserFolder } from '../../components/user-folders-component/user-folders.component';
 import { UserInfo } from '../../interfaces/user.interface';
 import { BehaviorSubject } from 'rxjs';
 

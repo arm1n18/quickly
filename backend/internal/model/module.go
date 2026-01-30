@@ -35,6 +35,7 @@ type Module struct {
 	Objects  int       `json:"objects"`
 	Cards    []Card    `json:"cards"`
 	IsOwner  bool      `json:"isOwner"`
+	IsSaved  bool      `json:"isSaved"`
 }
 
 type ModuleSummary struct {
@@ -46,6 +47,7 @@ type ModuleSummary struct {
 	Objects   int       `json:"objects"`
 	HasImages bool      `json:"hasImages"`
 	IsOwner   bool      `json:"isOwner"`
+	IsSaved   bool      `json:"isSaved"`
 }
 
 type UserModule struct {
@@ -55,6 +57,7 @@ type UserModule struct {
 	Objects   int    `json:"objects"`
 	HasImages bool   `json:"hasImages"`
 	IsOwner   bool   `json:"isOwner"`
+	IsSaved   bool   `json:"isSaved"`
 }
 
 type CreateCard struct {
@@ -71,9 +74,10 @@ type UserModulesResponse struct {
 }
 
 type CreateModuleRequest struct {
-	Title   string       `json:"title"`
-	Private bool         `json:"private"`
-	Cards   []CreateCard `json:"cards"`
+	Title       string       `json:"title"`
+	Description string       `json:"description"`
+	Private     bool         `json:"private"`
+	Cards       []CreateCard `json:"cards"`
 }
 
 type CreateModuleResponse struct {
@@ -88,9 +92,10 @@ type CardUpdate struct {
 }
 
 type UpdateModuleRequest struct {
-	ID    int          `json:"id,omitempty"`
-	Title *string      `json:"title,omitempty"`
-	Cards []CardUpdate `json:"cards,omitempty"`
+	ID          int          `json:"id,omitempty"`
+	Title       *string      `json:"title,omitempty"`
+	Description *string      `json:"description,omitempty"`
+	Cards       []CardUpdate `json:"cards,omitempty"`
 }
 
 type UpdateModuleCard struct {

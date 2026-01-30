@@ -1,14 +1,18 @@
-export { Icon } from './icon/icon';
-export { Avatar } from './avatar/avatar';
-export { CustomButton } from './custom-button/custom-button';
-export { CustomInput } from './custom-input/custom-input';
-export { DoughnutChart } from './doughnut-chart/doughnut-chart';
-export { ImageModal } from './image-modal/image-modal';
-export { OtpInput } from './otp-input/otp-input';
-export { Rating } from './rating/rating';
-export { SegmentedControls } from './segmented-controls/segmented-controls';
-export { TextArea } from './text-area/text-area';
+export { AvatarComponent } from './avatar/avatar.component';
+export { ConfirmModalComponent } from './confirm-modal/confirm-modal.component'
+export { CustomButtonComponent } from './custom-button/custom-button.component';
+export { CustomInputComponent } from './custom-input/custom-input.component';
+export { DoughnutChartComponent } from './doughnut-chart/doughnut-chart.component';
+export { DropdownComponent } from './dropdown/dropdown.component';
+export { IconComponent } from './icon/icon.component';
+export { ImageModalComponent } from './image-modal/image-modal.component';
 export { ModalComponent } from './modal/modal.component';
-export { Dropdown } from './dropdown/dropdown';
-export type { DropdownItem } from './dropdown/dropdown';
+export { ModuleItemComponent } from './module-item/module-item.component';
+
+export { OtpInputComponent } from './otp-input/otp-input.component';
+export { RatingComponent } from './rating/rating.component';
+export { SegmentedControlsComponent } from './segmented-controls/segmented-controls.component';
+export { TextAreaComponent } from './text-area/text-area.component';
+
+export type { DropdownItem } from './dropdown/dropdown.component';
 

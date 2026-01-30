@@ -1,6 +1,11 @@
-export { QuizCard } from './quiz-card/quiz-card';
-export { CardsOverview } from './cards-overview/cards-overview';
-export { TestChooseQuestion } from './test-choose-question/test-choose-question';
-export { TestTfQuestion } from './test-tf-question/test-tf-question';
-export { TestInputQuestion } from './test-input-question/test-input-question';
-export { TestMatchQuestion } from './test-match-question/test-match-question';
+export { QuizCardComponent } from './quiz-card/quiz-card.component';
+export { CardsOverviewComponent } from './cards-overview/cards-overview.component';
+export { ChooseQuestionComponent } from './test/choose-question/choose-question.component';
+export { TfQuestionComponent } from './test/tf-question/tf-question.component'
+export { InputQuestionComponent } from './test/input-question/input-question.component';
+export { MatchQuestionComponent } from './test/match-question/match-question.component';
+export { AuthFormComponent } from './auth-form/auth-form.component'
+export { EditCardButtonComponent } from './edit-card-button/edit-card-button.component'
+export { QuizCardsComponent } from './quiz-cards/quiz-cards.component'
+export { UserFoldersComponent } from './user-folders-component/user-folders.component'
+export { UserModulesComponent } from './user-modules-component/user-modules.component'
