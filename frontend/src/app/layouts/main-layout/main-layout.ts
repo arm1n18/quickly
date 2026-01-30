@@ -1,4 +1,4 @@
-import { Component, signal, WritableSignal } from '@angular/core';
+import { Component, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
 import { CustomButton, Icon } from "../../components/ui";
 import { CustomInput } from '../../components/ui/custom-input/custom-input';
 import { Avatar } from "../../components/ui/avatar/avatar";
@@ -6,9 +6,10 @@ import { ModuleSummary } from '../../interfaces/quizCard.interface';
 import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { AuthForm } from "../../components/auth-form/auth-form";
-import { ModalStateService } from '../../services/modalStateService/modal-state-service';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { AsyncPipe } from '@angular/common';
+import { Portal } from '../../services/portal/portal';
+import { ComponentPortal } from '@angular/cdk/portal';
 
 interface ShowConfigInterface {
   showAuthModal: boolean;
@@ -17,12 +18,14 @@ interface ShowConfigInterface {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [AsyncPipe, CustomButton, Icon, CustomInput, Avatar, AuthForm],
+  imports: [AsyncPipe, CustomButton, Icon, CustomInput, Avatar],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
 })
 
 export class MainLayout {
+  @ViewChild('loginModal') loginModal!: TemplateRef<any>;
+  
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
   public showConfig: ShowConfigInterface = {
     showAuthModal: false,
@@ -33,7 +36,7 @@ export class MainLayout {
     public authState: AuthStateService,
     private apiService: ApiService,
     private router: Router,
-    private modalState: ModalStateService
+    private portal: Portal
   ) {}
 
   public navigateToModule(id: number, e: Event) {
@@ -49,12 +52,12 @@ export class MainLayout {
   }
 
   public toggleAuthModal(state: boolean) {
-    if (state && !this.modalState.isAnyOpen()) {
-      this.modalState.open();
-      this.showConfig.showAuthModal = state;
-    } else if (!state && this.modalState.isAnyOpen()) {
-      this.modalState.close();
-      this.showConfig.showAuthModal = state;
+    if (state && !this.portal.isAnyOpen()) {
+      this.portal.open(new ComponentPortal(AuthForm), {
+
+      });
+    } else if (!state && this.portal.isAnyOpen()) {
+      this.portal.close();
     }
   }
 }

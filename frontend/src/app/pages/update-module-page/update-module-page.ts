@@ -34,8 +34,6 @@ export class UpdateModulePage {
     cards: new FormArray<FormGroup<UpdateCardForm>>([], {validators: [Validators.required, Validators.minLength(3), Validators.maxLength(50)]})
   })
 
-
-
   public loadImage: WritableSignal<{card: number, target: 'title' | 'description' | undefined}> = signal({card: -1, target: undefined});
   private isSubmitting: boolean = false;
 

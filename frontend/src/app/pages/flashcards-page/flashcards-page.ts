@@ -68,7 +68,7 @@ export class FlashcardsPage {
     private portal: Portal
   ) {}
 
-  openModal() {
+  public openModal() {
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
@@ -76,10 +76,6 @@ export class FlashcardsPage {
         template: this.modalTemplate,
       }
     })
-  }
-  
-  public toggleShowModal() {
-    this.show.showSettingsModal = !this.show.showSettingsModal
   }
   
   public changeGameMode(mode: GameMode) {

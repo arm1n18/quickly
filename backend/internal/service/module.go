@@ -74,6 +74,10 @@ func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module mod
 	return err
 }
 
+func (m *ModuleService) DeleteModule(ctx context.Context, userId, moduleId int) error {
+	return m.repo.DeleteModule(ctx, userId, moduleId)
+}
+
 func (m *ModuleService) UpdateModuleCard(ctx context.Context, userId int, card model.UpdateModuleCard) error {
 	if !utils.InRange(card.Title, 2, 500) || !utils.InRange(card.Description, 2, 500) {
 		err := fmt.Errorf("Invalid range")

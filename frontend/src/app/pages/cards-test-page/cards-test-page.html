@@ -120,7 +120,7 @@
   </div>
 
 <ng-template #modalTemplate>
-  <div main class="flex flex-col gap-4 mb-16 ">
+  <div class="flex flex-col gap-4 mb-16 ">
     <div class="w-full flex justify-between items-center">
       <div class="flex gap-2">
         Питання
@@ -224,11 +224,13 @@
       </div>
     </div>
   </div>
-  <div footer [class]="'flex gap-4 justify-end w-full'">
-    <app-custom-button theme="secondary" rounded="md" (click)="resetTestConfig()">
+
+  
+  <div [class]="'flex gap-4 justify-end w-full max-md:justify-between max-md:flex-col-reverse max-md:mt-auto'">
+    <app-custom-button theme="secondary" rounded="md" class="max-md:w-full" className="max-md:w-full" (click)="resetTestConfig()">
       Скасувати
     </app-custom-button>
-    <app-custom-button theme="primary" rounded="md" (click)="applyTestConfig()">
+    <app-custom-button theme="primary" rounded="md" class="max-md:w-full" className="max-md:w-full" (click)="applyTestConfig()">
       Створити тест
     </app-custom-button>
   </div>

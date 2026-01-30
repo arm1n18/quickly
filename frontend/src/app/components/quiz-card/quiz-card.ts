@@ -3,7 +3,6 @@ import { Icon } from '../ui'
 import { NgClass } from '@angular/common';
 import { ContentBlock } from '../../interfaces/quizCard.interface';
 import { ImageModalDirective } from "../../directives/imageDirective/image-modal-directive";
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EditCardButton } from "../edit-card-button/edit-card-button";
 
 interface QuizCardProps {
@@ -14,7 +13,7 @@ interface QuizCardProps {
 
 @Component({
   selector: 'app-quiz-card',
-  imports: [Icon, NgClass, ReactiveFormsModule, ImageModalDirective, EditCardButton],
+  imports: [Icon, NgClass, ImageModalDirective, EditCardButton],
   templateUrl: './quiz-card.html',
   styleUrl: './quiz-card.css'
 })
@@ -33,14 +32,6 @@ export class QuizCard implements OnChanges {
 
   public isFlipped: WritableSignal<boolean> = signal(false);
   public showClue: WritableSignal<boolean> = signal(false);
-
-  editForm = new FormGroup<{
-    title: FormControl<string>,
-    description: FormControl<string>;
-  }>({
-    title: new FormControl(this.cardInput?.title.text || '', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
-    description: new FormControl(this.cardInput?.description.text || '', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
-  })
 
   public toggleFlip(skipDuringAutoPlay: boolean = false) {
     if(skipDuringAutoPlay && this.isFlipped()) return
@@ -110,9 +101,6 @@ export class QuizCard implements OnChanges {
       this.isFlipped.set(false)
       this.showClue.set(false)
       this.isChanged.set(true);
-
-      this.editForm.get('title')?.setValue(this.cardInput?.title.text || '')
-      this.editForm.get('description')?.setValue(this.cardInput?.description.text || '')
 
       setTimeout(() => {
         this.isChanged.set(false);

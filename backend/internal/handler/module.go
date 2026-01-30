@@ -145,6 +145,24 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.SendStatus(fiber.StatusOK)
 	})
 
+	router.Delete("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
+		id, err := strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": "Can`t parse id",
+			})
+		}
+
+		err = svc.DeleteModule(c.Context(), utils.GetUserId(c), id)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
 	//yes
 	router.Post("/", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		body := model.CreateModuleRequest{}

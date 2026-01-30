@@ -9,7 +9,12 @@
         </app-custom-button>
     </div>
 
-    <app-custom-input class="w-full" title="Назва" (inputChange)="moduleForm.get('title')?.setValue($event)"/>
+    <app-custom-input 
+        class="w-full" 
+        title="Назва"
+        [value]="moduleForm.get('title')?.value" 
+        (inputChange)="moduleForm.get('title')?.setValue($event)"
+    />
 
    <div formArrayName="cards" class="flex flex-col w-full" cdkDropList [cdkDropListData]="cards.controls" (cdkDropListDropped)="dropCard($event)">
         @for(card of cards.controls; track card) {
@@ -34,6 +39,7 @@
                             <div class="flex gap-4">
                                 <app-text-area 
                                     class="w-full" [delay]="0"
+                                    [value]="card.get('title.text')?.value || ''" 
                                     (inputChange)="card.get('title.text')?.setValue(normalizeText($event))"
                                 />
                                 
@@ -77,6 +83,7 @@
                             <div class="flex gap-4">
                                 <app-text-area 
                                     class="w-full" [delay]="0"
+                                    [value]="card.get('description.text')?.value || ''" 
                                     (inputChange)="card.get('description.text')?.setValue(normalizeText($event))"
                                 />
                                 
@@ -86,7 +93,7 @@
                                             appImageModalDirective
                                             class="media-block sm"
                                             alt="imh"
-                                            [src]="content"
+                                            [src]="card.get('description.media.content')?.value"
                                             [allowModal]="true"
                                             [width]="'64px'"
                                             [height]="'64px'"

@@ -41,4 +41,8 @@ export class ModuleService {
   public patchModule(id: number, card: any): Observable<void> {
     return this.http.patch<void>(`${this.apiRoute}/${id}`, card, { responseType: 'text' as 'json' })
   }
+
+  public deleteModule(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiRoute}/${id}`, { responseType: 'text' as 'json' })
+  }
 }

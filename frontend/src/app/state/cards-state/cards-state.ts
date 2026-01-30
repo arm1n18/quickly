@@ -37,4 +37,8 @@ export class CardsState {
 
     this._module$.next(module)
   }
+
+  public getModule(): Module | null {
+    return this._module$.value
+  }
 }

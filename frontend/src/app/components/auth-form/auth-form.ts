@@ -9,6 +9,7 @@ import { Subject, takeUntil, tap } from 'rxjs';
 import { ApiService } from '../../services/api/api.service';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { AuthStorageService } from '../../services/auth/authStorageService/auth-storage.service';
+import { Portal } from '../../services/portal/portal';
 
 @Component({
   selector: 'app-auth-form',
@@ -17,9 +18,6 @@ import { AuthStorageService } from '../../services/auth/authStorageService/auth-
   styleUrl: './auth-form.css',
 })
 export class AuthForm {
-  @Input({ required: true }) show: boolean = false;
-  @Output() shownChange = new EventEmitter<boolean>();
-
   public isRegisterMode: WritableSignal<boolean> = signal(false);
   public isReceiveCode: WritableSignal<boolean> = signal(false);
 
@@ -48,11 +46,12 @@ export class AuthForm {
     private api: ApiService,
     private storage: AuthStorageService,
     private state: AuthStateService,
+    private portal: Portal,
   ){}
 
   public closeModal(e: Event) {
     e.stopPropagation();
-    this.shownChange.emit(false);
+    this.portal.close()
   }
 
   public toggleMode(register: boolean) {
@@ -152,7 +151,7 @@ export class AuthForm {
           this.errorMessage.set(null)
           this.storage.saveToken(resp.accessToken)
           this.state.setPayload(this.state.decode(resp.accessToken))
-          this.shownChange.emit(false);
+          this.portal.close()
         },
         error: err => {
           this.isLoading = false

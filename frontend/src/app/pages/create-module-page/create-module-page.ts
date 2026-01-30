@@ -2,7 +2,7 @@ import { Component, OnInit, signal, WritableSignal } from '@angular/core';
 import { MainLayout } from "../../layouts/main-layout/main-layout";
 import { CustomInput } from "../../components/ui/custom-input/custom-input";
 import { TextArea } from "../../components/ui/text-area/text-area";
-import { MediaType } from '../../interfaces/quizCard.interface';
+import { Card, MediaType, Module } from '../../interfaces/quizCard.interface';
 import { CustomButton, Icon } from "../../components/ui";
 import { PortalModule } from "@angular/cdk/portal";
 import { NgClass } from '@angular/common';
@@ -13,6 +13,7 @@ import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { isImgUrl } from '../../utils/validate';
 import { from } from 'rxjs';
+import { CardsState } from '../../state/cards-state/cards-state';
 
 export interface MediaForm {
   type: FormControl<MediaType | null>;
@@ -37,7 +38,7 @@ export interface CardForm {
 })
 
 export class CreateModulePage implements OnInit {
-  constructor(private apiService: ApiService, private router: Router){}
+  constructor(private api: ApiService, private router: Router, private module: CardsState,){}
 
   moduleForm = new FormGroup<{
     title: FormControl<string>,
@@ -47,10 +48,11 @@ export class CreateModulePage implements OnInit {
     cards: new FormArray<FormGroup<CardForm>>([], {validators: [Validators.required, Validators.minLength(3), Validators.maxLength(50)]})
   })
 
+  public isLoading = true;
   public loadImage: WritableSignal<{card: number, target: 'title' | 'description' | undefined}> = signal({card: -1, target: undefined});
   private isSubmitting: boolean = false;
 
-  public addCard(index: number){
+  public addCard(index: number, data?: Card){
     const cards = this.moduleForm.get('cards') as FormArray<FormGroup<CardForm>>;
 
     if(cards.length == 50) {
@@ -59,22 +61,29 @@ export class CreateModulePage implements OnInit {
     
     const newCard = new FormGroup<CardForm>({
       title: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
+        text: new FormControl(data?.title.text || '', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
-          type: new FormControl<MediaType | null>(null),
-          content: new FormControl<string | null>(null),
+          type: new FormControl<MediaType | null>(data?.title.media?.type || null),
+          content: new FormControl<string | null>(data?.title.media?.content || null),
         }),
       }),
       description: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
+        text: new FormControl(data?.description.text || '', { nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
-          type: new FormControl<MediaType | null>(null),
-          content: new FormControl<string | null>(null),
+          type: new FormControl<MediaType | null>(data?.description.media?.type || null),
+          content: new FormControl<string | null>(data?.description.media?.content || null),
         }),
       }),
     });
 
     cards.insert(index+1, newCard)
+  }
+
+  private dublicateModule(module: Module) {
+    this.moduleForm.get('title')?.setValue(module.title)
+    for(let i = 0; i < module.cards.length; i++) {
+      this.addCard(i, module.cards[i])
+    }
   }
 
   public removeCard(index: number){
@@ -155,7 +164,7 @@ export class CreateModulePage implements OnInit {
 
     const payload = this.buildPayload();
 
-    this.apiService.module.postModule(payload)
+    this.api.module.postModule(payload)
       .subscribe(response => this.router.navigate(['/module', response.id], { replaceUrl: true }))
   }
 
@@ -167,8 +176,14 @@ export class CreateModulePage implements OnInit {
     return this.isSubmitting
   }
 
-  ngOnInit(): void {
-    this.addCard(0)
-    this.addCard(1)
+  ngOnInit() {
+    const module = this.module.getModule();
+
+    if (module) {
+      this.dublicateModule(module)
+    } else {
+      this.addCard(0)
+      this.addCard(1)
+    }
   }
 }

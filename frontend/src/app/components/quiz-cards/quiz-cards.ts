@@ -1,10 +1,12 @@
-import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, signal, ViewChild, WritableSignal } from '@angular/core';
-import { CustomButton, Icon } from "../ui";
+import { Component, EventEmitter, HostListener, Input, Output, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
+import { CustomButton, Icon, Dropdown, DropdownItem, ModalComponent } from "../ui";
 import { Card } from '../../interfaces/quizCard.interface';
-import { single, Subject, Subscription, switchMap, takeUntil, tap, timer } from 'rxjs';
-import { NgStyle } from '@angular/common';
+import { Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
+import { NgClass, NgStyle } from '@angular/common';
 import { QuizCard } from "../quiz-card/quiz-card";
-import { ModalStateService } from '../../services/modalStateService/modal-state-service';
+import { Router } from '@angular/router';
+import { Portal } from '../../services/portal/portal';
+import { ComponentPortal } from '@angular/cdk/portal';
 
 interface QuizCardsInterface {
   side: sideType,
@@ -24,13 +26,16 @@ type sideType = 'title' | 'description' | 'both'
 
 @Component({
   selector: 'app-quiz-cards',
-  imports: [CustomButton, Icon, NgStyle, QuizCard],
+  imports: [CustomButton, Icon, NgStyle, QuizCard, Dropdown, NgClass],
   templateUrl: './quiz-cards.html',
   styleUrl: './quiz-cards.css',
 })
 
 export class QuizCards {
-  constructor(private modalState: ModalStateService){}
+  constructor(
+    private router: Router,
+    private portal: Portal
+  ){}
 
   private _config: QuizCardsInterface = {
     side: 'title',
@@ -41,6 +46,7 @@ export class QuizCards {
     dualCard: false
   };
 
+  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @ViewChild(QuizCard) quizCard!: QuizCard;
   @Input({ required: true }) cards: Card[] = [];
   @Input() set config(value: Partial<QuizCardsInterface>) {
@@ -57,20 +63,15 @@ export class QuizCards {
     isAutoPlayActive: false,
     isShuffleActive: false
   })
-  
-  get currentCard(): Card {
-    const shuffled = this.shuffledCards();
-    const currentIndex = this.currentCardIndex();
 
-    if (shuffled?.[currentIndex]) {
-      return shuffled[currentIndex];
-    }
-    return this.cards[currentIndex];
-  }
+  public shortcut: boolean = false;
 
-  get config(): QuizCardsInterface {
-    return this._config;
-  }
+  public dropdownList: DropdownItem[][] = [
+    [
+      { title: {text: 'Термін'}, onClick: () => this.config.side = 'title', preselected: this.config.side === 'title' },
+      { title: {text: 'Визначення'}, onClick: () => this.config.side = 'description', preselected: this.config.side === 'description' }
+    ]
+  ]
 
   public changeCard(action: 'next' | 'prev') {
     if (this.changeCardTimeout) return
@@ -180,10 +181,37 @@ export class QuizCards {
     }
   }
 
+  public openFullScreen() {
+    this.router.navigate([`/${this.router.url}/flashcards`]);
+  }
+
+  public openModal() {
+    this.portal.open(new ComponentPortal(ModalComponent), {
+      config: {
+        showCross: true,
+        title: 'Параметри',
+        template: this.modalTemplate,
+      }
+    })
+  }
+
+  get currentCard(): Card {
+    const shuffled = this.shuffledCards();
+    const currentIndex = this.currentCardIndex();
+
+    if (shuffled?.[currentIndex]) {
+      return shuffled[currentIndex];
+    }
+    return this.cards[currentIndex];
+  }
+
+  get config(): QuizCardsInterface {
+    return this._config;
+  }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyPress (e: KeyboardEvent) {
-    if (this.modalState.isAnyOpen()) return;
+    if (this.portal.isAnyOpen()) return;
 
     switch (e.code) {
       case "ArrowLeft":

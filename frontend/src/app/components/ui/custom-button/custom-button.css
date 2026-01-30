@@ -37,51 +37,62 @@
   width: 100%;
 }
 
-.btn.secondary {
+.btn.accent-secondary {
   color: var(--accent);
   background-color: var(--secondary);
 }
 
-.btn.secondary:hover {
+.btn.accent-secondary:hover {
   background-color: var(--hover-secondary);
 }
 
-.btn.primary {
+.btn.accent-primary {
   color: #fff;
   background-color: var(--accent);
 }
 
-.btn.primary:hover {
+.btn.accent-primary:hover {
   background-color: var(--hover-accent);
 }
 
-.btn.lime {
-  color: #000;
-  background-color: var(--accent-lime);
-}
 
-.btn.lime:hover {
-  background-color: var(--hover-accent);
-}
-
-.btn.hover-only {
+.btn.accent-hover-only {
   color: var(--accent);
 }
 
-.btn.hover-only:hover {
+.btn.accent-hover-only:hover {
   background-color: var(--secondary);
 }
 
-.btn.hover-only-dark {
+.btn.accent-hover-only-dark {
   fill: var(--dark-accent);
   color: var(--dark-accent);
 }
 
-.btn.hover-only-dark:hover {
+.btn.accent-hover-only-dark:hover {
   color: var(--accent);
   fill: var(--accent);
   background-color: var(--secondary);
 }
+
+.btn.red-secondary {
+  color: #bd2e2e;
+  background-color: #FFEEF2;
+}
+
+.btn.red-secondary:hover {
+  background-color: #ffdbdb;
+}
+
+.btn.red-primary {
+  color: #fff;
+  background-color: #ff2525;
+}
+
+.btn.red-primary:hover {
+  background-color: #bd2e2e;
+}
+
 
 .rounded-none {
   border-radius: 0 !important;

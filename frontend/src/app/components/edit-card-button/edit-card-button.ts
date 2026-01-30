@@ -3,7 +3,6 @@ import { Icon, CustomButton, ModalComponent, TextArea } from "../ui";
 import { ApiService } from '../../services/api/api.service';
 import { CardsState } from '../../state/cards-state/cards-state';
 import { ActivatedRoute } from '@angular/router';
-import { ModalStateService } from '../../services/modalStateService/modal-state-service';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { Card } from '../../interfaces/quizCard.interface';
@@ -27,7 +26,6 @@ export class EditCardButton {
     private api: ApiService,
     private cards: CardsState, 
     private route: ActivatedRoute,
-    private modalState: ModalStateService,
     private portal: Portal
   ){}
 
@@ -48,8 +46,6 @@ export class EditCardButton {
     this.editForm.get('title')?.setValue(this.card?.title.text || '') 
     this.editForm.get('description')?.setValue(this.card?.description.text || '') 
 
-    this.modalState.open()
-
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
@@ -61,7 +57,6 @@ export class EditCardButton {
 
   public closeModal() {
     this.portal.close()
-    this.modalState.close()
   }
 
   public cancelEdit() {
@@ -92,7 +87,7 @@ export class EditCardButton {
       .subscribe(() => {
           this.cards.changeCard({id: body.cardId, title: body.title!, description: body.description!})
           this.portal.close()
-          this.modalState.close()
+          // this.modalState.close()
         }
       )
   }

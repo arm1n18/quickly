@@ -58,6 +58,7 @@
                     [theme]="'secondary'"
                     [size]="'dual-child'"
                     [rounded]="'right-sm'"
+                    (click)="openModal()"
                 >
                     <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'"/>
                 </app-custom-button>
@@ -66,6 +67,7 @@
                     [theme]="'secondary'"
                     [size]="'dual-child'"
                     [rounded]="'left-sm'"
+                    (click)="openFullScreen()"
                 >
                     <app-icon [icon]="'FullScreen'" [size]="24" [stroke]="'#6d4aff'"/>
                 </app-custom-button>
@@ -119,3 +121,67 @@
         </div>
     }
 </div>
+
+<ng-template #modalTemplate>
+  <div class="flex flex-col gap-4">
+
+    <div class="w-full flex justify-between items-center">
+      Передня сторона
+      <app-dropdown [list]="dropdownList" [config]="{divider: 'line', rememberSelection: true }" [position]="{px: 'right', py: 'bottom'}" />
+    </div>
+
+    <!-- <div class="w-full flex justify-between items-center">
+      Показувати обидві сторони карток
+      <label [class]="'switch'">
+        <input
+          [type]="'checkbox'"
+          [checked]="config.dualCard"
+          (click)="config.dualCard = !config.dualCard"
+        />
+        <span [class]="'slider round'"></span>
+      </label>
+    </div> -->
+
+    <div class="w-full h-px bg-(--secondary)"></div>
+
+    <div class="w-full flex flex-col gap-4">
+      <div class="w-full flex justify-between items-center">
+        Поєднання клавіш
+        <div class="flex items-center gap-2 text-[var(--accent)] cursor-pointer" (click)="shortcut = !shortcut">
+          Переглянути
+          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': shortcut}"/>
+        </div>
+      </div>
+      <div [class]="'w-full grid grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': shortcut}">
+        <div class="flex w-full justify-between">
+            Повернутись
+            <kbd class="kbd">←</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Перемішати
+            <kbd class="kbd">S</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Далі
+            <kbd class="kbd">→</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Аудіо
+            <kbd class="kbd">A</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Перегорунти
+            <kbd class="kbd">Пробіл</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Підказка
+            <kbd class="kbd">C</kbd>
+        </div>
+        <div class="flex w-full justify-between">
+            Автовідтворення
+            <kbd class="kbd">P</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
