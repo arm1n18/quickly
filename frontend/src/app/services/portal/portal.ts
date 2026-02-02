@@ -5,7 +5,7 @@ import { BehaviorSubject } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class Portal {
+export class PortalService {
   private outlet!: CdkPortalOutlet;
   private openedCount$ = new BehaviorSubject(0);
   

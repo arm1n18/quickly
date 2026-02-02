@@ -27,15 +27,16 @@ type Keyword struct {
 }
 
 type Module struct {
-	ID       int       `json:"id"`
-	Title    string    `json:"title"`
-	Slug     string    `json:"slug"`
-	Author   Author    `json:"author"`
-	Keywords []Keyword `json:"keywords"`
-	Objects  int       `json:"objects"`
-	Cards    []Card    `json:"cards"`
-	IsOwner  bool      `json:"isOwner"`
-	IsSaved  bool      `json:"isSaved"`
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description *string   `json:"description"`
+	Slug        string    `json:"slug"`
+	Author      Author    `json:"author"`
+	Keywords    []Keyword `json:"keywords"`
+	Objects     int       `json:"objects"`
+	Cards       []Card    `json:"cards"`
+	IsOwner     bool      `json:"isOwner"`
+	IsSaved     bool      `json:"isSaved"`
 }
 
 type ModuleSummary struct {

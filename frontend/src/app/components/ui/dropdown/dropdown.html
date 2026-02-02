@@ -1,10 +1,10 @@
 <div class="relative w-fit">
   @if(hasBtn) {
-    <div (click)="toggleShow()">
+    <div (click)="toggleShow($event)">
       <ng-content select="[btn]"></ng-content>
     </div>
   } @else {
-    <app-custom-button [theme]="config.theme || 'hover-only'" rounded="md" (click)="toggleShow()">
+    <app-custom-button [theme]="config.theme || 'hover-only'" rounded="md" (click)="toggleShow($event)">
       @if(config.icon) {
         <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? 'var(--text-secondary)'" />
       }
@@ -42,7 +42,7 @@
                 [ngClass]="{
                   'selected': el.title.text === preslectedValue
                 }"
-                (click)="el.onClick?.(); select(el.title.text)"
+                (click)="el.onClick?.(); select($event, el.title.text)"
               >
                 @if(el.icon) {
                   <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? 'var(--text-secondary)'" />

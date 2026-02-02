@@ -19,7 +19,9 @@ type InitRouter struct {
 func (i InitRouter) InitRoutes() {
 	api := i.App.Group("/api")
 
-	handlers.RegisterModuleRoutes(api.Group("/module"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
-	handlers.RegisterUserRoutes(api.Group("/user"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
+	handlers.RegisterModuleRoutes(api.Group("/modules"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
+	handlers.RegisterFolderRoutes(api.Group("/user/:username/folders"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
+	handlers.RegisterFolderRoutes(api.Group("/folders"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
+	handlers.RegisterUserRoutes(api.Group("/users"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 	handlers.RegisterAuthRoutes(api.Group("/auth"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 }

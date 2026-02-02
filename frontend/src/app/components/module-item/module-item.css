@@ -1,11 +1,4 @@
 :host {
-    display: block;
-    width: 100%;
-    min-height: 100vh;
-    background-color: var(--background);
-}
-
-.item {
     display: flex;
     padding: 1rem;
     border: 2px solid var(--secondary);
@@ -18,6 +11,6 @@
     color: var(--dark-accent);
 }
 
-.item:hover {
+:host:hover {
     border: 2px solid var(--hover-secondary);
 }

@@ -1,6 +1,6 @@
 import {Component, HostListener, Input, TemplateRef} from '@angular/core';
 import {NgClass, NgTemplateOutlet} from '@angular/common';
-import { Portal } from '../../../services/portal/portal'
+import { PortalService } from '../../../services/portal/portal'
 import { CustomButtonComponent } from '../custom-button/custom-button.component';
 import { IconComponent } from '../icon/icon.component';
 
@@ -29,7 +29,7 @@ export class ModalComponent {
     showCross: true
   };
 
-  constructor(private portal: Portal) {}
+  constructor(private portal: PortalService) {}
 
   public closeModal(e?: Event) {
     if(e) e.stopPropagation();

@@ -60,18 +60,19 @@ export class DropdownComponent {
   public show: boolean = false
   private selectedValue: any | null
 
-  select(value: any) {
+  public select(e:Event, value: any) {
     if(this.config.rememberSelection) {
       this.selectedValue = value
     }
-    this.toggleShow()
+    this.toggleShow(e)
   }
 
-  toggleShow () {
+  public toggleShow (e: Event) {
+    e.stopPropagation()
     this.show = !this.show
   }
 
-  gapStyle (index: number, groupLength: number): {[klass: string]: boolean} {
+  public gapStyle (index: number, groupLength: number): {[klass: string]: boolean} {
     if(this.config.divider == 'gap') {
       if(groupLength === 1) return {'single': true}
       if(index == 0 && groupLength > 1) return {'top': true}
@@ -82,7 +83,7 @@ export class DropdownComponent {
     return {}
   }
 
-  getGroupClasses(index: number, length: number) {
+  public getGroupClasses(index: number, length: number) {
     return {
       'with-gap': this.config.divider === 'gap',
       ...this.gapStyle(index, length)

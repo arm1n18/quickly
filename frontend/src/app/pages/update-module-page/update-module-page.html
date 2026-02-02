@@ -19,9 +19,9 @@
                 (inputChange)="moduleForm.get('title')?.setValue($event)"
             />
 
-            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 500 }">
+            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 50 }">
                 НАЗВА
-                ({{moduleForm.get('title')?.value?.length ?? 0}}/500)
+                ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
             </span>
         </div>
         <div class="flex flex-col gap-4 w-full">
@@ -177,8 +177,12 @@
         }
    </div>
 
-   <app-custom-button [theme]="'secondary'" [disabled]="cards.length >= 50" (click)="addEmptyCard(cards.length)">
-        Додати нову картку
-    </app-custom-button>
+   <div class="py-8">
+        @if((moduleForm.get('cards')?.value?.length ?? 0) < 50) {
+            <app-custom-button [theme]="'secondary'" [disabled]="cards.length >= 50" (click)="addEmptyCard(cards.length)">
+                Додати нову картку
+            </app-custom-button>
+        }
+    </div>
 </form>
 </main>

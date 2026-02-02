@@ -8,7 +8,7 @@ import { Module, ModulesSummary, UserModulesResponse } from '../../interfaces/mo
 })
 
 export class ModuleService {
-  private apiRoute = '/module';
+  private apiRoute = '/modules';
 
   constructor(private http: HttpClient) {}
 

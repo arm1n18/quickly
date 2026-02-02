@@ -4,7 +4,7 @@ import { Card } from '../../interfaces/module.interface';
 import { Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { NgClass, NgStyle } from '@angular/common';
 import { Router } from '@angular/router';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { QuizCardComponent } from '..';
 
@@ -34,7 +34,7 @@ type sideType = 'title' | 'description' | 'both'
 export class QuizCardsComponent {
   constructor(
     private router: Router,
-    private portal: Portal
+    private portal: PortalService
   ){}
 
   private _config: QuizCardsInterface = {

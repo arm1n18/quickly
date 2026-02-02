@@ -7,7 +7,7 @@ import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { NgClass } from '@angular/common';
 import { Card } from '../../interfaces/module.interface';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 
 @Component({
   selector: 'app-edit-card-button',
@@ -26,7 +26,7 @@ export class EditCardButtonComponent {
     private api: ApiService,
     private cards: CardsState, 
     private route: ActivatedRoute,
-    private portal: Portal
+    private portal: PortalService
   ){}
 
   private isSubmitting: boolean = false;

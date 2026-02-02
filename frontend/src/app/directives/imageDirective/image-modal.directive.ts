@@ -1,6 +1,6 @@
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
-import { Portal } from '../../services/portal/portal';
+import { Directive, HostBinding, HostListener, Input } from '@angular/core';
+import { PortalService } from '../../services/portal/portal';
 import { ImageModalComponent } from '../../components/ui';
 
 @Directive({
@@ -8,7 +8,7 @@ import { ImageModalComponent } from '../../components/ui';
 })
 
 export class ImageModalDirective {
-  constructor(private portal: Portal) {}
+  constructor(private portal: PortalService) {}
 
   @Input() alt: string = '';
   @Input() width?: string;

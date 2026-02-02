@@ -6,7 +6,7 @@ import { Subject, takeUntil, tap } from 'rxjs';
 import { ApiService } from '../../services/api/api.service';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { AuthStorageService } from '../../services/auth/authStorageService/auth-storage.service';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { CustomButtonComponent, CustomInputComponent, IconComponent, OtpInputComponent } from '../ui';
 
 @Component({
@@ -44,7 +44,7 @@ export class AuthFormComponent {
     private api: ApiService,
     private storage: AuthStorageService,
     private state: AuthStateService,
-    private portal: Portal,
+    private portal: PortalService,
   ){}
 
   public closeModal(e: Event) {

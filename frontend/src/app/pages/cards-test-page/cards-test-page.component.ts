@@ -29,7 +29,7 @@ import {Subject, takeUntil, tap, timer} from 'rxjs';
 import { shuffleArray } from '../../utils/random';
 import { isAnswerMode, isTestMode } from '../../utils/validate';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { DropdownItem, ModalComponent, DropdownComponent, CustomButtonComponent, IconComponent, DoughnutChartComponent } from '../../components/ui';
 
 export type TestMode = 'true-false' | 'choose' | 'match' | 'input';
@@ -119,7 +119,7 @@ export class CardsTestPage implements OnInit, OnDestroy {
     private cardsState: CardsState,
     private route: ActivatedRoute,
     private router: Router,
-    private portal: Portal
+    private portal: PortalService
   ) {}
 
   private setTest<T extends keyof TestMap>(type: T, test: TestMap[T]) {

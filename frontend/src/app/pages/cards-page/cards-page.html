@@ -200,20 +200,26 @@
           Підписатись
         </app-custom-button> -->
       </div>
-      
+
+      @if(module.description) {
+        <span class="text-sm text-[var(--text-secondary2)]">
+          {{module.description}}
+        </span>
+      }
+
       <app-cards-overview [module]="module" class="w-full"/>
 
       @if(module.isOwner) {
-        <app-custom-button class="mx-auto" [theme]="'secondary'" (click)="editModule()">
-          Редагувати модуль
+          <app-custom-button class="mx-auto mt-8" [theme]="'secondary'" (click)="editModule()">
+            Редагувати модуль
 
-          <app-icon 
-              class="cursor-pointer"
-              [icon]="'Edit'" 
-              [fill]="'var(--accent)'"
-              [size]="16" 
-          />
-        </app-custom-button>
+            <app-icon 
+                class="cursor-pointer"
+                [icon]="'Edit'" 
+                [fill]="'var(--accent)'"
+                [size]="16" 
+            />
+          </app-custom-button>
       }
     </div>
   }

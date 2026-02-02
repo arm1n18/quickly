@@ -1,13 +1,10 @@
 @if(modules$ | async; as modules) {
     @if(modules.length !== 0) {
         @for(module of modules; track module) {
-            <app-module-item [module]="{
-                title: module.title,
-                objects: module.objects,
-                hasImage: module.hasImages,
-                type: 'Module',
-                href: `/module/${module.id}`
-            }" />
+            <app-module-item 
+                [module]="module"
+                [href]="`/module/${module.id}`"
+            />
         }
     }
     @else {

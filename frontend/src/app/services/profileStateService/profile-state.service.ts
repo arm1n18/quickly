@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { UserModule } from '../../components/user-modules-component/user-modules.component';
-import { UserFolder } from '../../components/user-folders-component/user-folders.component';
 import { UserInfo } from '../../interfaces/user.interface';
 import { BehaviorSubject } from 'rxjs';
+import { UserModule } from '../../interfaces/module.interface';
+import { FolderSummary } from '../../interfaces/folder.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +16,11 @@ export class ProfileStateService {
     this._user$.next(user);
   }
 
+  public getUserByKey<T extends keyof UserInfo>(key: T): UserInfo[T] | null {
+    if(!this._user$.value) return null
+    return this._user$.value[key];
+  }
+
   private _modules$ = new BehaviorSubject<UserModule[]>([]);
   public modules$ = this._modules$.asObservable();
 
@@ -27,15 +32,49 @@ export class ProfileStateService {
     this._modules$.next(modules);
   }
 
-  private _folders$ = new BehaviorSubject<UserFolder[]>([]);
+  public removeModule(id: number) {
+    const updated = this._modules$.value.filter(m => m.id !== id);
+    this._modules$.next(updated);
+  }
+
+  public updateModuleByKey<T extends keyof UserModule>(id: number, key: T, value: UserModule[T]) {
+    const modules = this._modules$.value;
+    const index = modules.findIndex(m => m.id === id);
+    if (index === -1) return;
+
+    const updated = [...modules];
+    updated[index] = {
+      ...modules[index],
+      [key]: value,
+    };
+
+    this._modules$.next(updated);
+  }
+
+  private _folders$ = new BehaviorSubject<FolderSummary[]>([]);
   public folders$ = this._folders$.asObservable();
 
-  public addFolders(folders: UserFolder[]) {
+  public addFolders(folders: FolderSummary[]) {
     this._folders$.next([...this._folders$.value, ...folders]);
   }
 
-  public setFolders(folders: UserFolder[]) {
+  public setFolders(folders: FolderSummary[]) {
     this._folders$.next(folders);
   }
 
+  public removeFolder(slug: string) {
+    const updated = this._folders$.value.filter(f => f.slug !== slug);
+    this._folders$.next(updated);
+  }
+
+  public updateFolder(slug: string, newFolder: FolderSummary) {
+    const updated = this._folders$.value.map(f => {
+      if(f.slug == slug) {
+        return newFolder
+      }
+
+      return f
+    });
+    this._folders$.next(updated);
+  }
 }

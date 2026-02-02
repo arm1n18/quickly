@@ -9,3 +9,4 @@ export { EditCardButtonComponent } from './edit-card-button/edit-card-button.com
 export { QuizCardsComponent } from './quiz-cards/quiz-cards.component'
 export { UserFoldersComponent } from './user-folders-component/user-folders.component'
 export { UserModulesComponent } from './user-modules-component/user-modules.component'
+export { ModuleItemComponent } from './module-item/module-item.component';

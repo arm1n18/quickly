@@ -1,0 +1,63 @@
+@if(folder) {
+    <div class="flex gap-4 items-center">
+        <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+
+        <div class="flex gap-2 items-center text-sm">
+            <div class="flex flex-col">
+                <span>{{`Модулів: ${folder.objects}`}}</span>
+                <span>{{folder.title}}</span>
+            </div>
+        </div>
+    </div>
+
+    @if(folder.isOwner) {
+        <app-dropdown 
+                [list]="dropdownList()"
+                [config]="{
+                    rememberSelection: false,
+                    divider: 'line',
+                }"
+                [position]="{
+                    px: 'right',
+                    py: 'bottom'
+                }"
+                class="game-header-left"
+            >
+                <app-custom-button btn 
+                    theme="hover-only-dark" 
+                    [size]="'symbol'"
+                    [disabled]="isLoading()"
+                >
+                <app-icon
+                    [icon]="'MenuDots'"
+                    [size]="24"
+                    
+                />
+                </app-custom-button>
+            </app-dropdown>
+    }
+}
+
+<ng-template #modalTemplate>
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto">
+        
+        <app-custom-input 
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
+        />
+        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+            Назва
+            ({{editForm.get('title')?.value?.length ?? 0}}/50)
+        </span>
+        
+        <div [class]="'flex gap-4 justify-end w-full'">
+            <app-custom-button theme="secondary" rounded="full" (click)="closeModal()">
+                Скасувати
+            </app-custom-button>
+            <app-custom-button theme="primary" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+                Оновити
+            </app-custom-button>
+        </div>
+
+    </form>
+</ng-template>

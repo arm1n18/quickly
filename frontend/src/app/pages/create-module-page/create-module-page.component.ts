@@ -12,7 +12,6 @@ import { isImgUrl } from '../../utils/validate';
 import { from } from 'rxjs';
 import { CardsState } from '../../state/cards-state/cards-state';
 import { CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent } from "../../components/ui";
-import { Footer } from "../../layouts/footer/footer";
 
 export interface MediaForm {
   type: FormControl<MediaType | null>;
@@ -31,7 +30,7 @@ export interface CardForm {
 
 @Component({
   selector: 'app-create-module-page',
-  imports: [MainLayout, ReactiveFormsModule, DragDropModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent, Footer],
+  imports: [MainLayout, ReactiveFormsModule, DragDropModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent],
   templateUrl: './create-module-page.html',
   styleUrl: './create-module-page.css',
 })
@@ -46,11 +45,11 @@ export class CreateModulePage implements OnInit {
 
   moduleForm = new FormGroup<{
     title: FormControl<string>,
-    description: FormControl<string>,
+    description: FormControl<string | null>,
     cards: FormArray<FormGroup<CardForm>>
   }>({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(50)]}),
-    description: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(500)]}),
+    description: new FormControl(null, {nonNullable: false, validators: [Validators.required, Validators.maxLength(500)]}),
     cards: new FormArray<FormGroup<CardForm>>([], {validators: [Validators.required, Validators.minLength(3), Validators.maxLength(50)]})
   })
 
@@ -87,6 +86,7 @@ export class CreateModulePage implements OnInit {
 
   private dublicateModule(module: Module) {
     this.moduleForm.get('title')?.setValue(module.title)
+    this.moduleForm.get('description')?.setValue(module.description)
     for(let i = 0; i < module.cards.length; i++) {
       this.addCard(i, module.cards[i])
     }
@@ -191,9 +191,10 @@ export class CreateModulePage implements OnInit {
   }
 
   ngOnInit() {
+    const state = history.state as { duplicate?: boolean };
     const module = this.module.getModule();
 
-    if (module) {
+    if (state?.['duplicate'] && module) {
       this.dublicateModule(module)
     } else {
       this.addCard(0)

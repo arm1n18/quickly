@@ -32,6 +32,7 @@ interface Author {
 export interface Module {
   id: number;
   title: string;
+  description: string | null;
   slug: string;
   author: Author;
   isOwner: boolean;

@@ -8,7 +8,7 @@ import { Folder, FoldersSummary } from '../../interfaces/folder.interface';
 })
 
 export class FolderService {
-  private apiRoute = '/folder';
+  private apiRoute = '/folders';
 
   constructor(private http: HttpClient) {}
 
@@ -23,6 +23,22 @@ export class FolderService {
   }
 
   public getFolder(username: string, slug: string): Observable<Folder> {
-    return this.http.get<Folder>(`/user/${username}/folder/${slug}`)
+    return this.http.get<Folder>(`/user/${username}/folders/${slug}`)
+  }
+
+  public createFolder(username: string, body: {title: string}): Observable<{slug: string}> {
+    return this.http.post<{slug: string}>(`/user/${username}/folders`, body)
+  }
+
+  public updateFolder(username: string, slug: string, body: {title: string}): Observable<{slug: string}> {
+    return this.http.patch<{slug: string}>(`/user/${username}/folders/${slug}`, body)
+  }
+
+  public deleteFolder(username: string, slug: string): Observable<void> {
+    return this.http.delete<void>(`/user/${username}/folders/${slug}`, { responseType: 'text' as 'json' })
+  }
+
+  public removeModule(slug: string, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiRoute}/${slug}/module/${id}`, { responseType: 'text' as 'json' })
   }
 }

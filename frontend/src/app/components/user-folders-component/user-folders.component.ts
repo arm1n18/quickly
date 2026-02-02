@@ -3,23 +3,18 @@ import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
-import { ModuleItemComponent } from '../ui';
-
-export interface UserFolder {
-  title: string;
-  slug: string;
-  objects: number;
-}
+import { FolderSummary } from '../../interfaces/folder.interface';
+import { FolderItemComponent } from "../folder-item/folder-item.component";
 
 @Component({
   selector: 'app-user-folders-component',
-  imports: [ModuleItemComponent, AsyncPipe],
+  imports: [AsyncPipe, FolderItemComponent],
   templateUrl: './user-folders-component.html',
   styleUrl: './user-folders-component.css',
 })
 
 export class UserFoldersComponent implements OnInit {
-  public folders$!: Observable<UserFolder[]>;
+  public folders$!: Observable<FolderSummary[]>;
   public username: WritableSignal<string> = signal("");
   
   constructor(

@@ -1,0 +1,55 @@
+@if(module) {
+    <div class="flex gap-4 items-center">
+        <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+
+        <div class="flex gap-2 items-center text-sm">
+            <div class="flex flex-col">
+                <span>{{`Модулів: ${module.objects}`}}</span>
+                <span>{{module.title}}</span>
+            </div>
+            @if(module.hasImages) {
+                <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
+            }
+        </div>
+    </div>
+
+    <div class="flex gap-4">
+        <app-custom-button 
+            [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
+            [size]="'symbol'"
+            [disabled]="isLoading()"
+            (click)="toggleSaveModule($event)"
+        >
+            <app-icon 
+                [icon]="'Bookmark'" 
+                [size]="24"
+            /> 
+        </app-custom-button>
+        @if(module.isOwner) {
+            <app-dropdown 
+                [list]="dropdownList()"
+                [config]="{
+                    rememberSelection: false,
+                    divider: 'line',
+                }"
+                [position]="{
+                    px: 'right',
+                    py: 'bottom'
+                }"
+                class="game-header-left"
+            >
+                <app-custom-button btn 
+                    theme="hover-only-dark" 
+                    [size]="'symbol'"
+                    [disabled]="isLoading()"
+                >
+                <app-icon
+                    [icon]="'MenuDots'"
+                    [size]="24"
+                    
+                />
+                </app-custom-button>
+            </app-dropdown>
+        }
+    </div>
+}

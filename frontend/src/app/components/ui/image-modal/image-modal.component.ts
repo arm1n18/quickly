@@ -1,6 +1,6 @@
 import { NgClass } from '@angular/common';
 import { Component, HostListener } from '@angular/core';
-import { Portal } from '../../../services/portal/portal';
+import { PortalService } from '../../../services/portal/portal';
 
 @Component({
   selector: 'app-image-modal',
@@ -9,7 +9,7 @@ import { Portal } from '../../../services/portal/portal';
   styleUrl: './image-modal.css',
 })
 export class ImageModalComponent {
-  constructor(private portal: Portal) {}
+  constructor(private portal: PortalService) {}
   image!: string;
 
   closeModal() {

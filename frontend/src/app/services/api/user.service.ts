@@ -9,7 +9,7 @@ import { FoldersSummary } from '../../interfaces/folder.interface';
 })
 
 export class UserService {
-  private apiRoute = '/user';
+  private apiRoute = '/users';
 
   constructor(private http: HttpClient) {}
 

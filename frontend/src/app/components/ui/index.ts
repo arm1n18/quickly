@@ -7,7 +7,6 @@ export { DropdownComponent } from './dropdown/dropdown.component';
 export { IconComponent } from './icon/icon.component';
 export { ImageModalComponent } from './image-modal/image-modal.component';
 export { ModalComponent } from './modal/modal.component';
-export { ModuleItemComponent } from './module-item/module-item.component';
 
 export { OtpInputComponent } from './otp-input/otp-input.component';
 export { RatingComponent } from './rating/rating.component';

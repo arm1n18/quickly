@@ -7,13 +7,14 @@ import { MainLayout } from "../../layouts/main-layout/main-layout";
 import { copyToClipboard } from '../../utils/clipboard';
 import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { ApiService } from '../../services/api/api.service';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { ConfirmModalComponent } from '../../components/ui/confirm-modal/confirm-modal.component';
 import { DropdownItem, RatingComponent, CustomButtonComponent, IconComponent, DropdownComponent, AvatarComponent } from '../../components/ui';
-import { QuizCardsComponent, CardsOverviewComponent } from "../../components";
+import { QuizCardsComponent, CardsOverviewComponent, AuthFormComponent } from "../../components";
 import { Footer } from "../../layouts/footer/footer";
+import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 
 interface isLoadingInterface {
   module: boolean;
@@ -56,8 +57,9 @@ export class CardsPage implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private cardsState: CardsState,
-    private portal: Portal,
+    private portal: PortalService,
     private api: ApiService,
+    private auth: AuthStateService
   ) {}
 
   public changeGameMode(mode: GameMode) {
@@ -75,8 +77,7 @@ export class CardsPage implements OnInit {
     copyToClipboard(window.location.href);
   }
 
-
-  public openDeleteModal() {
+  private openDeleteModal() {
     this.portal.open(new ComponentPortal(ConfirmModalComponent), {
       title: 'Видалити модуль?',
       description: "Ця дія є незворотною. Видалення модулю призведе до втрати всіх пов’язаних даних, які не можна буде відновити.",
@@ -94,15 +95,24 @@ export class CardsPage implements OnInit {
   }
 
   private dublicateModule() {
-   this.router.navigate(['/module/create']);
+    if(!this.auth.payload) {
+      this.toggleAuthModal(true)
+      return
+    }
+   this.router.navigate(['/module/create'], { state: { duplicate: true } });
   }
 
   public editModule() {
+    if(!this.auth.payload) return
    this.router.navigate([`/module/${this.moduleID}/update`]);
   }
 
-
   public toggleSaveModule() {
+    if(!this.auth.payload) {
+      this.toggleAuthModal(true)
+      return
+    }
+
     this.cardsState.module$
     .pipe(take(1))
     .subscribe(module => {
@@ -119,7 +129,7 @@ export class CardsPage implements OnInit {
     });
   }
 
-  public saveModule() {
+  private saveModule() {
     this.isLoading.update(prev => ({...prev, save: true}))
 
     this.api.module.saveModule(this.moduleID)
@@ -134,7 +144,7 @@ export class CardsPage implements OnInit {
       })
   }
 
-  public unsaveModule() {
+  private unsaveModule() {
     this.isLoading.update(prev => ({...prev, save: true}))
 
     this.api.module.unsaveModule(this.moduleID)
@@ -147,6 +157,16 @@ export class CardsPage implements OnInit {
           this.isLoading.update(prev => ({...prev, save: false}))
         }
       })
+  }
+
+  private toggleAuthModal(state: boolean) {
+    if (state && !this.portal.isAnyOpen()) {
+      this.portal.open(new ComponentPortal(AuthFormComponent), {
+
+      });
+    } else if (!state && this.portal.isAnyOpen()) {
+      this.portal.close();
+    }
   }
 
   ngOnInit(): void {
@@ -163,11 +183,21 @@ export class CardsPage implements OnInit {
       }))
 
       if (module.isOwner && this.dropdownList()[0].length == 2) {
+        this.dropdownList.update(([list]) => [
+          [
+            {
+              title: { text: 'Редагувати'},
+              icon: { name: 'Edit', color: 'var(--accent)'},
+              onClick: () => this.editModule()
+            },
+            ...list
+          ]
+        ]);
         this.dropdownList.update(values => [
           [
             ...values[0],
-            { title: {text: 'Видалити', color: 'red'},
-              icon: { name: 'Trash', color: 'red' },
+            { title: {text: 'Видалити', color: '#bd2e2e'},
+              icon: { name: 'Trash', color: '#bd2e2e'},
               onClick: () => this.openDeleteModal()
             }
           ]

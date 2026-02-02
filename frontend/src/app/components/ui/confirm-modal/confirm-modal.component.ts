@@ -1,5 +1,5 @@
 import { Component, HostListener, Input } from '@angular/core';
-import { Portal } from '../../../services/portal/portal';
+import { PortalService } from '../../../services/portal/portal';
 import { NgClass } from '@angular/common';
 import { CustomButtonComponent } from '../custom-button/custom-button.component';
 import { IconComponent } from '../icon/icon.component';
@@ -18,7 +18,7 @@ export class ConfirmModalComponent {
   @Input() danger: boolean = false;
   @Input() onConfirm: () => void = () => {};
   
-  constructor(private portal: Portal) {}
+  constructor(private portal: PortalService) {}
 
   public closeModal(e?: Event) {
     if(e) e.stopPropagation();

@@ -16,7 +16,7 @@ export class CardsState {
 
   public updateModuleByKey<T extends keyof Module>(key: T, value: Module[T]) {
     const current = this._module$.value;
-  if (!current) return;
+    if (!current) return;
   
     const newModule = { ...current, [key]: value };
     this._module$.next(newModule);

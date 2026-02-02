@@ -4,7 +4,7 @@ import { CardsState } from '../../state/cards-state/cards-state';
 import { DropdownItem, ModalComponent, DropdownComponent, CustomButtonComponent, IconComponent } from "../../components/ui";
 import { NgClass, NgStyle } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { QuizCardsComponent } from '../../components';
 
@@ -65,7 +65,7 @@ export class FlashcardsPage {
     private cardsState: CardsState,
     private route: ActivatedRoute,
     private router: Router,
-    private portal: Portal
+    private portal: PortalService
   ) {}
 
   public openModal() {

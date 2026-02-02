@@ -5,7 +5,7 @@ import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { AsyncPipe } from '@angular/common';
-import { Portal } from '../../services/portal/portal';
+import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { AuthFormComponent } from '../../components';
 
@@ -34,7 +34,7 @@ export class MainLayout {
     public authState: AuthStateService,
     private apiService: ApiService,
     private router: Router,
-    private portal: Portal
+    private portal: PortalService
   ) {}
 
   public navigateToModule(id: number, e: Event) {
@@ -56,6 +56,14 @@ export class MainLayout {
       });
     } else if (!state && this.portal.isAnyOpen()) {
       this.portal.close();
+    }
+  }
+
+  public addModule() {
+    if(!this.authState.payload) {
+      this.toggleAuthModal(true)
+    } else {
+      this.router.navigate(["/module/create"])
     }
   }
 }

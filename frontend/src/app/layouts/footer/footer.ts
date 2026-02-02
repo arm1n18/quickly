@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { IconComponent } from "../../components/ui";
 
 @Component({
@@ -9,5 +9,5 @@ import { IconComponent } from "../../components/ui";
 })
 
 export class Footer {
-
+  @Input() background: string = "var(--lightGrey)"
 }

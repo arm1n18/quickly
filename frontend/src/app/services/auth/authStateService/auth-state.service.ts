@@ -20,7 +20,9 @@ export class AuthStateService {
   private _payload$ = new BehaviorSubject<JWTPayload | null>(null);
   public payload$ = this._payload$.asObservable();
 
-  public readonly isAuthenticated$ = this.payload$.pipe(map(Boolean))
+  public readonly isAuthenticated$ = this.payload$.pipe(
+    map(payload => Boolean(payload))
+  );
 
   public setPayload(token: JWTPayload | null) {
     this._payload$.next(token);
