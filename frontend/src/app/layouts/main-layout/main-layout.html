@@ -6,26 +6,46 @@
         [title]="'Пошук'"
         [icon]="{show: true}"
         (inputChange)="findModules($event)"
-        (inputFocused)="showConfig.showSearchDropdown = $event"
+        (inputFocused)="showSearchDropdown = $event"
     />
 
     <div class="header-end">
-        <app-custom-button
-            [theme]="'primary'"
-            [size]="'symbol'"
-            (click)="addModule()"
-        >
-            <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
-        </app-custom-button>
-        @if(authState.isAuthenticated$ | async) {
-            <app-avatar [name]="authState.getPartial('username')!" />
+        @if(auth.isAuthenticated$ | async) {
+            <app-dropdown 
+                [list]="dropdownList()"
+                [config]="{
+                rememberSelection: false,
+                divider: 'line',
+                }"
+                [position]="{
+                px: 'right',
+                py: 'bottom'
+                }"
+                class="game-header-left"
+            >
+                <app-custom-button btn
+                    [theme]="'primary'"
+                    [size]="'symbol'"
+                >
+                    <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
+                </app-custom-button>
+            </app-dropdown>
+            <!-- <app-avatar [name]="auth.getPartial('username')!" /> -->
+            <app-user-avatar />
         } @else {
+            <app-custom-button
+                [theme]="'primary'"
+                [size]="'symbol'"
+                (click)="toggleAuthModal(true)"
+            >
+                <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
+            </app-custom-button>
             <app-custom-button (click)="toggleAuthModal(true)">Вхід</app-custom-button>
         }
     </div>
 </header>
 
-@if(showConfig.showSearchDropdown && modules().length > 0) {
+@if(showSearchDropdown && modules().length > 0) {
     <div class="search-wrapper drop-shadow-xl shadow-stone-200">   
         @for(module of modules(); track module) {
             <div class="search-item flex-col" (click)="navigateToModule(module.id, $event)">
@@ -45,3 +65,28 @@
         }
     </div>
 }
+
+
+<ng-template #modalTemplate>
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1" (ngSubmit)="$event.preventDefault()">
+        
+        <app-custom-input 
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
+        />
+        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+            Назва
+            ({{editForm.get('title')?.value?.length ?? 0}}/50)
+        </span>
+        
+        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeFolderModal()">
+                Скасувати
+            </app-custom-button>
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onFolderSubmit($event)">
+                Створити
+            </app-custom-button>
+        </div>
+
+    </form>
+</ng-template>

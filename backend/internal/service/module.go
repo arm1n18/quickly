@@ -23,23 +23,27 @@ func NewModuleService(psql *pgxpool.Pool) *ModuleService {
 	}
 }
 
-func (m *ModuleService) GetModuleByID(ctx context.Context, userId, id int) (*model.Module, *model.ErrorResponse) {
-	return m.repo.GetByID(ctx, userId, id)
+func (m *ModuleService) GetModuleByID(ctx context.Context, userID, id int) (*model.Module, *model.ErrorResponse) {
+	return m.repo.GetByID(ctx, userID, id)
 }
 
-func (m *ModuleService) ListUserModules(ctx context.Context, userId int, username string, queryParams module.Query) (*model.UserModulesResponse, error) {
-	return m.repo.ListByUserID(ctx, userId, username, queryParams)
+func (m *ModuleService) ListUserModules(ctx context.Context, userID int, username string, queryParams module.Query) (*model.UserModulesResponse, error) {
+	return m.repo.ListByUserID(ctx, userID, username, queryParams)
 }
 
-func (m *ModuleService) FindModulesByTitle(ctx context.Context, userId int, title string, lastId int) (*model.ModulesSummaryResponse, error) {
-	return m.repo.FindByTitle(ctx, userId, title, lastId)
+func (m *ModuleService) ListUserSavedModules(ctx context.Context, userID int, queryParams module.Query) (*model.UserModulesResponse, error) {
+	return m.repo.ListSavedByUserID(ctx, userID, queryParams)
 }
 
-func (m *ModuleService) FindModulesByKeywords(ctx context.Context, userId int, keywords []string) (*model.ModulesSummaryResponse, error) {
-	return m.repo.FindByKeywords(ctx, userId, keywords)
+func (m *ModuleService) FindModulesByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error) {
+	return m.repo.FindByTitle(ctx, userID, title, lastId)
 }
 
-func (m *ModuleService) CreateModule(ctx context.Context, userId int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
+func (m *ModuleService) FindModulesByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error) {
+	return m.repo.FindByKeywords(ctx, userID, keywords)
+}
+
+func (m *ModuleService) CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
 	if len(module.Cards) < 3 || len(module.Cards) > 50 {
 		return nil, fmt.Errorf("Invalid range")
 	}
@@ -54,10 +58,10 @@ func (m *ModuleService) CreateModule(ctx context.Context, userId int, module mod
 		return nil, fmt.Errorf("Invalid range")
 	}
 
-	return m.repo.CreateModule(ctx, userId, module)
+	return m.repo.CreateModule(ctx, userID, module)
 }
 
-func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module model.UpdateModuleRequest) error {
+func (m *ModuleService) UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) error {
 	var err error
 	if len(module.Cards) <= 0 {
 		err = fmt.Errorf("Invalid range")
@@ -83,31 +87,31 @@ func (m *ModuleService) UpdateModule(ctx context.Context, userId int, module mod
 		return fmt.Errorf("Invalid range")
 	}
 
-	err = m.repo.UpdateModule(ctx, userId, module)
+	err = m.repo.UpdateModule(ctx, userID, module)
 	log.Println(err)
 	return err
 }
 
-func (m *ModuleService) DeleteModule(ctx context.Context, userId, moduleId int) error {
-	return m.repo.DeleteModule(ctx, userId, moduleId)
+func (m *ModuleService) DeleteModule(ctx context.Context, userID, moduleId int) error {
+	return m.repo.DeleteModule(ctx, userID, moduleId)
 }
 
-func (m *ModuleService) SaveModule(ctx context.Context, userId, moduleId int) error {
-	return m.repo.SaveModule(ctx, userId, moduleId)
+func (m *ModuleService) SaveModule(ctx context.Context, userID, moduleId int) error {
+	return m.repo.SaveModule(ctx, userID, moduleId)
 }
 
-func (m *ModuleService) UnsaveModule(ctx context.Context, userId, moduleId int) error {
-	return m.repo.UnsaveModule(ctx, userId, moduleId)
+func (m *ModuleService) UnsaveModule(ctx context.Context, userID, moduleId int) error {
+	return m.repo.UnsaveModule(ctx, userID, moduleId)
 }
 
-func (m *ModuleService) UpdateModuleCard(ctx context.Context, userId int, card model.UpdateModuleCard) error {
+func (m *ModuleService) UpdateModuleCard(ctx context.Context, userID int, card model.UpdateModuleCard) error {
 	if !utils.InRange(card.Title, 2, 500) || !utils.InRange(card.Description, 2, 500) {
 		err := fmt.Errorf("Invalid range")
 		log.Println(err)
 		return err
 	}
 
-	return m.repo.UpdateModuleCard(ctx, userId, card)
+	return m.repo.UpdateModuleCard(ctx, userID, card)
 }
 
 func (m *ModuleService) AddKeywords(ctx context.Context, keywords []string) error {

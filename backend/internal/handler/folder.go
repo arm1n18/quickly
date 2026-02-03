@@ -152,6 +152,37 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.SendStatus(fiber.StatusOK)
 	})
 
+	router.Post("/:slug/module", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
+		if !ok {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
+		var body struct {
+			Id int `json:"id"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		err := svc.AddModuleToFolder(
+			c.Context(),
+			user.SUB,
+			body.Id,
+			c.Params("slug"),
+		)
+
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
 	router.Delete("/:slug/module/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
 		if !ok {
@@ -165,7 +196,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			})
 		}
 
-		err = svc.DeleteModuleFromFolder(
+		err = svc.RemoveModuleFromFolder(
 			c.Context(),
 			user.SUB,
 			id,

@@ -70,6 +70,23 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
+	router.Get("/saved", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
+		name := c.Query("name")
+		lastId, err := strconv.Atoi(c.Query("lastId"))
+		if err != nil {
+			lastId = 0
+		}
+
+		resp, err := svc.ListUserSavedModules(c.Context(), utils.GetUserId(c), module.Query{Name: name, LastId: lastId})
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Помилка запиту до бази даних",
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(resp)
+	})
+
 	//yes
 	router.Get("/:id", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		id, ok := strconv.Atoi(c.Params("id"))

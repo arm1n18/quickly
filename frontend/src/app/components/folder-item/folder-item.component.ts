@@ -5,7 +5,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { ApiService } from '../../services/api/api.service';
 import { PortalService } from '../../services/portal/portal';
 import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass } from '@angular/common';
 
@@ -36,9 +36,11 @@ export class FolderItemComponent {
     [
       {
         title: { text: 'Редагувати' },
-        icon: { name: 'Edit', color: 'var(--accent)' },
+        icon: { name: 'Edit' },
         onClick: () => this.openModal()
       },
+    ],
+    [
       {
         title: {text: 'Видалити', color: '#bd2e2e'}, 
         icon: { name: 'Trash', color: '#bd2e2e' },

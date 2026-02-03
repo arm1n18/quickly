@@ -40,6 +40,10 @@ func (f *FolderService) DeleteFolder(ctx context.Context, userID int, username, 
 	return f.repo.DeleteFolder(ctx, userID, username, slug)
 }
 
-func (f *FolderService) DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error {
+func (f *FolderService) AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) error {
+	return f.repo.AddModuleToFolder(ctx, userID, moduleID, slug)
+}
+
+func (f *FolderService) RemoveModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error {
 	return f.repo.DeleteModuleFromFolder(ctx, userID, moduleID, slug)
 }

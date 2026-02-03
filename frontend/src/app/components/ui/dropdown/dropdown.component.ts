@@ -2,6 +2,7 @@ import { Component, ContentChild, ElementRef, HostListener , Input } from '@angu
 import { NgClass } from '@angular/common';
 import { IconComponent, Icons } from '../icon/icon.component';
 import { ButtonTheme, CustomButtonComponent } from '../custom-button/custom-button.component';
+import { DropdownService } from '../../../services/dropdownService/dropdown-service';
 
 export interface DropdownItem {
   title: {
@@ -45,7 +46,10 @@ type PositionYType = | 'top' | 'bottom' | 'auto';
 })
 
 export class DropdownComponent {
-  constructor(private elementRef: ElementRef) {}
+  constructor(
+    private elementRef: ElementRef,
+    private dropdown: DropdownService,
+  ) {}
   
   @Input({ required: true }) list: DropdownItem[][] = [];
   @Input() config: Partial<DropdownConfig> = {
@@ -57,8 +61,9 @@ export class DropdownComponent {
     px: 'left',
     py: 'bottom'
   };
-  public show: boolean = false
-  private selectedValue: any | null
+  public show: boolean = false;
+  private selectedValue: any | null;
+  private id: symbol = Symbol();
 
   public select(e:Event, value: any) {
     if(this.config.rememberSelection) {
@@ -69,15 +74,26 @@ export class DropdownComponent {
 
   public toggleShow (e: Event) {
     e.stopPropagation()
+    
     this.show = !this.show
+
+    if (this.show) {
+      this.dropdown.open(this.id, this);
+    } else {
+      this.dropdown.close(this.id, this);
+    }
+  }
+
+  public close() {
+    this.show = false;
   }
 
   public gapStyle (index: number, groupLength: number): {[klass: string]: boolean} {
     if(this.config.divider == 'gap') {
-      if(groupLength === 1) return {'single': true}
       if(index == 0 && groupLength > 1) return {'top': true}
-      if(index == groupLength && groupLength > 1) return {'bottom': true}
-      if(index !== groupLength && index !== 0) return {'middle': true}
+      if(index == groupLength-1 && groupLength > 1) return {'bottom': true}
+      if(index !== groupLength-1 && index !== 0) return {'middle': true}
+      if(groupLength === 1) return {'single': true}
     }
 
     return {}
@@ -106,7 +122,8 @@ export class DropdownComponent {
   onDocumentClick(event: MouseEvent) {
     const clickedInside = this.elementRef.nativeElement.contains(event.target)
     if (!clickedInside) {
-      this.show = false
+      this.show = false;
+      this.dropdown.close(this.id, this);
     }
   }
 

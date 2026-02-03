@@ -3,31 +3,44 @@ import { Folder } from '../../interfaces/folder.interface';
 import { ApiService } from '../../services/api/api.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MainLayout } from "../../layouts/main-layout/main-layout";
-import { IconComponent, AvatarComponent, DropdownComponent, CustomButtonComponent, ConfirmModalComponent, ModalComponent, DropdownItem, CustomInputComponent } from "../../components/ui";
+import { IconComponent, AvatarComponent, DropdownComponent, CustomButtonComponent, ConfirmModalComponent, ModalComponent, DropdownItem, CustomInputComponent, SegmentedControlsComponent } from "../../components/ui";
 import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { UserModule } from '../../interfaces/module.interface';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
+import { Segment } from '../../components/ui/segmented-controls/segmented-controls.component';
 
 @Component({
-  imports: [MainLayout, IconComponent, AvatarComponent, 
-      DropdownComponent, 
-      CustomButtonComponent, CustomInputComponent,
-      ReactiveFormsModule, NgClass
-    ],
+  imports: [MainLayout, IconComponent, AvatarComponent,
+    DropdownComponent,
+    CustomButtonComponent, CustomInputComponent,
+    ReactiveFormsModule, NgClass, SegmentedControlsComponent],
   templateUrl: './folder-page.html',
   styleUrl: './folder-page.css',
 })
 
 export class FolderPage implements OnInit {
+  constructor(
+    private api: ApiService,
+    private auth: AuthStateService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private portal: PortalService
+  ){}
+
   @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @ViewChild('modalModuleTemplate') modalModuleTemplate!: TemplateRef<any>;
+
   public folder: WritableSignal<Folder | null> = signal(null);
+
   public userModules: WritableSignal<UserModule[] | null> = signal(null);
+  public userSavedModules: WritableSignal<UserModule[] | null> = signal(null);
+
   public isLoading: WritableSignal<boolean> = signal(false);
   public selectedModule: number = -1;
+  public selectedSegment: WritableSignal<number> = signal(0);
 
   public editForm = new FormGroup<{
     title: FormControl<string>,
@@ -39,21 +52,15 @@ export class FolderPage implements OnInit {
       ]}),
   })
 
-  constructor(
-    private api: ApiService,
-    private auth: AuthStateService,
-    private route: ActivatedRoute,
-    private router: Router,
-    private portal: PortalService
-  ){}
-
   public dropdownListFolder: WritableSignal<DropdownItem[][]> = signal([
     [
       {
         title: { text: 'Редагувати' },
-        icon: { name: 'Edit', color: 'var(--accent)' },
+        icon: { name: 'Edit' },
         onClick: () => this.openModal()
       },
+    ],
+    [
       {
         title: {text: 'Видалити', color: '#bd2e2e'}, 
         icon: { name: 'Trash', color: '#bd2e2e'},
@@ -66,11 +73,13 @@ export class FolderPage implements OnInit {
     [
       {
         title: { text: 'Прибрати з папки' },
-        icon: { name: 'Trash', color: 'var(--accent)' },
+        icon: { name: 'Trash' },
         onClick: () => this.removeModuleFromFolder(this.selectedModule)
       }
     ]
   ]);
+
+  public segments: Segment[] = [ { title: 'Ваші модулі' }, { title: 'Збережені' } ];
 
   private openDeleteModal() {
     this.portal.open(new ComponentPortal(ConfirmModalComponent), {
@@ -153,22 +162,7 @@ export class FolderPage implements OnInit {
   }
 
   public openAddModuleModal() {
-    const username = this.auth.getPartial("username")
-    if(!username) return
-
-    this.isLoading.set(true)
-
-    this.api.module.getUserModules(username)
-      .subscribe({
-        next: resp => {
-          this.userModules.set(resp.modules)
-          this.isLoading.set(false)
-        },
-        error: () => {
-          this.isLoading.set(false)
-        }
-      })
-
+    this.fetchModules()
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
@@ -177,6 +171,37 @@ export class FolderPage implements OnInit {
       }
     })
   }
+
+  public fetchModules() {
+    const username = this.folder()?.author.name
+    if(!username) return
+
+    this.isLoading.set(true)
+
+    if(this.selectedSegment() == 0) {
+        this.api.module.getUserModules(username)
+        .subscribe({
+          next: resp => {
+            this.userModules.set(resp.modules)
+            this.isLoading.set(false)
+          },
+          error: () => {
+            this.isLoading.set(false)
+          }
+        })
+      } else {
+        this.api.module.getUserSavedModules()
+          .subscribe({
+            next: resp => {
+              this.userSavedModules.set(resp.modules)
+              this.isLoading.set(false)
+            },
+            error: () => {
+              this.isLoading.set(false)
+            }
+          })
+      }
+  } 
 
   public toggleSaveModule(e: Event, index: number) {
     e.stopPropagation();
@@ -281,18 +306,54 @@ export class FolderPage implements OnInit {
   }
 
   public toggleModuleToFolder(module: UserModule) {
+    if(this.isLoading() || !this.folder()) return
+
     const newFolder = {...this.folder()} as Folder
 
+    this.isLoading.set(true)
+
     if(!this.isSaved(module.id)) {
-      newFolder.modules = [...newFolder.modules || [], module]
+      this.api.folder.addModule(this.folder()!.slug, module.id)
+        .subscribe({
+          next: () => {
+            newFolder.modules = [...newFolder.modules || [], module]
+            this.isLoading.set(false)
+          },
+          error: () => {
+            this.isLoading.set(false)
+          }
+        })
     } else {
-      newFolder.modules = newFolder.modules.filter(m => m.id != module.id)
+      this.api.folder.removeModule(this.folder()!.slug, module.id)
+        .subscribe({
+          next: () => {
+            newFolder.modules = newFolder.modules.filter(m => m.id != module.id)
+            this.isLoading.set(false)
+          },
+          error: () => {
+            this.isLoading.set(false)
+          }
+        })
     }
     this.folder.set(newFolder)
   }
 
   public isSaved(id: number): boolean {
     return this.folder()?.modules.some(m => m.id == id) || false
+  }
+
+  public onSegmentChange(index: number) {
+    this.selectedSegment.set(index);
+
+    if(this.selectedSegment() == 0) {
+      if(this.userModules() == null) {
+        this.fetchModules()
+      }
+    } else {
+      if(this.userSavedModules() == null) {
+        this.fetchModules()
+      }
+    }
   }
 
   ngOnInit(): void {

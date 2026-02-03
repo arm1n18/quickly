@@ -23,6 +23,7 @@ type FolderRepository interface {
 	CreateFolder(ctx context.Context, userID int, title string) (string, error)
 	UpdateFolder(ctx context.Context, userID int, oldSlug, title string) (string, error)
 	DeleteFolder(ctx context.Context, userID int, username, slug string) error
+	AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) error
 	DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error
 }
 
@@ -239,6 +240,47 @@ func (f *folderRepo) UpdateFolder(ctx context.Context, userID int, oldSlug, titl
 	return newSlug, nil
 }
 
+func (f *folderRepo) AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) error {
+	conn, err := f.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		log.Printf("unable to begin transaction: %v\n", err)
+		return err
+	}
+
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	query := `INSERT INTO folder_modules (folder_id, module_id)
+		SELECT f.folder_id, $3
+		FROM folders f
+		WHERE f.slug = $1 AND f.user_id = $2
+		ON CONFLICT DO NOTHING
+	`
+
+	commandTag, err := tx.Exec(ctx, query, slug, userID, moduleID)
+	if err != nil {
+		return err
+	}
+
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("module or folder not found")
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (f *folderRepo) DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
@@ -271,7 +313,7 @@ func (f *folderRepo) DeleteModuleFromFolder(ctx context.Context, userID, moduleI
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("modules not found")
+		return fmt.Errorf("module or folder not found")
 	}
 
 	if err := tx.Commit(ctx); err != nil {

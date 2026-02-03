@@ -30,6 +30,16 @@ export class ModuleService {
     return this.http.get<UserModulesResponse>(`${this.apiRoute}/user/${username}${query}`)
   }
 
+  public getUserSavedModules(name?: string, lastId?: number): Observable<UserModulesResponse> {
+    const p = new URLSearchParams();
+    if(name) p.append("name", name)
+    if(lastId) p.append("lastId", String(lastId))
+
+    const query = p.toString() ? `?${p.toString()}` : '';
+    
+    return this.http.get<UserModulesResponse>(`${this.apiRoute}/saved${query}`)
+  }
+
   public postModule(module: any): Observable<{id: number}> {
     return this.http.post<{id: number}>(`${this.apiRoute}`, module)
   }

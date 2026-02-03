@@ -30,6 +30,8 @@ export class ModuleItemComponent {
         icon: { name: 'Edit', color: 'var(--accent)' },
         onClick: () => this.editModule()
       },
+    ],
+    [
       {
         title: {text: 'Видалити', color: '#bd2e2e'}, 
         icon: { name: 'Trash', color: '#bd2e2e'},

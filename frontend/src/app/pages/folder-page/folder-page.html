@@ -105,6 +105,14 @@
                     </div>
                 </div>
             }
+
+            <app-custom-button
+                (click)="openAddModuleModal()"
+                class="mx-auto"
+            >   
+                <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                Додати модуль
+            </app-custom-button>
         } @else {
             <div class="flex flex-col gap-4 items-center mt-24">
                 <h1 class="title text-center">Папка порожня</h1>
@@ -120,7 +128,7 @@
 </main>
 
 <ng-template #modalTemplate>
-    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto">
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
         <app-custom-input 
             [value]="this.editForm.get('title')?.value || ''" [delay]="0"
@@ -131,11 +139,11 @@
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
         
-        <div [class]="'flex gap-4 justify-end w-full'">
-            <app-custom-button theme="secondary" rounded="full" (click)="closeModal()">
+        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeModal()">
                 Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
                 Оновити
             </app-custom-button>
         </div>
@@ -143,12 +151,65 @@
     </form>
 </ng-template>
 
-<ng-template #modalModuleTemplate>
-    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto">
-        
+<ng-template #modalModuleTemplate>        
+    <div class="flex flex-col gap-4">
+        <app-segmented-controls [segments]="segments" (selectedSegment)="onSegmentChange($event)" />
+        <div class="flex justify-between w-full">
+            <h5>Модулі</h5>
+            <button 
+                (click)="createModule()"
+                class="text-[var(--accent)] cursor-pointer flex gap-2 items-center"
+            >
+                <app-icon [icon]="'Add'" [size]="16" [stroke]="'var(--accent)'"/>
+                <span>Створити</span>
+            </button>
+        </div>
+
         @if(!isLoading()) {
-            @if((userModules() || []).length > 0) {
-                @for(module of userModules(); track module) {
+            @if(selectedSegment() == 0) {
+                @if((userModules() || []).length > 0) {
+                    @for(module of userModules(); track module) {
+                        <div class="item">
+                            <div class="flex gap-4 items-center">
+                                <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+
+                                <div class="flex gap-2 items-center text-sm">
+                                    <div class="flex flex-col">
+                                        <span>{{`Модулів: ${module.objects}`}}</span>
+                                        <span>{{module.title}}</span>
+                                    </div>
+                                    @if(module.hasImages) {
+                                        <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
+                                    }
+                                </div>
+                            </div>
+                                <app-custom-button
+                                [theme]="!isSaved(module.id) ? 'secondary' : 'primary'"
+                                [size]="'symbol'"
+                                (click)="toggleModuleToFolder(module)"
+                            >
+                                @if(!isSaved(module.id)){
+                                    <app-icon [icon]="'Add'" [size]="24" [stroke]="'var(--dark-accent)'"/>
+                                } @else {
+                                    <app-icon [icon]="'Check'" [size]="24" [fill]="'transparent'" [stroke]="'#FFF'"/>
+                                }
+                            </app-custom-button>
+                        </div>
+                    }
+                } @else {
+                    <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-[var(--lightGrey)]">
+                        <span class="text-center">Ви ще не створили жоден модуль.</span>
+                        <app-custom-button
+                            (click)="createModule()"
+                        >   
+                            <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                            Створити модуль
+                        </app-custom-button>
+                    </div>
+                }
+            } @else {
+                @if((userModules() || []).length > 0) {
+                @for(module of userSavedModules(); track module) {
                     <div class="item">
                         <div class="flex gap-4 items-center">
                             <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
@@ -163,7 +224,7 @@
                                 }
                             </div>
                         </div>
-                         <app-custom-button
+                            <app-custom-button
                             [theme]="!isSaved(module.id) ? 'secondary' : 'primary'"
                             [size]="'symbol'"
                             (click)="toggleModuleToFolder(module)"
@@ -181,20 +242,21 @@
                     <span class="text-center">Ви ще не створили жоден модуль.</span>
                     <app-custom-button
                         (click)="createModule()"
-                    >
+                    >   
+                        <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
                         Створити модуль
                     </app-custom-button>
                 </div>
             }
+            }
         } @else {
 
         }
-        
-        <div [class]="'flex gap-4 justify-end w-full'">
-            <app-custom-button theme="primary" rounded="full" (click)="closeModal()">
-                Готово
-            </app-custom-button>
-        </div>
-
-    </form>
+    </div>
+    
+    <div class="flex gap-4 w-full justify-end mt-8 max-md:mt-auto">
+        <app-custom-button theme="primary" rounded="full" (click)="closeModal()">
+            Готово
+        </app-custom-button>
+    </div>
 </ng-template>

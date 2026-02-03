@@ -6,7 +6,7 @@
 
 
 <ng-template #modalTemplate>
-    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto">
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
         <app-text-area 
         [value]="this.editForm.get('title')?.value || ''" [delay]="0"
@@ -26,12 +26,12 @@
             ({{editForm.get('description')?.value?.length ?? 0}}/500)
         </span>
         
-        <div [class]="'flex gap-4 justify-end w-full'">
-            <app-custom-button theme="secondary" rounded="full" (click)="closeModal()">
-            Скасувати
+        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeModal()">
+                Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
-            Зберегти
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+                Зберегти
             </app-custom-button>
         </div>
 

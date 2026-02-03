@@ -10,6 +10,7 @@ import { ImageModalDirective } from "../../directives/imageDirective/image-modal
 import { from } from 'rxjs';
 import { isImgUrl } from '../../utils/validate';
 import { CustomButtonComponent, IconComponent, CustomInputComponent, TextAreaComponent } from "../../components/ui";
+import { CardsState } from '../../state/cards-state/cards-state';
 
 interface UpdateCardForm extends CardForm {
   id: FormControl<number | null>;
@@ -28,16 +29,17 @@ export class UpdateModulePage {
     private api: ApiService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private module: CardsState
   ){}
 
   moduleForm = new FormGroup<{
     title: FormControl<string>,
-    description: FormControl<string>,
+    description: FormControl<string | null>,
     cards: FormArray<FormGroup<UpdateCardForm>>
   }>({
     title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(50)]}),
-    description: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.maxLength(500)]}),
+     description: new FormControl(null, {nonNullable: false, validators: [Validators.required, Validators.maxLength(500)]}),
     cards: new FormArray<FormGroup<UpdateCardForm>>([], {validators: [Validators.required, Validators.minLength(3), Validators.maxLength(50)]})
   })
 
@@ -46,7 +48,8 @@ export class UpdateModulePage {
 
   private setModule(module: Module) {
     this.moduleForm.patchValue({
-      title: module.title
+      title: module.title,
+      description: module?.description || undefined
     });
 
     const cards = this.moduleForm.controls.cards;
@@ -76,7 +79,15 @@ export class UpdateModulePage {
     });
   }
 
-  public addEmptyCard(index: number){
+  private dublicateModule(module: Module) {
+    this.moduleForm.get('title')?.setValue(module.title)
+    this.moduleForm.get('description')?.setValue(module.description)
+    for(let i = 0; i < module.cards.length; i++) {
+      this.addCard(i, module.cards[i])
+    }
+  }
+
+  public addCard(index: number, data?: Card){
     const cards = this.moduleForm.get('cards') as FormArray<FormGroup<UpdateCardForm>>;
 
     if(cards.length == 50) {
@@ -87,17 +98,17 @@ export class UpdateModulePage {
       id: new FormControl<number | null>(null),
       delete: new FormControl<boolean>(false),
       title: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(500)] }),
+        text: new FormControl(data?.title.text || '', { nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
-          type: new FormControl<MediaType | null>(null),
-          content: new FormControl<string | null>(null),
+          type: new FormControl<MediaType | null>(data?.title.media?.type || null),
+          content: new FormControl<string | null>(data?.title.media?.content || null),
         }),
       }),
       description: new FormGroup<ContentBlockForm>({
-        text: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(500)] }),
+        text: new FormControl(data?.description.text || '', { nonNullable: true, validators: [Validators.required, Validators.minLength(1), Validators.maxLength(500)] }),
         media: new FormGroup<MediaForm>({
-          type: new FormControl<MediaType | null>(null),
-          content: new FormControl<string | null>(null),
+          type: new FormControl<MediaType | null>(data?.description.media?.type || null),
+          content: new FormControl<string | null>(data?.description.media?.content || null),
         }),
       }),
     });
@@ -193,8 +204,15 @@ export class UpdateModulePage {
   }
 
   ngOnInit(): void {
-    const params = this.route.snapshot.paramMap
-    this.api.module.getModule(Number(params.get("id")!))
-      .subscribe(resp => this.setModule(resp.module))
+    const state = history.state as { update?: boolean };
+    const module = this.module.getModule();
+
+    if (state?.['update'] && module) {
+      this.dublicateModule(module)
+    } else {
+      const params = this.route.snapshot.paramMap
+      this.api.module.getModule(Number(params.get("id")!))
+        .subscribe(resp => this.setModule(resp.module))
+    }
   }
 }

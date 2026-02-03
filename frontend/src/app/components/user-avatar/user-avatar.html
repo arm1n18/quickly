@@ -1,0 +1,29 @@
+<div class="relative w-fit">
+    <app-avatar [name]="auth.getPartial('username')!" (click)="toggleShow($event)" />
+      @if(show) {
+        <div class="dropdown-container with-line drop-shadow-xl shadow-stone-200 text-[var(--text-secondary)]">
+            <div class="dropdown-group">
+                <div class="user-item w-fit items-center">
+                    <app-avatar [name]="auth.getPartial('username')!"/>
+                    <div class="flex flex-col leading-4 gap-2">
+                        <span class="font-medium">{{auth.getPartial('username')}}</span>
+                        <span>{{auth.getPartial('email')}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-5/6 h-px rounded-3xl bg-(--secondary) mx-auto"></div>
+
+            <div class="dropdown-group">
+                <div class="dropdown-item w-fit">
+                    <app-icon [icon]="'Settings'" [size]="24" [fill]="'var(--dark-accent)'" />
+                    Налаштування
+                </div>
+                <div class="dropdown-item w-fit">
+                    <app-icon [icon]="'Letter'" [size]="24" [fill]="'var(--dark-accent)'" />
+                    Вийти
+                </div>
+            </div>
+        </div>
+    }
+</div>

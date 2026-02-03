@@ -29,10 +29,7 @@ export class UserProfile implements OnInit {
   public modules: WritableSignal<UserModule[]> = signal([]);
   public folders: WritableSignal<FolderSummary[]> = signal([]);
 
-  public segments: Segment[] = [
-    { title: 'Модулі' },
-    { title: 'Папки' }
-  ]
+  public segments: Segment[] = [ { title: 'Модулі' }, { title: 'Папки' } ]
 
   constructor(
     private store: ProfileStateService, 
@@ -42,7 +39,6 @@ export class UserProfile implements OnInit {
   ) {}
 
   public onSegmentChange(index: number) {
-    this.search$.next('')
     this.selectedSegment = index;
     this.router.navigate(
       [index === 0 ? 'modules' : 'folders'],

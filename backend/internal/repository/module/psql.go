@@ -22,6 +22,7 @@ type ModuleRepository interface {
 	FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error)
 	FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error)
 	ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.UserModulesResponse, error)
+	ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.UserModulesResponse, error)
 
 	CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
 	UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) error
@@ -174,7 +175,7 @@ func (m *moduleRepo) FindByTitle(ctx context.Context, userID int, title string, 
 		args = append(args, lastId)
 	}
 
-	query += ` LIMIT 10`
+	query += ` LIMIT 20`
 
 	args = append(args, userID)
 
@@ -231,7 +232,7 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 			AND (NOT m.is_private OR m.user_id = $2)
 			GROUP BY m.module_id
 			HAVING COUNT (DISTINCT k.kw_slug) = array_length($1, 1)
-		LIMIT 10
+		LIMIT 20
 	)`
 
 	err = conn.QueryRow(ctx, queryModulesIds, keywords, userID).Scan(&ids)
@@ -344,7 +345,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 		placeholder++
 	}
 
-	query += ` ORDER BY m.module_id LIMIT 10`
+	query += ` ORDER BY m.module_id LIMIT 20`
 
 	modules := []model.UserModule{}
 
@@ -369,6 +370,81 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 			log.Printf("error scanning row: %v\n", err)
 			return nil, err
 		}
+
+		modules = append(modules, module)
+	}
+
+	return &model.UserModulesResponse{Modules: modules}, nil
+}
+
+func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.UserModulesResponse, error) {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return nil, protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	args := []interface{}{userID}
+	placeholder := 2
+
+	query := `SELECT 
+			m.module_id as id,
+			m.title,
+			m.slug,
+			m.user_id = $1 as is_owner,
+			m.has_images,
+			mc.objects
+		FROM user_saved_modules usv
+		JOIN modules m ON m.module_id = usv.module_id
+		JOIN users u ON u.user_id = m.user_id
+		LEFT JOIN LATERAL (
+			SELECT COUNT(*) as objects
+			FROM module_cards mc 
+			WHERE mc.module_id = m.module_id
+		) mc ON TRUE
+	WHERE
+		(NOT m.is_private OR m.user_id = $1)
+	`
+
+	if len(queryParams.Name) > 0 {
+		query += fmt.Sprintf(" AND m.title ILIKE '%%' || $%d || '%%'", placeholder)
+		args = append(args, queryParams.Name)
+		placeholder++
+	}
+
+	if queryParams.LastId > 0 {
+		query += fmt.Sprintf(" AND m.module_id > $%d", placeholder)
+		args = append(args, queryParams.LastId)
+		placeholder++
+	}
+
+	query += `  LIMIT 20`
+
+	modules := []model.UserModule{}
+
+	rows, err := conn.Query(ctx, query, args...)
+	if err != nil {
+		log.Printf("error query modules: %v\n", err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		module := model.UserModule{}
+
+		if err := rows.Scan(
+			&module.ID,
+			&module.Title,
+			&module.Slug,
+			&module.IsOwner,
+			&module.HasImages,
+			&module.Objects,
+		); err != nil {
+			log.Printf("error scanning row: %v\n", err)
+			return nil, err
+		}
+
+		module.IsSaved = true
 
 		modules = append(modules, module)
 	}

@@ -104,7 +104,7 @@ export class CardsPage implements OnInit {
 
   public editModule() {
     if(!this.auth.payload) return
-   this.router.navigate([`/module/${this.moduleID}/update`]);
+   this.router.navigate([`/module/${this.moduleID}/update`], { state: { update: true }});
   }
 
   public toggleSaveModule() {
@@ -187,7 +187,7 @@ export class CardsPage implements OnInit {
           [
             {
               title: { text: 'Редагувати'},
-              icon: { name: 'Edit', color: 'var(--accent)'},
+              icon: { name: 'Edit'},
               onClick: () => this.editModule()
             },
             ...list
@@ -196,11 +196,11 @@ export class CardsPage implements OnInit {
         this.dropdownList.update(values => [
           [
             ...values[0],
-            { title: {text: 'Видалити', color: '#bd2e2e'},
+          ],
+          [{ title: {text: 'Видалити', color: '#bd2e2e'},
               icon: { name: 'Trash', color: '#bd2e2e'},
               onClick: () => this.openDeleteModal()
-            }
-          ]
+          }]
         ])
       }
     })

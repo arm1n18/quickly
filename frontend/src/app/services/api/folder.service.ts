@@ -38,6 +38,10 @@ export class FolderService {
     return this.http.delete<void>(`/user/${username}/folders/${slug}`, { responseType: 'text' as 'json' })
   }
 
+  public addModule(slug: string, id: number): Observable<void> {
+    return this.http.post<void>(`${this.apiRoute}/${slug}/module`, {"id": id}, { responseType: 'text' as 'json' })
+  }
+
   public removeModule(slug: string, id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiRoute}/${slug}/module/${id}`, { responseType: 'text' as 'json' })
   }
