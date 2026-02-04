@@ -46,7 +46,6 @@ export class QuizCardsComponent {
     dualCard: false
   };
 
-  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @ViewChild(QuizCardComponent) quizCard!: QuizCardComponent;
   @Input({ required: true }) cards: Card[] = [];
   @Input() set config(value: Partial<QuizCardsInterface>) {
@@ -185,12 +184,12 @@ export class QuizCardsComponent {
     this.router.navigate([`/${this.router.url}/flashcards`]);
   }
 
-  public openModal() {
+  public openModal(template: TemplateRef<any>) {
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
         title: 'Параметри',
-        template: this.modalTemplate,
+        template: template,
       }
     })
   }

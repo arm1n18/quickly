@@ -9,14 +9,17 @@ import { AuthStorageService } from '../../services/auth/authStorageService/auth-
 import { PortalService } from '../../services/portal/portal';
 import { CustomButtonComponent, CustomInputComponent, IconComponent, OtpInputComponent } from '../ui';
 
+type Mode = 'login' | 'register' | 'reset'
+
 @Component({
   selector: 'app-auth-form',
   imports: [CustomButtonComponent, IconComponent, NgClass, ReactiveFormsModule, CustomInputComponent, OtpInputComponent],
   templateUrl: './auth-form.html',
   styleUrl: './auth-form.css',
 })
+
 export class AuthFormComponent {
-  public isRegisterMode: WritableSignal<boolean> = signal(false);
+  public mode: WritableSignal<Mode> = signal('login');
   public isReceiveCode: WritableSignal<boolean> = signal(false);
 
   public timer: WritableSignal<number> = signal(0);
@@ -52,10 +55,10 @@ export class AuthFormComponent {
     this.portal.close()
   }
 
-  public toggleMode(register: boolean) {
+  public toggleMode(mode: Mode) {
     if(this.isLoading) return
 
-    this.isRegisterMode.set(register);
+    this.mode.set(mode);
   }
 
   public startTimer(): void {
@@ -86,7 +89,7 @@ export class AuthFormComponent {
     this.isLoading = true
 
     this.api.auth.auth(
-        this.isRegisterMode() ? 'register' : 'login',
+        this.mode() ? 'register' : 'login',
         this.authForm.get('email')!.value,
         this.authForm.get('password')!.value
     ).subscribe({
@@ -141,7 +144,7 @@ export class AuthFormComponent {
     this.api.auth.verify({
         email: this.authForm.get('email')!.value,
         code: code,
-        purpose: this.isRegisterMode() ? 'register' : 'login'
+        purpose: this.mode() ? 'register' : 'login'
       }
     ).subscribe({
         next: resp => {
@@ -168,7 +171,7 @@ export class AuthFormComponent {
     this.isLoading = true
     this.api.auth.resendCode(
         this.authForm.get('email')!.value,
-        this.isRegisterMode() ? 'register' : 'login'
+        this.mode() ? 'register' : 'login'
     ).subscribe({
         next: () => {
           this.isLoading = false
@@ -190,7 +193,35 @@ export class AuthFormComponent {
     this.isReceiveCode.set(false)
   }
 
+  public resetPassword() {
+    if(this.isLoading) return
+
+    const email = this.authForm.get('email')!.value
+
+    this.isLoading = true
+
+    this.api.auth.reset(email)
+      .subscribe({
+        next: () => {
+          this.isLoading = false
+          this.toggleMode('login')
+        },
+        error: err => {
+          this.errorMessage.set(err.error?.message || 'Щось пішло не так')
+          this.isLoading = false
+        }
+      })
+  }
+
   get remainingGenerations() {
     return 5 - this.codeGenerations;
+  }
+
+  get choosenMode() {
+    switch (this.mode()) {
+      case 'login': return 'Вхід'
+      case 'register': return 'Реєсрація'
+      case 'reset': return 'Скидання паролю'
+    }
   }
 }

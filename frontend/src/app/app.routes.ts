@@ -12,6 +12,7 @@ import { FolderPage } from './pages/folder-page/folder-page.component';
 import { CreateModulePage } from './pages/create-module-page/create-module-page.component';
 import { UpdateModulePage } from './pages/update-module-page/update-module-page.component';
 import { NotFoundPage } from './pages/not-found-page/not-found-page.component';
+import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 
 export const routes: Routes = [
   {
@@ -70,6 +71,10 @@ export const routes: Routes = [
         component: CardsPrintPage,
       },
     ]
+  },
+  {
+    path: 'reset/:token',
+    component: ResetPasswordPageComponent,
   },
   { path: 'not-found', component: NotFoundPage },
   { path: '**', component: NotFoundPage },

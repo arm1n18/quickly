@@ -28,6 +28,9 @@ type AuthRepository interface {
 	GetRefreshToken(ctx context.Context, userId int, jti string) (*model.RefreshTokenDB, error)
 	TerminateRefreshToken(ctx context.Context, id int) error
 
+	// credentials
+	ChangePassword(ctx context.Context, email, password string) error
+
 	/* ---- redis ---- */
 
 	// code
@@ -45,6 +48,13 @@ type AuthRepository interface {
 	// session
 	IsSessionTerminated(jti string) (bool, error)
 	TerminateSessionInRedis(jti string) error
+
+	// reset
+	HasResetPassword(ctx context.Context, token string) (bool, error)
+	SetResetPassword(ctx context.Context, token, email string) error
+	GetResetPassword(ctx context.Context, token string) (string, error)
+	DeleteResetPassword(ctx context.Context, token string) error
+	IncrResetAttempts(ctx context.Context, email string) (int, error)
 }
 
 type authRepo struct {
@@ -240,6 +250,35 @@ func (a *authRepo) TerminateRefreshToken(ctx context.Context, id int) error {
 		WHERE session_id = $1
 	`
 	rows, err := dbConn.Exec(ctx, query, id)
+	if err != nil {
+		log.Println(err)
+		return protocol.ErrInternal
+	}
+
+	if rows.RowsAffected() == 0 {
+		return protocol.ErrNotFound
+	}
+
+	return nil
+}
+
+/* ---- Credentials ---- */
+
+func (a *authRepo) ChangePassword(ctx context.Context, email, password string) error {
+	dbConn, err := a.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return protocol.ErrInternal
+	}
+	defer dbConn.Release()
+
+	hashPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	query := `UPDATE users
+		SET password_hash = $2
+		WHERE email = $1
+	`
+	rows, err := dbConn.Exec(ctx, query, email, hashPassword)
 	if err != nil {
 		log.Println(err)
 		return protocol.ErrInternal

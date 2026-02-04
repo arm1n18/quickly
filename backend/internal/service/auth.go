@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -223,6 +224,79 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *mode
 	return nil
 }
 
+func (a *AuthService) Reset(ctx context.Context, email string) *model.ErrorResponse {
+	exists, err := a.repo.IsUserExists(ctx, email)
+	if err != nil {
+		log.Println(err)
+
+		return protocol.ReturnError(500, err)
+	}
+
+	if !exists {
+		return nil
+	}
+
+	resetToken := a.generateResetToken()
+	if resetToken == "" {
+		return protocol.ReturnError(500, protocol.ErrInternal)
+	}
+
+	err = a.repo.SetResetPassword(ctx, resetToken, email)
+	if err != nil {
+		return protocol.ReturnError(500, err)
+	}
+
+	// send email
+
+	log.Println(resetToken)
+
+	return nil
+}
+
+func (a *AuthService) ConfirmReset(ctx context.Context, token, password string) *model.ErrorResponse {
+	if len(password) < 6 {
+		return protocol.ReturnError(400, errors.New("Password too short"))
+	}
+	if len(password) > 50 {
+		return protocol.ReturnError(400, errors.New("Password too long"))
+	}
+
+	email, err := a.repo.GetResetPassword(ctx, token)
+	if err != nil {
+		log.Println(err)
+
+		return protocol.ReturnError(500, err)
+	}
+
+	err = a.repo.ChangePassword(ctx, email, password)
+	if err != nil {
+		return protocol.ReturnError(500, protocol.ErrInternal)
+	}
+
+	err = a.repo.DeleteResetPassword(ctx, token)
+	if err != nil {
+		log.Printf("Failed to delete reset token: %s\n", token)
+	}
+
+	// send email updated
+
+	return nil
+}
+
+func (a *AuthService) ValidReset(ctx context.Context, token string) *model.ErrorResponse {
+	exists, err := a.repo.HasResetPassword(ctx, token)
+	if err != nil {
+		log.Println(err)
+		return protocol.ReturnError(500, err)
+	}
+
+	if !exists {
+		return protocol.ReturnError(403, fmt.Errorf("Invalid token"))
+	}
+
+	return nil
+}
+
 func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.UpdateToken, *model.ErrorResponse) {
 	accessToken, err := a.ParseUserAccessToken(req.AccessToken)
 	if err != nil {
@@ -240,6 +314,10 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 
 	if refreshToken.Expired {
 		return nil, protocol.ReturnError(403, protocol.ErrRefreshExpired)
+	}
+
+	if refreshToken.SUB != accessToken.SUB || refreshToken.JTI != accessToken.JTI {
+		return nil, protocol.ReturnError(403, protocol.ErrSessionInvalid)
 	}
 
 	dbToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI)
@@ -270,20 +348,20 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 }
 
 func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.ErrorResponse {
+	refreshToken, err := a.ParseUserRefreshToken(req.RefreshToken)
+	if err != nil || refreshToken.Expired {
+		log.Println(err)
+		return nil
+	}
+
 	accessToken, err := a.ParseUserAccessToken(req.AccessToken)
-	if err != nil {
+	if err != nil || accessToken.Expired {
 		log.Println(err)
-		return protocol.ReturnError(403, protocol.ErrInvalidCredentials)
+		return nil
 	}
 
-	if accessToken.Expired {
-		return protocol.ReturnError(400, protocol.ErrInvalidCredentials)
-	}
-
-	_, err = a.ParseUserRefreshToken(req.RefreshToken)
-	if err != nil {
-		log.Println(err)
-		return protocol.ReturnError(403, protocol.ErrInvalidCredentials)
+	if refreshToken.SUB != accessToken.SUB || refreshToken.JTI != accessToken.JTI {
+		return nil
 	}
 
 	dbToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI)
@@ -292,18 +370,16 @@ func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.Error
 		return protocol.ReturnError(500, err)
 	}
 
-	if valid := utils.VerifyHash(req.RefreshToken, []byte(dbToken.Token)); !valid {
-		return protocol.ReturnError(403, protocol.ErrSessionInvalid)
+	if !utils.VerifyHash(req.RefreshToken, []byte(dbToken.Token)) {
+		return nil
 	}
 
-	err = a.repo.TerminateSessionInRedis(accessToken.JTI)
-	if err != nil {
+	if err = a.repo.TerminateSessionInRedis(accessToken.JTI); err != nil {
 		log.Println(err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	err = a.repo.TerminateRefreshToken(ctx, dbToken.Id)
-	if err != nil {
+	if err = a.repo.TerminateRefreshToken(ctx, dbToken.Id); err != nil {
 		if err := a.redis.Del(ctx, fmt.Sprintf("terminated:session:%s", accessToken.JTI)).Err(); err != nil {
 			log.Printf("rollback failed (%s): %v\n", accessToken.JTI, err)
 		}
@@ -527,6 +603,19 @@ func (a *AuthService) ParseUserRefreshToken(refreshToken string) (*model.UserRef
 	}, nil
 }
 
+// Reset Token
+
+func (a *AuthService) generateResetToken() string {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+
+	token := base64.URLEncoding.EncodeToString(b)
+
+	return token
+}
+
 // ENCRYPT
 
 func (a *AuthService) encryptDate(data []byte) (string, error) {
@@ -659,4 +748,12 @@ func (a *AuthService) SetCookie(c *fiber.Ctx, token string) {
 	cookie.HTTPOnly = true
 	cookie.Secure = false
 	c.Cookie(cookie)
+}
+
+func (a *AuthService) RemoveCookie(c *fiber.Ctx, key string) {
+	c.Cookie(&fiber.Cookie{
+		Name:    key,
+		Value:   "",
+		Expires: time.Now().Add(-time.Hour),
+	})
 }

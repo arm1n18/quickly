@@ -17,7 +17,6 @@ import { QuizCardsComponent } from '../../components';
 
 export class FlashcardsPage {
   @ViewChild(QuizCardsComponent) quizCards!: QuizCardsComponent;
-  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   
   private currentModule: WritableSignal<Module | null> = signal(null);
   public currentCardIndex: WritableSignal<number> = signal(0);
@@ -68,12 +67,12 @@ export class FlashcardsPage {
     private portal: PortalService
   ) {}
 
-  public openModal() {
+  public openModal(template: TemplateRef<any>) {
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
         title: 'Параметри',
-        template: this.modalTemplate,
+        template: template
       }
     })
   }

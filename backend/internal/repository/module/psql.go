@@ -86,6 +86,7 @@ func (m *moduleRepo) GetByID(ctx context.Context, userID, id int) (*model.Module
 							'description',
 							json_build_object('text', c.description, 'media', json_build_object('type', c.description_media_type, 'content', c.description_media))
 						)
+					ORDER BY c.card_id
 					) AS cards
 				FROM
 					module_cards c

@@ -12,8 +12,8 @@ import { IconComponent } from '../icon/icon.component';
 })
 
 export class ConfirmModalComponent {
-  @Input() title: string = "";
-  @Input() description: string = "";
+  @Input({required: true}) title: string = "";
+  @Input({required: true}) description: string = "";
   @Input() warning: string = "";
   @Input() danger: boolean = false;
   @Input() onConfirm: () => void = () => {};

@@ -17,7 +17,6 @@ import { PortalService } from '../../services/portal/portal';
 })
 
 export class EditCardButtonComponent {
-  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @Input({required: true}) card: Card | null = null;
   @Input() color: string = "var(--accent)";
   @Input() size: number = 24;
@@ -40,7 +39,7 @@ export class EditCardButtonComponent {
     description: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
   })
 
-  public openModal(e: PointerEvent) {
+  public openModal(e: PointerEvent, template: TemplateRef<any>) {
     e.stopPropagation;
 
     this.editForm.get('title')?.setValue(this.card?.title.text || '') 
@@ -50,7 +49,7 @@ export class EditCardButtonComponent {
       config: {
         showCross: true,
         title: 'Редагування',
-        template: this.modalTemplate
+        template: template
       }
     })
   }

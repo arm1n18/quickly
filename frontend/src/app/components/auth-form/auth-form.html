@@ -5,76 +5,116 @@
     [formGroup]="authForm"
     >
     <div class="flex justify-between w-full items-center mb-4">
-    <h1 class="title">{{isRegisterMode() ? "Реєстрація" : "Вхід"}}</h1>
-    <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="closeModal($event)">
-        <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
+        <h1 class="title">{{choosenMode}}</h1>
+        <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="closeModal($event)">
+            <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
         </app-custom-button>
     </div>
 
     @if(!isReceiveCode()) {
-        <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-                <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
-                <app-custom-input 
-                    inputId="email" 
-                    [title]="'Пошта'"
-                    [delay]="0"
-                    [value]="authForm.get('email')?.value"
-                    (inputChange)="authForm.get('email')?.setValue($event)"
-                />
-            </div>
+        @if(mode() == 'reset') {
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
+                    <app-custom-input 
+                        inputId="email" 
+                        [title]="'Пошта'"
+                        [delay]="0"
+                        [value]="authForm.get('email')?.value"
+                        (inputChange)="authForm.get('email')?.setValue($event)"
+                    />
+                </div>
+                
+                <span class="text-xs text-[var(--text-secondary2)]">На вашу Ел. пошту буде надіслано посилання для скидання паролю.</span>
 
-            <div class="flex flex-col gap-2">
-                <label class="text-md text-[var(--dark-accent)]" for="password">Пароль</label>
-                <app-custom-input 
-                    inputId="password"
-                    [delay]="0"
-                    [value]="authForm.get('password')?.value"
-                    [password]="true" [title]="'Пароль'" 
-                    (inputChange)="authForm.get('password')?.setValue($event)"
-                />
-                <span class="text-xs text-[var(--text-secondary2)]">Пароль повинен бути довжиною від 6 до 50 символів.</span>
-            </div>
+                @if(errorMessage()){
+                    <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
+                }
 
-            @if(errorMessage()){
-                <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
-            }
-
-            <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{isRegisterMode() ? "Зареєструватися" : "Увійти"}}</app-custom-button>
-            @if(isRegisterMode()) {
+                <app-custom-button size="w-full" [disabled]="!authForm.get('email')?.valid" (click)="resetPassword()">Скинути</app-custom-button>
+                
+                <!-- SEPARATOR -->
+                <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
+                
                 <span class="text-sm text-[var(--dark-accent)] mx-auto">
-                    У вас вже є обліковий запис?
+                    Передумали?
                     <span 
                         class="text-[var(--accent)] underline 
                         underline-offset-4 hover:no-underline cursor-pointer"
-                        (click)="toggleMode(false)"
+                        (click)="toggleMode('login')"
                     >
                         Увійти
                     </span>
                 </span>
-            } @else {
-                <span class="text-sm text-[var(--dark-accent)] mx-auto">
-                    Вперше на Quickly?
-                    <span 
-                        class="text-[var(--accent)] underline 
-                        underline-offset-4 hover:no-underline cursor-pointer"
-                        (click)="toggleMode(true)"
-                    >
-                        Створити обліковий запис
-                    </span>
-                </span>
-            }
+            </div>
+        } @else {
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
+                    <app-custom-input 
+                        inputId="email" 
+                        [title]="'Пошта'"
+                        [delay]="0"
+                        [value]="authForm.get('email')?.value"
+                        (inputChange)="authForm.get('email')?.setValue($event)"
+                    />
+                </div>
 
-            <!-- SEPARATOR -->
-            
-            
-            @if(!isRegisterMode()) {
-                <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
-                <span class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto">
-                    Забули пароль?
-                </span>
-            }
-        </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-md text-[var(--dark-accent)]" for="password">Пароль</label>
+                    <app-custom-input 
+                        inputId="password"
+                        [delay]="0"
+                        [value]="authForm.get('password')?.value"
+                        [password]="true" [title]="'Пароль'" 
+                        (inputChange)="authForm.get('password')?.setValue($event)"
+                    />
+                    <span class="text-xs text-[var(--text-secondary2)]">Пароль повинен бути довжиною від 6 до 50 символів.</span>
+                </div>
+
+                @if(errorMessage()){
+                    <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
+                }
+
+                <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{choosenMode}}</app-custom-button>
+                @if(mode() == 'register') {
+                    <span class="text-sm text-[var(--dark-accent)] mx-auto">
+                        У вас вже є обліковий запис?
+                        <span 
+                            class="text-[var(--accent)] underline 
+                            underline-offset-4 hover:no-underline cursor-pointer"
+                            (click)="toggleMode('login')"
+                        >
+                            Увійти
+                        </span>
+                    </span>
+                } @else {
+                    <span class="text-sm text-[var(--dark-accent)] mx-auto">
+                        Вперше на Quickly?
+                        <span 
+                            class="text-[var(--accent)] underline 
+                            underline-offset-4 hover:no-underline cursor-pointer"
+                            (click)="toggleMode('register')"
+                        >
+                            Створити обліковий запис
+                        </span>
+                    </span>
+                }
+
+                
+                @if(mode() == 'login') {
+                    <!-- SEPARATOR -->
+                    <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
+                    
+                    <span 
+                        class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto"
+                        (click)="mode.set('reset')"
+                    >
+                        Забули пароль?
+                    </span>
+                }
+            </div>
+        }
     } @else {
         <div class="flex flex-col gap-8">
             <div class="flex flex-col gap-4">

@@ -59,6 +59,7 @@
 .dropdown-item.selected {
     background-color: var(--hover-secondary);
     color: var(--hover-accent);
+    fill: var(--hover-accent);
 }
 
 .dropdown-group.single {
@@ -79,5 +80,6 @@
 
 .dropdown-item:hover {
     color: var(--accent);
+    fill: var(--accent);
     background-color: var(--secondary);
 }

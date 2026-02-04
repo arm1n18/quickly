@@ -79,14 +79,6 @@ export class UpdateModulePage {
     });
   }
 
-  private dublicateModule(module: Module) {
-    this.moduleForm.get('title')?.setValue(module.title)
-    this.moduleForm.get('description')?.setValue(module.description)
-    for(let i = 0; i < module.cards.length; i++) {
-      this.addCard(i, module.cards[i])
-    }
-  }
-
   public addCard(index: number, data?: Card){
     const cards = this.moduleForm.get('cards') as FormArray<FormGroup<UpdateCardForm>>;
 
@@ -208,7 +200,9 @@ export class UpdateModulePage {
     const module = this.module.getModule();
 
     if (state?.['update'] && module) {
-      this.dublicateModule(module)
+      console.log(module)
+      this.setModule(module)
+
     } else {
       const params = this.route.snapshot.paramMap
       this.api.module.getModule(Number(params.get("id")!))

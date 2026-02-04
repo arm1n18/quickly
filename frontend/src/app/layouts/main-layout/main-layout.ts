@@ -1,5 +1,5 @@
 import { Component, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
-import { AvatarComponent, CustomButtonComponent, CustomInputComponent, DropdownItem, IconComponent, DropdownComponent, ModalComponent } from "../../components/ui";
+import { AvatarComponent, CustomButtonComponent, CustomInputComponent, DropdownItem, IconComponent, DropdownComponent, ModalComponent, ConfirmModalComponent } from "../../components/ui";
 import { ModuleSummary } from '../../interfaces/module.interface';
 import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
@@ -21,7 +21,6 @@ import { UserAvatarComponent } from "../../components/user-avatar/user-avatar.co
 
 export class MainLayout {
   @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
-  @ViewChild('loginModal') loginModal!: TemplateRef<any>;
   
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
   public showSearchDropdown: boolean = false;
@@ -126,5 +125,13 @@ export class MainLayout {
         },
       })
     
+  }
+
+  ngOnInit() {
+    // const state = history.state as { login?: boolean };
+
+    // if (state?.['login']) {
+    //   this.toggleAuthModal(true)
+    // }
   }
 }

@@ -36,7 +36,7 @@ export class FolderItemComponent {
     [
       {
         title: { text: 'Редагувати' },
-        icon: { name: 'Edit' },
+        icon: { name: 'Edit', color: 'var(--accent)' },
         onClick: () => this.openModal()
       },
     ],

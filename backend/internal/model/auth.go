@@ -64,6 +64,11 @@ type UserRefreshToken struct {
 	Expired bool      `json:"expired"`
 }
 
+type ResetToken struct {
+	Email    string `json:"email"`
+	Attempts int    `json:"attempts"`
+}
+
 // Code
 
 type VerificationCode struct {

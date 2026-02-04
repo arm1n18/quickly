@@ -18,7 +18,7 @@
         </div>
         <div class="flex gap-2 game-header-right">
             @if(true) {
-            <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="openModal()">
+            <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="openModal(modalTemplate)">
                 <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
             </app-custom-button>
             } @else {

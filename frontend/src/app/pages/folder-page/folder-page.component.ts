@@ -56,7 +56,7 @@ export class FolderPage implements OnInit {
     [
       {
         title: { text: 'Редагувати' },
-        icon: { name: 'Edit' },
+        icon: { name: 'Edit', color: 'var(--accent)' },
         onClick: () => this.openModal()
       },
     ],

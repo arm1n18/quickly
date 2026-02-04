@@ -18,7 +18,9 @@
     <div class="flex flex-col gap-4 max-md:flex-1 max-md:justify-between">
       <div class="flex flex-col gap-4">
         <span class="text-md text-[var(--text-secondary2)]">{{description}}</span>
-        <span>{{warning}}</span>
+        @if(warning) {
+          <span>{{warning}}</span>
+        }
       </div>
 
       <div footer [class]="'flex gap-4 justify-end w-full max-md:justify-between max-md:flex-col-reverse'">

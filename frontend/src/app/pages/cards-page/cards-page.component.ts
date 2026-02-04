@@ -44,11 +44,9 @@ export class CardsPage implements OnInit {
     [
       {title: {text: 'Створити копію'}, onClick: () => this.dublicateModule(), icon: {
         name: 'Copy',
-        color: 'var(--accent)'
       }},
       {title: {text: 'Друкувати'}, icon: {
         name: 'Print',
-        color: 'var(--accent)'
       }}
     ]
   ]);

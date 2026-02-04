@@ -95,6 +95,52 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		return c.SendStatus(fiber.StatusOK)
 	})
 
+	router.Post("/reset", func(c *fiber.Ctx) error {
+
+		var body struct {
+			Email string `json:"email"`
+		}
+		if err := c.BodyParser(&body); err != nil {
+			log.Println(err)
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+		}
+
+		err := svc.Reset(c.Context(), body.Email)
+		if err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	router.Post("/reset/:token", func(c *fiber.Ctx) error {
+
+		var body struct {
+			Password string `json:"password"`
+		}
+
+		if err := c.BodyParser(&body); err != nil {
+			log.Println(err)
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+		}
+
+		err := svc.ConfirmReset(c.Context(), c.Params("token"), body.Password)
+		if err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
+	router.Get("/reset/:token", func(c *fiber.Ctx) error {
+		err := svc.ValidReset(c.Context(), c.Params("token"))
+		if err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
 	router.Get("/refresh", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
 		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
 		if !ok {
@@ -117,17 +163,23 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		})
 	})
 
-	router.Post("/logout", func(c *fiber.Ctx) error {
-		req := model.Tokens{}
+	router.Post("/logout", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
+		if !ok {
+			return c.SendStatus(fiber.StatusUnauthorized)
+		}
 
-		if err := c.BodyParser(&req); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+		req := model.Tokens{
+			AccessToken:  user.Token,
+			RefreshToken: c.Cookies("token"),
 		}
 
 		err := svc.Logout(c.Context(), req)
 		if err != nil {
 			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
+
+		svc.RemoveCookie(c, "token")
 
 		return c.SendStatus(fiber.StatusOK)
 	})

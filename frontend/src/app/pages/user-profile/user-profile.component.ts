@@ -20,7 +20,7 @@ import { FolderSummary } from '../../interfaces/folder.interface';
 })
 
 export class UserProfile implements OnInit {
-  public selectedSegment: number = 0;
+  public selectedSegment: WritableSignal<number> = signal(0);
   public user$!: Observable<UserInfo | null>;
   private search$ = new Subject<string>();
 
@@ -39,7 +39,7 @@ export class UserProfile implements OnInit {
   ) {}
 
   public onSegmentChange(index: number) {
-    this.selectedSegment = index;
+    this.selectedSegment.set(index);
     this.router.navigate(
       [index === 0 ? 'modules' : 'folders'],
       { relativeTo: this.route }
@@ -53,9 +53,11 @@ export class UserProfile implements OnInit {
   ngOnInit() {
     this.user$ = this.store.user$;
 
-    this.route.url.subscribe(segments => {
-      this.selectedSegment = segments.at(-1)?.path === "folders" ? 1 : 0; 
-    })
+    // this.route.url.subscribe(segments => {
+    //   this.selectedSegment.set(segments.at(-1)?.path === "folders" ? 1 : 0)
+    // })
+    const segments = document.URL.split("/")
+    this.selectedSegment.set(segments[segments.length-1] == "folders" ? 1 : 0)
 
     this.username = this.route.snapshot.paramMap.get('username')!
 

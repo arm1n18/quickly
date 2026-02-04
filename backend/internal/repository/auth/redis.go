@@ -226,7 +226,7 @@ func (a *authRepo) RemoveUserFromRedis(ctx context.Context, email string) error 
 func (a *authRepo) IsSessionTerminated(jti string) (bool, error) {
 	key := fmt.Sprintf("terminated:session:%s", jti)
 
-	exists, err := a.redis.Exists(context.Background(), key, jti).Result()
+	exists, err := a.redis.Exists(context.Background(), key).Result()
 	if err != nil {
 		return false, err
 	}
@@ -243,4 +243,68 @@ func (a *authRepo) TerminateSessionInRedis(jti string) error {
 	}
 
 	return nil
+}
+
+/* ---- Reset ---- */
+
+func (a *authRepo) HasResetPassword(ctx context.Context, token string) (bool, error) {
+	key := fmt.Sprintf("reset:%s", token)
+
+	exists, err := a.redis.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return exists == 1, nil
+}
+
+func (a *authRepo) SetResetPassword(ctx context.Context, token, email string) error {
+	key := fmt.Sprintf("reset:%s", token)
+
+	attempts, err := a.IncrResetAttempts(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	if attempts > 5 {
+		return ErrCodeBanned
+	}
+
+	err = a.redis.Set(ctx, key, email, 15*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *authRepo) GetResetPassword(ctx context.Context, token string) (string, error) {
+	key := fmt.Sprintf("reset:%s", token)
+
+	email, err := a.redis.Get(ctx, key).Result()
+	if err != nil {
+		return "", err
+	}
+
+	return email, nil
+}
+
+func (a *authRepo) DeleteResetPassword(ctx context.Context, token string) error {
+	key := fmt.Sprintf("reset:%s", token)
+	return a.redis.Del(ctx, key).Err()
+}
+
+func (a *authRepo) IncrResetAttempts(ctx context.Context, email string) (int, error) {
+	key := fmt.Sprintf("reset:attempts:%s", email)
+
+	attempts, err := a.redis.Incr(ctx, key).Result()
+	if err != nil {
+		return -1, err
+	}
+
+	if attempts == 1 {
+		a.redis.Expire(ctx, key, time.Hour)
+	}
+
+	return int(attempts), nil
 }

@@ -45,4 +45,20 @@ export class AuthService {
   public refresh(): Observable<{accessToken: string}> {    
     return this.http.get<{accessToken: string}>(`${this.apiRoute}/refresh`)
   }
+
+  public logout(): Observable<void> {    
+    return this.http.post<void>(`${this.apiRoute}/logout`, null, { responseType: 'text' as 'json' })
+  }
+
+  public reset(email: string): Observable<void> {    
+    return this.http.post<void>(`${this.apiRoute}/reset`, {email: email}, { responseType: 'text' as 'json' })
+  }
+
+  public validResetToken(token: string): Observable<void> {    
+    return this.http.get<void>(`${this.apiRoute}/reset/${token}`, { responseType: 'text' as 'json' })
+  }
+
+  public confirmReset(token: string, password: string): Observable<void> {    
+    return this.http.post<void>(`${this.apiRoute}/reset/${token}`, {password: password}, { responseType: 'text' as 'json' })
+  }
 }

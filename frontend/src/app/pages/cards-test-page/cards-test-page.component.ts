@@ -67,7 +67,6 @@ export class CardsTestPage implements OnInit, OnDestroy {
   private stopTimer$ = new Subject<void>();
   private destroy$ = new Subject<void>();
   
-  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @ViewChild('finishButton', { read: ElementRef }) finisButtonElement!: ElementRef;
   @ViewChildren('questionRef', { read: ElementRef })
   public questionElements!: QueryList<ElementRef>;
@@ -372,12 +371,12 @@ export class CardsTestPage implements OnInit, OnDestroy {
     }
   }
 
-  public openModal() {
+  public openModal(template: TemplateRef<any>) {
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
         showCross: true,
         title: 'Параметри',
-        template: this.modalTemplate,
+        template: template,
         onClose: this.resetTestConfig()
       }
     })

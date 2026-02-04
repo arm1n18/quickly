@@ -11,6 +11,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "missing authorization header",
 			})
@@ -18,6 +19,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid authorization header",
 			})
@@ -25,6 +27,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 
 		token, err := authService.ParseUserAccessToken(parts[1])
 		if err != nil {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
 			})
@@ -32,6 +35,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 
 		if !allowExpired {
 			if token.Expired {
+				authService.RemoveCookie(c, "token")
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"error": "session expired",
 				})
@@ -53,6 +57,7 @@ func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid authorization header",
 			})
@@ -60,12 +65,14 @@ func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
 
 		token, err := authService.ParseUserAccessToken(parts[1])
 		if err != nil {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		}
 
 		if token.Expired {
+			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "session expired",
 			})
