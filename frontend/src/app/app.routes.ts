@@ -13,8 +13,13 @@ import { CreateModulePage } from './pages/create-module-page/create-module-page.
 import { UpdateModulePage } from './pages/update-module-page/update-module-page.component';
 import { NotFoundPage } from './pages/not-found-page/not-found-page.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
+import { MainPageComponent } from './pages/main-page/main-page.component';
 
 export const routes: Routes = [
+  {
+    path: '',
+    component: MainPageComponent
+  },
   {
     path: 'user/:username',
     component: UserProfile,

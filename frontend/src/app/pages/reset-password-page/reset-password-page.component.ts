@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../services/api/api.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +18,8 @@ export class ResetPasswordPageComponent {
   ){}
   
   private token: string = "";
+  public errorMessage: WritableSignal<string | null> = signal(null);
+  public isLoading = false;
 
   resetForm = new FormGroup<{
     password: FormControl<string>;
@@ -38,39 +40,45 @@ export class ResetPasswordPageComponent {
   }
 
   public onReset() {
+    if(this.isLoading) return
+
     const password = this.resetForm.get('password')!.value
     const confirmPassword = this.resetForm.get('confirmPassword')!.value
 
     if (password != confirmPassword) {
-      // show error
+      this.errorMessage.set('Паролі не співпадають')
       return 
     }
+
+    this.isLoading = true
 
     this.api.auth.confirmReset(this.token, password)
       .subscribe({
         next: () => {
+          this.isLoading = false
           this.openLogin()
         },
-        error: () => {
-          // set error
+        error: err => {
+          this.isLoading = false
+          this.errorMessage.set(err.error?.message || 'Щось пішло не так')
         }
       })
   }
   
   ngOnInit() {
-    const urlToken = this.route.snapshot.paramMap.get('token')
-    if(urlToken == null) {
-      return
-    }
+    // const urlToken = this.route.snapshot.paramMap.get('token')
+    // if(urlToken == null) {
+    //   return
+    // }
 
-    this.api.auth.validResetToken(urlToken)
-      .subscribe({
-        next: () => {
-          this.token = urlToken 
-        },
-        error: () => {
-          this.router.navigate(["/"])
-        }
-      })
+    // this.api.auth.validResetToken(urlToken)
+    //   .subscribe({
+    //     next: () => {
+    //       this.token = urlToken 
+    //     },
+    //     error: () => {
+    //       this.router.navigate(["/"])
+    //     }
+    //   })
   }
 }

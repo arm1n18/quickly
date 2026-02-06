@@ -1,6 +1,7 @@
 package model
 
 type Folder struct {
+	ID      int          `json:"id"`
 	Title   string       `json:"title"`
 	Slug    string       `json:"slug"`
 	Author  Author       `json:"author"`
@@ -10,6 +11,7 @@ type Folder struct {
 }
 
 type FolderSummary struct {
+	ID      int    `json:"id"`
 	Title   string `json:"title"`
 	Slug    string `json:"slug"`
 	Objects int    `json:"objects"`

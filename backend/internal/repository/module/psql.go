@@ -176,7 +176,7 @@ func (m *moduleRepo) FindByTitle(ctx context.Context, userID int, title string, 
 		args = append(args, lastId)
 	}
 
-	query += ` LIMIT 20`
+	query += ` LIMIT 10`
 
 	args = append(args, userID)
 
@@ -233,7 +233,7 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 			AND (NOT m.is_private OR m.user_id = $2)
 			GROUP BY m.module_id
 			HAVING COUNT (DISTINCT k.kw_slug) = array_length($1, 1)
-		LIMIT 20
+		LIMIT 10
 	)`
 
 	err = conn.QueryRow(ctx, queryModulesIds, keywords, userID).Scan(&ids)
@@ -346,7 +346,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 		placeholder++
 	}
 
-	query += ` ORDER BY m.module_id LIMIT 20`
+	query += ` ORDER BY m.module_id LIMIT 10`
 
 	modules := []model.UserModule{}
 
@@ -420,7 +420,7 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 		placeholder++
 	}
 
-	query += `  LIMIT 20`
+	query += `  LIMIT 10`
 
 	modules := []model.UserModule{}
 

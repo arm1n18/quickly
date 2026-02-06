@@ -273,7 +273,6 @@ export class CardsTestPage implements OnInit, OnDestroy {
     this.testConfig.update(() => ({...this.tempTestConfig}));
     this.resetQuestions();
     this.generateQuestions();
-    this.portal.close();
     this.result.answers = [];
     this.result.answered = 0;
     this.showConfig.showAnswers = false;
@@ -287,6 +286,8 @@ export class CardsTestPage implements OnInit, OnDestroy {
 
     const newUrl = url.pathname + '?' + params.toString();
     window.history.replaceState({}, '', newUrl);
+
+    this.portal.close();
   }
 
   public resetTestConfig() {
@@ -359,6 +360,8 @@ export class CardsTestPage implements OnInit, OnDestroy {
 
   public scrollToNextQuestion(index: number) {
     const elementsArray = this.questionElements.toArray();
+
+    console.log(elementsArray)
 
     const nextIndex = this.result.answers.findIndex((a, i) => i > index && a === undefined);
     const nextElement = elementsArray[nextIndex];
@@ -478,6 +481,7 @@ export class CardsTestPage implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete()
   }
+  
 
   protected readonly Math = Math;
 }

@@ -44,7 +44,7 @@
                 <a [href]="`/user/${folder.author.name}`" class="font-medium text-[var(--dark-accent)] hover:underline">{{folder.author.name}}</a>
             </div>
         </div>
-
+        
         @if((folder.modules || []).length > 0) {
             @for(module of folder.modules; track module) {
                 <div class="item" (click)="openModule(`/module/${module.id}`)">
@@ -250,7 +250,9 @@
             }
             }
         } @else {
-
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
         }
     </div>
     

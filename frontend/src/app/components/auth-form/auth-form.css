@@ -1,0 +1,42 @@
+.modal-containter {
+    background-color: white;
+    width: 100%;
+    max-width: 32rem;
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 4.5rem);
+    overflow: hidden;
+    /* padding: 2.25rem; */
+    margin: auto;
+    z-index: 2;
+    position: fixed;
+    top: 2.2rem;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    padding: 2.25rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0, 0, 0, 0.1) transparent;
+}
+
+@media (max-width: 768px) {
+    .modal-containter {
+        min-height: 100dvh;
+        max-width: 100%;
+        top: 0;
+        bottom: 0;
+        border-radius: 0;
+    }
+
+    .modal-content{
+        flex: 1;
+    }
+}

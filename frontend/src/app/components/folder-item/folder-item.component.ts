@@ -121,6 +121,7 @@ export class FolderItemComponent {
           const current = {...this.folder} as FolderSummary
 
           this.state.updateFolder(current.slug, {
+            id: current.id,
             title: newTitle!,
             slug: resp.slug,
             objects: current.objects ?? 0,

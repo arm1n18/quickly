@@ -50,7 +50,7 @@ func (f *folderRepo) ListFolders(ctx context.Context, userID int, username strin
 		SELECT COALESCE(json_agg(folder_data), '[]') AS folders
 		FROM (
 			SELECT
-				f.folder_id,
+				f.folder_id as id,
 				f.title,
 				f.slug,
 				COUNT(fm.module_id) AS objects,
@@ -75,6 +75,7 @@ func (f *folderRepo) ListFolders(ctx context.Context, userID int, username strin
 	query += `
 		GROUP BY f.folder_id, f.title, f.slug
 		ORDER BY f.folder_id
+		LIMIT 10
 	) folder_data
 	`
 

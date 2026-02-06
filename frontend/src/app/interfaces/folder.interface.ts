@@ -2,6 +2,7 @@ import { UserModule } from "./module.interface";
 import { UserInfo } from "./user.interface";
 
 export interface FolderSummary {
+    id: number;
     title: string;
     slug: string;
     objects: number;
@@ -13,6 +14,7 @@ export interface FoldersSummary {
 }
 
 export interface Folder {
+    id: number;
     title: string;
     slug: string;
     author: UserInfo;

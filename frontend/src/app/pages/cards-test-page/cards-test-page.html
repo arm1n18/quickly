@@ -41,12 +41,12 @@
 
   <main class="flex flex-col gap-4 w-full p-3 items-center">
     @if(showConfig.showAnswers) {
-      <div class="flex flex-col gap-4 text-lg w-3xl">
-        <div>{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
+      <div class="flex flex-col gap-4 text-lg w-full max-w-200">
+        <div class="text-[var(--dark-accent)] text-xl">{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
 
-        <div class="flex gap-8 items-center">
+        <div class="flex gap-8 items-center max-sm:flex-col">
           <app-doughnut-chart [correct]="getResult.correct.length" [incorrect]="getResult.incorrect.length" />
-          <div class="flex flex-col w-60 gap-2">
+          <div class="flex flex-col w-full max-w-60 gap-2">
             <div class="text-[#6d4aff] flex justify-between">
               <div class="flex gap-2 items-center">
                 <app-icon [icon]="'Check'" [size]="24" [stroke]="'#6d4aff'" [fill]="'transparent'"/>
@@ -198,7 +198,7 @@
       </div>
       <div [class]="'w-full flex flex-col gap-4 pl-4'" [ngClass]="{'hidden': !showConfig.showAnswerMode}">
         <div class="w-full flex justify-between items-center">
-          Питання - відповідь
+          Термін - Опис
           <label [class]="'switch'">
             <input
               [type]="'checkbox'"
@@ -210,7 +210,7 @@
           </label>
         </div>
         <div class="w-full flex justify-between items-center">
-          Відповідь - Питання
+          Опис - Термін
           <label [class]="'switch'">
             <input
               [type]="'checkbox'"
