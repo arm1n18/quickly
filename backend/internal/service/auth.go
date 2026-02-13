@@ -14,6 +14,7 @@ import (
 	"math"
 	"strconv"
 	"time"
+	"web-quiz/internal/mail"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
 	"web-quiz/internal/repository/auth"
@@ -48,15 +49,17 @@ type AuthService struct {
 	repo   auth.AuthRepository
 	jwtkey string
 	ekey   string
+	mail   *mail.SMTPClient
 }
 
-func NewAuthService(psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string) *AuthService {
+func NewAuthService(psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string, mail *mail.SMTPClient) *AuthService {
 	return &AuthService{
 		psql:   psql,
 		redis:  redis,
 		ekey:   ekey,
 		jwtkey: jwtkey,
 		repo:   auth.NewAuthRepository(psql, redis),
+		mail:   mail,
 	}
 }
 
@@ -106,7 +109,15 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *mode
 
 		return protocol.ReturnError(500, err)
 	}
+
 	log.Println(code)
+
+	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+		a.repo.RemoveUserFromRedis(ctx, req.Email)
+		a.repo.RemoveVerificationCode(ctx, req.Email, "register")
+
+		return protocol.ReturnError(500, err)
+	}
 
 	return nil
 }
@@ -147,6 +158,13 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) *model.E
 	}
 
 	log.Println(code)
+
+	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+		a.repo.RemoveUserFromRedis(ctx, req.Email)
+		a.repo.RemoveVerificationCode(ctx, req.Email, "login")
+
+		return protocol.ReturnError(500, err)
+	}
 
 	return nil
 }
@@ -214,11 +232,17 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *mode
 
 	code := utils.GenerateCode(6)
 
-	log.Println(code)
-
 	err := a.repo.UpdateVerificationCode(ctx, req.Email, code, req.Purpose)
 	if err != nil {
 		return protocol.ReturnError(403, err)
+	}
+
+	log.Println(code)
+
+	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+		a.repo.RemoveVerificationCode(ctx, req.Email, req.Purpose)
+
+		return protocol.ReturnError(500, err)
 	}
 
 	return nil
@@ -246,7 +270,13 @@ func (a *AuthService) Reset(ctx context.Context, email string) *model.ErrorRespo
 		return protocol.ReturnError(500, err)
 	}
 
-	// send email
+	link := "http://localhost:4200/reset/" + resetToken
+
+	if err := a.mail.SendResetPassword(email, link); err != nil {
+		a.repo.DeleteResetPassword(ctx, resetToken)
+
+		return protocol.ReturnError(500, err)
+	}
 
 	log.Println(resetToken)
 

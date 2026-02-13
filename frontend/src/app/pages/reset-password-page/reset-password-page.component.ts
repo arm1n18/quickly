@@ -66,19 +66,19 @@ export class ResetPasswordPageComponent {
   }
   
   ngOnInit() {
-    // const urlToken = this.route.snapshot.paramMap.get('token')
-    // if(urlToken == null) {
-    //   return
-    // }
+    const urlToken = this.route.snapshot.paramMap.get('token')
+    if(urlToken == null) {
+      return
+    }
 
-    // this.api.auth.validResetToken(urlToken)
-    //   .subscribe({
-    //     next: () => {
-    //       this.token = urlToken 
-    //     },
-    //     error: () => {
-    //       this.router.navigate(["/"])
-    //     }
-    //   })
+    this.api.auth.validResetToken(urlToken)
+      .subscribe({
+        next: () => {
+          this.token = urlToken 
+        },
+        error: () => {
+          this.router.navigate(["/"])
+        }
+      })
   }
 }

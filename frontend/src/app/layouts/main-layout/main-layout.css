@@ -1,5 +1,8 @@
-:root {
-    position: relative;
+:host {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: block;
 }
 
 .header {
@@ -10,8 +13,7 @@
     width: 100%;
     background-color: white;
     padding: 1rem;
-    position: sticky;
-    z-index: 1;
+    position: relative;
     top: 0;
     grid-template-columns: 1fr minmax(0, 3fr) 1fr;
 }
@@ -31,19 +33,23 @@
 
 
 .search-wrapper {
-    position: sticky;
+    position: relative;
+}
+
+.search-content {
+    position: absolute;
     display: flex;
     flex-direction: column;
     z-index: 2;
     border-radius: 1rem;
     background-color: white;
     outline: 1px solid var(--secondary);
-    top: 80px;
+    top: 0.5rem;
     left: 0;
     right: 0;
     margin: 0 auto;
     width: 100%;
-    max-width: 640px;
+    max-width: 800px;
     padding: 0.25rem;
 }
 

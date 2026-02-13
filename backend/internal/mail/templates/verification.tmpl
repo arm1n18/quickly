@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Ваш верифікаційний код</title>
+  </head>
+  <body style="margin:0; padding:0; font-family: Arial, sans-serif; background-color: #ffffff;">
+    <div style="max-width: 384px; margin: 0 auto; padding: 16px;">
+      
+      <div style="text-align: center;">
+          <img src="https://lh3.googleusercontent.com/a/ACg8ocKzcGZD4sZny96_jNNpMu--ZcahVZ_xyCfYfp2J3L60p0EvADk=s400-c" alt="quickly.logo" style="height: 128px;"/>
+      </div>
+
+      <p style="font-size: 20px; font-weight: 700; color: #6d4aff; text-align: center; margin: 0 0 16px 0;">
+        Ваш верифікаційний код
+      </p>
+
+      <div style="margin-bottom: 16px; color: #6f7883; font-size: 14px; line-height: 1.5;">
+        <p style="margin: 0 0 8px 0;">Привіт!</p>
+        <p style="margin: 0;">
+          На вашу електронну адресу було надіслано код верифікації для входу в особистий кабінет.
+        </p>
+        <p>
+          Якщо ви не запитували код, просто ігноруйте цей лист.
+        </p>
+        <p>
+          Код буде активним ще 15 хвилин.
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 24px 0;">
+        <div style="display: inline-block; background-color: #EEF0FF; padding: 16px 64px; border-radius: 12px; font-size: 20px; font-weight: 700; color: #6d4aff;">
+          {{ .Code }}
+        </div>
+      </div>
+
+      <div style="text-align: center; font-size: 12px; color: #6f7883; margin-top: 24px;">
+        Цей лист надіслано автоматично, будь ласка, не відповідайте на нього.
+      </div>
+    </div>
+  </body>
+</html>

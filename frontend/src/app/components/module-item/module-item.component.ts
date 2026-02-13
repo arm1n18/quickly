@@ -6,14 +6,12 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { PortalService } from '../../services/portal/portal';
 import { ConfirmModalComponent, CustomButtonComponent, DropdownComponent, DropdownItem, IconComponent } from '../ui';
 import { UserModule } from '../../interfaces/module.interface';
-
-interface ModuleItemInterface extends UserModule {
-  href: string;
-}
+import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-module-item',
-  imports: [IconComponent, CustomButtonComponent, DropdownComponent],
+  imports: [AsyncPipe, IconComponent, CustomButtonComponent, DropdownComponent],
   templateUrl: './module-item.html',
   styleUrl: './module-item.css',
 })
@@ -41,6 +39,7 @@ export class ModuleItemComponent {
   ]);
 
   constructor(
+    private auth: AuthStateService,
     private api: ApiService,
     private portal: PortalService,
     private state: ProfileStateService,
@@ -125,6 +124,10 @@ export class ModuleItemComponent {
   private editModule() {
     if(!this.module) return
     this.router.navigate([`/module/${this.module.id}/update`]);
+  }
+
+  get isAuthenticated() {
+    return this.auth.isAuthenticated$
   }
 
   @HostListener('click')

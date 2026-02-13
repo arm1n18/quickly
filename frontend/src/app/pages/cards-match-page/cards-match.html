@@ -11,13 +11,13 @@
 
     <div class="game-header-center">{{ timer().s }},{{ timer().ms }}</div>
     <div class="flex gap-2 game-header-right">
-      <!-- <app-custom-button theme="secondary" rounded="full">
+      <!-- <app-custom-button theme="secondary" rounded="md">
         Вхід
       </app-custom-button>
-      <app-custom-button rounded="full">
+      <app-custom-button rounded="md">
         Зареєструватись
       </app-custom-button> -->
-      <app-custom-button theme="hover-only" rounded="full" size="symbol" (click)="changeGameMode('default')">
+      <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
         <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
       </app-custom-button>
     </div>
@@ -25,10 +25,10 @@
   
   @if(matchedQT() === MatchCards().length/2){
   <div class="game-footer">
-    <app-custom-button rounded="full" theme="secondary">
+    <app-custom-button rounded="md" theme="secondary">
       Зареєструватись, щоб зберегити відповідь
     </app-custom-button>
-    <app-custom-button rounded="full" (click)="playAgain()">
+    <app-custom-button rounded="md" (click)="playAgain()">
       <app-icon [icon]="'Game'" [size]="24" [fill]="'#FFF'" />
       Грати знову
     </app-custom-button>

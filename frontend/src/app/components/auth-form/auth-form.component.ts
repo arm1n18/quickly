@@ -89,7 +89,7 @@ export class AuthFormComponent {
     this.isLoading = true
 
     this.api.auth.auth(
-        this.mode() ? 'register' : 'login',
+        this.mode() == 'register' ? 'register' : 'login',
         this.authForm.get('email')!.value,
         this.authForm.get('password')!.value
     ).subscribe({
@@ -99,8 +99,9 @@ export class AuthFormComponent {
           this.receiveCodeStage();
         },
         error: err => {
+          console.log(err)
           this.isLoading = false
-          this.errorMessage.set(err.error?.message || 'Щось пішло не так')
+          this.errorMessage.set(err.error.message || 'Щось пішло не так')
         }
     })
   }
@@ -144,7 +145,7 @@ export class AuthFormComponent {
     this.api.auth.verify({
         email: this.authForm.get('email')!.value,
         code: code,
-        purpose: this.mode() ? 'register' : 'login'
+        purpose: this.mode() == 'register' ? 'register' : 'login'
       }
     ).subscribe({
         next: resp => {
@@ -171,7 +172,7 @@ export class AuthFormComponent {
     this.isLoading = true
     this.api.auth.resendCode(
         this.authForm.get('email')!.value,
-        this.mode() ? 'register' : 'login'
+        this.mode() === 'register' ? 'register' : 'login'
     ).subscribe({
         next: () => {
           this.isLoading = false

@@ -41,20 +41,20 @@
 <ng-template #modalTemplate>
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
-        <app-custom-input 
-            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
-            (inputChange)="editForm.get('title')?.setValue($event)"
-        />
         <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             Назва
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
+        <app-custom-input 
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
+        />
         
         <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeModal()">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
                 Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
                 Оновити
             </app-custom-button>
         </div>

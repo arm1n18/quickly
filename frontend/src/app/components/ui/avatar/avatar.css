@@ -1,5 +1,4 @@
 .avatar {
-  border-radius: 1rem;
   background-size: cover;
   background-position: center;
   display: flex;
@@ -9,6 +8,7 @@
 }
 
 .avatar.md {
+  border-radius: 1rem;
   width: 2.75rem;
   height: 2.75rem;
 }
@@ -16,6 +16,7 @@
   width: 1.5rem;
   height: 1.5rem;
   font-size: 12px;
+  border-radius: 0.5rem;
 }
 
 .avatar.blue {
@@ -29,7 +30,7 @@
 }
 
 .avatar.purple {
-  background: #6d4aff;
+  background: #9464ff;
   color: white;
 }
 

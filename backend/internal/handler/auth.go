@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"web-quiz/internal/mail"
 	"web-quiz/internal/middleware"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
@@ -14,8 +15,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string) {
-	svc := service.NewAuthService(psql, redis, ekey, jwtkey)
+func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string, mail *mail.SMTPClient) {
+	svc := service.NewAuthService(psql, redis, ekey, jwtkey, mail)
 
 	router.Post("/register", func(c *fiber.Ctx) error {
 		req := model.AuthRequest{}

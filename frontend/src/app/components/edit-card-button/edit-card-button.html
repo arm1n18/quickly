@@ -9,17 +9,17 @@
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
         <app-text-area 
-        [value]="this.editForm.get('title')?.value || ''" [delay]="0"
-        (inputChange)="editForm.get('title')?.setValue($event)"
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
         />
-        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 500 }">
+        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             ТЕРМІН
-            ({{editForm.get('title')?.value?.length ?? 0}}/500)
+            ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
 
         <app-text-area 
-        [value]="this.editForm.get('description')?.value || ''" [delay]="0"
-        (inputChange)="editForm.get('description')?.setValue($event)"
+            [value]="this.editForm.get('description')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('description')?.setValue($event)"
         />
         <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('description')?.get('text')?.value?.length ?? 0) > 500 }">
             ОПИС
@@ -27,10 +27,10 @@
         </span>
         
         <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeModal()">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
                 Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
                 Зберегти
             </app-custom-button>
         </div>

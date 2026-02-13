@@ -14,6 +14,8 @@ import { UpdateModulePage } from './pages/update-module-page/update-module-page.
 import { NotFoundPage } from './pages/not-found-page/not-found-page.component';
 import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
 import { MainPageComponent } from './pages/main-page/main-page.component';
+import { AuthGuard } from './services/authGuard/auth-guard';
+import { IdeasPageComponent } from './pages/ideas-page/ideas-page.component';
 
 export const routes: Routes = [
   {
@@ -45,11 +47,13 @@ export const routes: Routes = [
   },
   {
     path: 'module/create',
-    component: CreateModulePage
+    component: CreateModulePage,
+    canActivate: [AuthGuard]
   },
   {
     path: 'module/:id/update',
-    component: UpdateModulePage
+    component: UpdateModulePage,
+    canActivate: [AuthGuard]
   },
   {
     path: 'module/:id',
@@ -80,6 +84,10 @@ export const routes: Routes = [
   {
     path: 'reset/:token',
     component: ResetPasswordPageComponent,
+  },
+  {
+    path: 'ideas',
+    component: IdeasPageComponent,
   },
   { path: 'not-found', component: NotFoundPage },
   { path: '**', component: NotFoundPage },

@@ -202,6 +202,8 @@ export class CardsPage implements OnInit {
         ])
       }
     })
+
+    this.route.data.subscribe(d => console.log(d))
   }
 
   ngOnDestroy(): void {

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 	"web-quiz/internal/middleware"
-	"web-quiz/internal/model"
 	"web-quiz/internal/repository/folder"
 	"web-quiz/internal/service"
 	"web-quiz/internal/utils"
@@ -16,7 +15,7 @@ import (
 
 func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string) {
 	svc := service.NewFolderService(psql)
-	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey)
+	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey, nil)
 
 	router.Get("/", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		lastId, err := strconv.Atoi(c.Query("lastId"))
@@ -44,14 +43,9 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Get("/:slug", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		folder, err := svc.GetFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			c.Params("username"),
 			c.Params("slug"),
 		)
@@ -66,11 +60,6 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Post("/", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		var body struct {
 			Title string `json:"title"`
 		}
@@ -82,7 +71,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 
 		resp, err := svc.CreateFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			body.Title,
 		)
 
@@ -98,11 +87,6 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Patch("/:slug", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		var body struct {
 			Title string `json:"title"`
 		}
@@ -114,7 +98,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 
 		resp, err := svc.UpdateFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			c.Params("slug"),
 			body.Title,
 		)
@@ -131,14 +115,9 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Delete("/:slug", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		err := svc.DeleteFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			c.Params("username"),
 			c.Params("slug"),
 		)
@@ -153,11 +132,6 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Post("/:slug/module", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		var body struct {
 			Id int `json:"id"`
 		}
@@ -169,7 +143,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 
 		err := svc.AddModuleToFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			body.Id,
 			c.Params("slug"),
 		)
@@ -184,11 +158,6 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	})
 
 	router.Delete("/:slug/module/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
-		if !ok {
-			return c.SendStatus(fiber.StatusUnauthorized)
-		}
-
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -198,7 +167,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 
 		err = svc.RemoveModuleFromFolder(
 			c.Context(),
-			user.SUB,
+			utils.GetUserId(c),
 			id,
 			c.Params("slug"),
 		)

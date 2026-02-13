@@ -35,7 +35,7 @@ export class EditCardButtonComponent {
     title: FormControl<string>,
     description: FormControl<string>;
   }>({
-    title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
+    title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(50)]}),
     description: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
   })
 

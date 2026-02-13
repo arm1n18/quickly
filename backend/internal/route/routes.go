@@ -2,6 +2,7 @@ package routes
 
 import (
 	handlers "web-quiz/internal/handler"
+	"web-quiz/internal/mail"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,6 +15,7 @@ type InitRouter struct {
 	Redis  *redis.Client
 	EKEY   string
 	JWTKEY string
+	Mail   *mail.SMTPClient
 }
 
 func (i InitRouter) InitRoutes() {
@@ -23,5 +25,5 @@ func (i InitRouter) InitRoutes() {
 	handlers.RegisterFolderRoutes(api.Group("/user/:username/folders"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 	handlers.RegisterFolderRoutes(api.Group("/folders"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
 	handlers.RegisterUserRoutes(api.Group("/users"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
-	handlers.RegisterAuthRoutes(api.Group("/auth"), i.Psql, i.Redis, i.EKEY, i.JWTKEY)
+	handlers.RegisterAuthRoutes(api.Group("/auth"), i.Psql, i.Redis, i.EKEY, i.JWTKEY, i.Mail)
 }

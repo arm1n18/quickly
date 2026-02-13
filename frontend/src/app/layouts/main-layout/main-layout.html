@@ -1,13 +1,38 @@
 <header class="header">
     <img src="favicon.png" height="32" width="32" />
 
-    <app-custom-input
-        class="header-center"
-        [title]="'Пошук'"
-        [icon]="{show: true}"
-        (inputChange)="findModules($event)"
-        (inputFocused)="showSearchDropdown = $event"
-    />
+    <div class="header-center">
+        <app-custom-input
+            class="w-full"
+            [title]="'Пошук'"
+            [icon]="{show: true}"
+            (inputChange)="search($event)"
+            (inputFocused)="showSearchDropdown = $event"
+        />
+
+        @if(showSearchDropdown && modules().length > 0) {
+            <div class="search-wrapper">   
+                <div class="search-content drop-shadow-xl shadow-stone-200">
+                    @for(module of modules(); track module) {
+                    <div class="search-item flex-col gap-1" (click)="navigateToModule(module.id, $event)">
+                        <span class="text-[var(--dark-accent)]">{{module.title}}</span>
+                        
+                        <div class="flex gap-2 items-center">
+                            <app-avatar [name]="module.author.name" [size]="'sm'" />
+                            
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2 m-0 text-sm text-[var(--text-secondary2)]">
+                                    <span>{{module.author.name}}</span>
+                                    <span>термінів: {{module.objects}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                </div>
+            </div>
+        }
+    </div>
 
     <div class="header-end">
         @if(auth.isAuthenticated$ | async) {
@@ -45,28 +70,6 @@
     </div>
 </header>
 
-@if(showSearchDropdown && modules().length > 0) {
-    <div class="search-wrapper drop-shadow-xl shadow-stone-200">   
-        @for(module of modules(); track module) {
-            <div class="search-item flex-col" (click)="navigateToModule(module.id, $event)">
-                <span>{{module.title}}</span>
-                
-                <div class="flex gap-2 items-center">
-                    <app-avatar [name]="module.author.name" [size]="'sm'" />
-                    
-                    <div class="flex flex-col">
-                        <div class="flex items-center gap-2 text-xs m-0 font-medium text-[var(--text-secondary)]">
-                            <span>{{module.author.name}}</span>
-                            <span>термінів: {{module.objects}}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-}
-
-
 <ng-template #modalTemplate>
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1" (ngSubmit)="$event.preventDefault()">
         
@@ -80,10 +83,10 @@
         </span>
         
         <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeFolderModal()">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeFolderModal()">
                 Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onFolderSubmit($event)">
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onFolderSubmit($event)">
                 Створити
             </app-custom-button>
         </div>

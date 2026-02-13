@@ -61,58 +61,62 @@
                             }
                         </div>
                     </div>
-    
-                    <div class="flex gap-4">
-                        <app-custom-button 
-                            [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
-                            [size]="'symbol'"
-                            [disabled]="isLoading()"
-                            (click)="toggleSaveModule($event, $index)"
-                        >
-                            <app-icon 
-                                [icon]="'Bookmark'" 
-                                [size]="24"
-                            /> 
-                        </app-custom-button>
-    
-                        @if(folder.isOwner) {
-                            <app-dropdown 
-                                [list]="dropdownListModule()"
-                                [config]="{
-                                    rememberSelection: false,
-                                    divider: 'line',
-                                }"
-                                [position]="{
-                                    px: 'right',
-                                    py: 'bottom'
-                                }"
-                                class="game-header-left"
+                    
+                    @if(isAuthenticated | async) {
+                        <div class="flex gap-4">
+                            <app-custom-button 
+                                [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
+                                [size]="'symbol'"
+                                [disabled]="isLoading()"
+                                (click)="toggleSaveModule($event, $index)"
                             >
-                                <app-custom-button btn 
-                                    theme="hover-only-dark" 
-                                    [size]="'symbol'"
-                                    [disabled]="isLoading()"
-                                    (click)="selectedModule = $index"
+                                <app-icon 
+                                    [icon]="'Bookmark'" 
+                                    [size]="24"
+                                /> 
+                            </app-custom-button>
+        
+                            @if(folder.isOwner) {
+                                <app-dropdown 
+                                    [list]="dropdownListModule()"
+                                    [config]="{
+                                        rememberSelection: false,
+                                        divider: 'line',
+                                    }"
+                                    [position]="{
+                                        px: 'right',
+                                        py: 'bottom'
+                                    }"
+                                    class="game-header-left"
                                 >
-                                    <app-icon
-                                        [icon]="'MenuDots'"
-                                        [size]="24"
-                                        
-                                    />
-                                </app-custom-button>
-                            </app-dropdown>
-                        }
-                    </div>
+                                    <app-custom-button btn 
+                                        theme="hover-only-dark" 
+                                        [size]="'symbol'"
+                                        [disabled]="isLoading()"
+                                        (click)="selectedModule = $index"
+                                    >
+                                        <app-icon
+                                            [icon]="'MenuDots'"
+                                            [size]="24"
+                                            
+                                        />
+                                    </app-custom-button>
+                                </app-dropdown>
+                            }
+                        </div>
+                    }
                 </div>
             }
 
-            <app-custom-button
-                (click)="openAddModuleModal()"
-                class="mx-auto"
-            >   
-                <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
-                Додати модуль
-            </app-custom-button>
+            @if(folder.isOwner) {
+                <app-custom-button
+                    (click)="openAddModuleModal()"
+                    class="mx-auto"
+                >   
+                    <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                    Додати модуль
+                </app-custom-button>
+            }
         } @else {
             <div class="flex flex-col gap-4 items-center mt-24">
                 <h1 class="title text-center">Папка порожня</h1>
@@ -130,20 +134,21 @@
 <ng-template #modalTemplate>
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
-        <app-custom-input 
-            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
-            (inputChange)="editForm.get('title')?.setValue($event)"
-        />
         <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             Назва
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
+        <app-custom-input 
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
+        />
+        
         
         <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-custom-button theme="secondary" className="max-md:w-full" rounded="full" (click)="closeModal()">
+            <app-custom-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
                 Скасувати
             </app-custom-button>
-            <app-custom-button theme="primary" className="max-md:w-full" rounded="full" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-custom-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
                 Оновити
             </app-custom-button>
         </div>
@@ -257,7 +262,7 @@
     </div>
     
     <div class="flex gap-4 w-full justify-end mt-8 max-md:mt-auto">
-        <app-custom-button theme="primary" rounded="full" (click)="closeModal()">
+        <app-custom-button theme="primary" rounded="md" (click)="closeModal()">
             Готово
         </app-custom-button>
     </div>

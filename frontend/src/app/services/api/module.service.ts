@@ -16,13 +16,13 @@ export class ModuleService {
     return this.http.get<{module: Module}>(`${this.apiRoute}/${id}`)
   }
 
-  public getModuleByName(name: string): Observable<ModulesSummary> {
-    return this.http.get<ModulesSummary>(`${this.apiRoute}/search?name=${name}`)
+  public getModuleByName(title: string): Observable<ModulesSummary> {
+    return this.http.get<ModulesSummary>(`${this.apiRoute}/search?title=${title}`)
   }
 
-  public getUserModules(username: string, name?: string, lastId?: number): Observable<UserModulesResponse> {
+  public getUserModules(username: string, title?: string, lastId?: number): Observable<UserModulesResponse> {
     const p = new URLSearchParams();
-    if(name) p.append("name", name)
+    if(title) p.append("title", title)
     if(lastId) p.append("lastId", String(lastId))
 
     const query = p.toString() ? `?${p.toString()}` : '';
@@ -30,9 +30,9 @@ export class ModuleService {
     return this.http.get<UserModulesResponse>(`${this.apiRoute}/user/${username}${query}`)
   }
 
-  public getUserSavedModules(name?: string, lastId?: number): Observable<UserModulesResponse> {
+  public getUserSavedModules(title?: string, lastId?: number): Observable<UserModulesResponse> {
     const p = new URLSearchParams();
-    if(name) p.append("name", name)
+    if(title) p.append("title", title)
     if(lastId) p.append("lastId", String(lastId))
 
     const query = p.toString() ? `?${p.toString()}` : '';

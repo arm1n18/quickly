@@ -18,7 +18,7 @@ import (
 
 func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string) {
 	svc := service.NewModuleService(psql)
-	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey)
+	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey, nil)
 
 	//yes
 	router.Get("/search", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
@@ -35,6 +35,10 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			})
 		}
 
+		if resp == nil || resp.Modules == nil {
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{"modules": []string{}})
+		}
+
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
@@ -48,13 +52,19 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			})
 		}
 
+		if resp == nil {
+			resp = &model.ModulesSummaryResponse{
+				Modules: []model.ModuleSummary{},
+			}
+		}
+
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
 	//change route
 	router.Get("/user/:username", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		username := c.Params("username")
-		name := c.Query("name")
+		name := c.Query("title")
 		lastId, err := strconv.Atoi(c.Query("lastId"))
 		if err != nil {
 			lastId = 0
@@ -67,11 +77,17 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			})
 		}
 
+		if resp == nil {
+			resp = &model.UserModulesResponse{
+				Modules: []model.UserModule{},
+			}
+		}
+
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
 	router.Get("/saved", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
-		name := c.Query("name")
+		name := c.Query("title")
 		lastId, err := strconv.Atoi(c.Query("lastId"))
 		if err != nil {
 			lastId = 0
@@ -82,6 +98,12 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Помилка запиту до бази даних",
 			})
+		}
+
+		if resp == nil {
+			resp = &model.UserModulesResponse{
+				Modules: []model.UserModule{},
+			}
 		}
 
 		return c.Status(fiber.StatusOK).JSON(resp)

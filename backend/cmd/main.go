@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"web-quiz/config"
+	"web-quiz/internal/mail"
 	routes "web-quiz/internal/route"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,13 +47,15 @@ func connectPSQL(ctx context.Context, url string) *pgxpool.Pool {
 
 func main() {
 	ctx := context.Background()
-	config := config.LoadMainConfig()
+	cfg := config.LoadMainConfig()
 
-	psqlConn := connectPSQL(ctx, config.PSQL)
+	psqlConn := connectPSQL(ctx, cfg.PSQL)
 	defer psqlConn.Close()
 
-	redisConn := connectRedis(ctx, config.RedisHost, config.RedisPort, config.RedisPassword)
+	redisConn := connectRedis(ctx, cfg.RedisHost, cfg.RedisPort, cfg.RedisPassword)
 	defer redisConn.Close()
+
+	mail := mail.NewSMTPClient(cfg.SMTP.Domain, cfg.SMTP.Port, cfg.SMTP.Email, cfg.SMTP.Password)
 
 	app := fiber.New(fiber.Config{
 		Prefork: true,
@@ -64,7 +67,7 @@ func main() {
 	})
 
 	app.Use(cors.New((cors.Config{
-		AllowOrigins:     "http://" + config.Host + ":4200",
+		AllowOrigins:     "http://" + cfg.Host + ":4200",
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, app-os, app-device, app-browser",
 		ExposeHeaders:    "Content-Length",
@@ -75,11 +78,12 @@ func main() {
 		App:    app,
 		Psql:   psqlConn,
 		Redis:  redisConn,
-		EKEY:   config.EKEY,
-		JWTKEY: config.JWTKEY,
+		EKEY:   cfg.EKEY,
+		JWTKEY: cfg.JWTKEY,
+		Mail:   mail,
 	}
 
 	initRouter.InitRoutes()
 
-	log.Fatal(app.Listen(config.Host + ":" + config.Port))
+	log.Fatal(app.Listen(cfg.Host + ":" + cfg.Port))
 }

@@ -10,6 +10,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { AuthFormComponent } from '../../components';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserAvatarComponent } from "../../components/user-avatar/user-avatar.component";
+import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-main-layout',
@@ -25,6 +26,8 @@ export class MainLayout {
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
   public showSearchDropdown: boolean = false;
   public isLoading: boolean = false;
+
+  private search$ = new Subject<string>();
 
   public dropdownList: WritableSignal<DropdownItem[][]> = signal([
     [
@@ -56,16 +59,14 @@ export class MainLayout {
     private portal: PortalService
   ) {}
 
-  public findModules(text: string) {
-    if(text.length == 0) return
-
-    this.api.module.getModuleByName(text)
-      .subscribe(resp => this.modules.set(resp.modules))
+  public search(text: string) {
+    this.search$.next(text)
   }
 
   public navigateToModule(id: number, e: Event) {
     e.stopPropagation()
     this.router.navigate([`/module/${id}`])
+    this.showSearchDropdown = false
   }
 
   public toggleAuthModal(state: boolean) {
@@ -133,5 +134,22 @@ export class MainLayout {
     // if (state?.['login']) {
     //   this.toggleAuthModal(true)
     // }
+
+    this.search$
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap(text => {
+          if(text.trim().length == 0) { 
+            return of({ modules: [] }) 
+          }  else{
+            return this.api.module.getModuleByName(text);
+          }
+        }),
+          tap(resp => {
+            this.modules.set(resp.modules)
+          })
+      )
+      .subscribe();
   }
 }

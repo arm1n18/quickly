@@ -28,6 +28,10 @@ export class AuthStateService {
     this._payload$.next(token);
   }
 
+  public isAuthenticated() {
+    return this._payload$.value != null
+  }
+
   public getPartial<T extends keyof JWTPayload>(key: T): JWTPayload[T] | null {
     const payload = this._payload$.value
     if(!payload) return null

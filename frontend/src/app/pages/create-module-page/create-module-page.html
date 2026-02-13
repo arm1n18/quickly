@@ -11,6 +11,10 @@
         </div>
 
         <div class="flex flex-col gap-4 w-full">
+            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 50 }">
+                НАЗВА
+                ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
+            </span>
             <app-custom-input 
                 inputId="title"
                 class="w-full" 
@@ -18,23 +22,18 @@
                 [value]="moduleForm.get('title')?.value" 
                 (inputChange)="moduleForm.get('title')?.setValue($event)"
             />
-
-            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 50 }">
-                НАЗВА
-                ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
-            </span>
         </div>
         <div class="flex flex-col gap-4 w-full">
+            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('description')?.value?.length ?? 0) > 500 }">
+                ОПИС
+                ({{moduleForm.get('description')?.value?.length ?? 0}}/500)
+            </span>
             <app-text-area
                 class="w-full" 
                 [delay]="0"
                 [value]="moduleForm.get('description')?.value || ''" 
                 (inputChange)="moduleForm.get('description')?.setValue($event)"
             />
-            <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('description')?.value?.length ?? 0) > 500 }">
-                ОПИС
-                ({{moduleForm.get('description')?.value?.length ?? 0}}/500)
-            </span>
         </div>
 
         <div formArrayName="cards" class="flex flex-col w-full" cdkDropList [cdkDropListData]="cards.controls" (cdkDropListDropped)="dropCard($event)">

@@ -7,13 +7,13 @@ import { IconComponent, AvatarComponent, DropdownComponent, CustomButtonComponen
 import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NgClass } from '@angular/common';
+import { AsyncPipe, NgClass } from '@angular/common';
 import { UserModule } from '../../interfaces/module.interface';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { Segment } from '../../components/ui/segmented-controls/segmented-controls.component';
 
 @Component({
-  imports: [MainLayout, IconComponent, AvatarComponent,
+  imports: [AsyncPipe, MainLayout, IconComponent, AvatarComponent,
     DropdownComponent,
     CustomButtonComponent, CustomInputComponent,
     ReactiveFormsModule, NgClass, SegmentedControlsComponent],
@@ -354,6 +354,10 @@ export class FolderPage implements OnInit {
         this.fetchModules()
       }
     }
+  }
+
+  get isAuthenticated() {
+    return this.auth.isAuthenticated$
   }
 
   ngOnInit(): void {
