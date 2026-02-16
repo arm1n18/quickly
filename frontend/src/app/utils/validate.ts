@@ -20,7 +20,7 @@ export async function isImgUrl(url: string): Promise<boolean> {
 }
 
 export function isTestMode(value: any): boolean {
-  return ['true-false', 'choose', 'matching', 'input'].includes(value);
+  return ['true-false', 'choose', 'match', 'input'].includes(value);
 }
   
 export function isAnswerMode(value: any): boolean {

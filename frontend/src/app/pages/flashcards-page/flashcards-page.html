@@ -5,14 +5,14 @@
 
         <app-dropdown 
             [list]="dropdownList"
-            [config]="{title: {text: 'Картки'}, divider: 'line', icon: {
+            [config]="{title: {text: 'Картки'}, hideOnSmall: true,  divider: 'line', icon: {
               name: 'Slider',
               color: 'var(--accent)'
             }}" 
             class="game-header-left"
         />
 
-        <div class="justify-self-center flex flex-col items-center">
+        <div class="game-header-center text-[var(--dark-accent)]">
             <div>{{ currentCardIndex()+1 }}/{{ module.cards.length }}</div>
             <div>{{ module.title }}</div>
         </div>
@@ -75,7 +75,7 @@
           <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
         </div>
       </div>
-      <div [class]="'w-full grid grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': !show.shortcut}">
+       <div [class]="'w-full flex flex-col gap-4 md:grid md:grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': !show.shortcut}">
         <div class="flex w-full justify-between">
             Повернутись
             <kbd class="kbd">←</kbd>

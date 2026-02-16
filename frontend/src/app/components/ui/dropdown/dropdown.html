@@ -8,7 +8,9 @@
       @if(config.icon) {
         <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? 'var(--text-secondary)'" />
       }
-      {{preslectedValue ?? config.title?.text}}
+      <p [ngClass]="{ 'max-md:hidden': config.hideOnSmall}">
+        {{preslectedValue ?? config.title?.text}}
+      </p>
       <app-icon [icon]="'ChevronFillDown'"
         [size]="24"
         [fill]="'#6d4aff'"

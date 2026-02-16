@@ -160,7 +160,7 @@
               @if(cardInput.title.text) {
                 <div class="flex w-full h-full items-center justify-center">
                   @if(cardInput.title.text.length > 164) {
-                    <p class="overflow-y-auto scrollbar max-h-full pb-1 break-words whitespace-pre-wrap" [ngClass]="cardInput.title.media?.content != undefined ? 'text-lg' : 'title'">
+                    <p class="overflow-y-auto scrollbar max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="cardInput.title.media?.content != undefined ? 'text-lg' : 'title'">
                       {{ cardInput.title.text }}
                     </p>
                     <!--              <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>-->
@@ -213,7 +213,7 @@
               @if(cardInput.title.text) {
                 <div class="flex w-full h-full items-center justify-center">
                   @if(cardInput.title.text.length > 164) {
-                    <p class="overflow-y-auto scrollbar max-h-full pb-1 break-words whitespace-pre-wrap" [ngClass]="cardInput.description.media?.content != undefined ? 'text-lg' : 'title'">
+                    <p class="overflow-y-auto scrollbar max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="cardInput.description.media?.content != undefined ? 'text-lg' : 'title'">
                       {{ cardInput.description.text }}
                     </p>
                     <!--              <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>-->

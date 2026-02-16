@@ -17,10 +17,10 @@
             </div>
 
             <div class="flex flex-col gap-4 items-center">
-                <app-custom-button [theme]="'secondary'">
+                <app-custom-button [theme]="'secondary'" (click)="toggleAuthModal(true, 'register')">
                     Зареєструватися безкоштовно
                 </app-custom-button>
-                <span class="text-white cursor-pointer">
+                <span class="text-white cursor-pointer" (click)="toggleAuthModal(true, 'login')">
                     Увійти до кабінету
                 </span>
             </div>

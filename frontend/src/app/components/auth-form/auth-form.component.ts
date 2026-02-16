@@ -1,4 +1,4 @@
-import { Component, signal, WritableSignal } from '@angular/core';
+import { Component, Input, signal, WritableSignal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { ReactiveFormsModule, FormControl, FormGroup, Validators, FormArray } from '@angular/forms';
 import { timer } from 'rxjs/internal/observable/timer';
@@ -19,7 +19,7 @@ type Mode = 'login' | 'register' | 'reset'
 })
 
 export class AuthFormComponent {
-  public mode: WritableSignal<Mode> = signal('login');
+  @Input() mode: Mode = 'login';
   public isReceiveCode: WritableSignal<boolean> = signal(false);
 
   public timer: WritableSignal<number> = signal(0);
@@ -58,7 +58,7 @@ export class AuthFormComponent {
   public toggleMode(mode: Mode) {
     if(this.isLoading) return
 
-    this.mode.set(mode);
+    this.mode =  mode;
   }
 
   public startTimer(): void {
@@ -89,7 +89,7 @@ export class AuthFormComponent {
     this.isLoading = true
 
     this.api.auth.auth(
-        this.mode() == 'register' ? 'register' : 'login',
+        this.mode == 'register' ? 'register' : 'login',
         this.authForm.get('email')!.value,
         this.authForm.get('password')!.value
     ).subscribe({
@@ -145,7 +145,7 @@ export class AuthFormComponent {
     this.api.auth.verify({
         email: this.authForm.get('email')!.value,
         code: code,
-        purpose: this.mode() == 'register' ? 'register' : 'login'
+        purpose: this.mode == 'register' ? 'register' : 'login'
       }
     ).subscribe({
         next: resp => {
@@ -172,7 +172,7 @@ export class AuthFormComponent {
     this.isLoading = true
     this.api.auth.resendCode(
         this.authForm.get('email')!.value,
-        this.mode() === 'register' ? 'register' : 'login'
+        this.mode === 'register' ? 'register' : 'login'
     ).subscribe({
         next: () => {
           this.isLoading = false
@@ -219,7 +219,7 @@ export class AuthFormComponent {
   }
 
   get choosenMode() {
-    switch (this.mode()) {
+    switch (this.mode) {
       case 'login': return 'Вхід'
       case 'register': return 'Реєсрація'
       case 'reset': return 'Скидання паролю'

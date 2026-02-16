@@ -21,11 +21,12 @@ import { DropdownItem, DropdownComponent } from '../../components/ui/dropdown/dr
 export class CardsMatch implements OnInit {
   private stopTimer$ = new Subject<void>();
 
-  MatchCards: WritableSignal<MatchCard[]> = signal([]);
-  qaPair: WritableSignal<MatchCard[]> = signal([]);
-  matched: WritableSignal<boolean | null> = signal(null);
-  matchedQT: WritableSignal<number> = signal(0);
-  timer: WritableSignal<{ s: number, ms: number }> = signal({ s: 0, ms: 0 });
+  public isStarted: boolean = false;
+  public matchCards: WritableSignal<MatchCard[]> = signal([]);
+  public qaPair: WritableSignal<MatchCard[]> = signal([]);
+  public matched: WritableSignal<boolean | null> = signal(null);
+  public matchedQT: WritableSignal<number> = signal(0);
+  public timer: WritableSignal<{ s: number, ms: number }> = signal({ s: 0, ms: 0 });
 
   private currentModule: WritableSignal<Module | null> = signal(null);
 
@@ -60,27 +61,39 @@ export class CardsMatch implements OnInit {
     private cardsState: CardsState
   ) {}
 
-  generateMatchCards() {
+  public generatematchCards() {
     const randomArray = this.shuffleCards(this.currentModule()!.cards).slice(0, 6);
 
-    this.MatchCards.set(
+    this.matchCards.set(
       this.shuffleCards(randomArray.flatMap((card, id) => [{
         id: `${id}-q`,
         type: 'question',
-        content: card.title,
-        pair: card.description,
+        content: {
+          ...card.title,
+          text: card.title.text.slice(0, 100)
+        },
+        pair: {
+          ...card.description,
+          text: card.description.text.slice(0, 100)
+        },
         match: false
       }, {
         id: `${id}-a`,
         type: 'answer',
-        content: card.description,
-        pair: card.title,
+        content: {
+          ...card.description,
+          text: card.description.text.slice(0, 100)
+        },
+        pair: {
+          ...card.title,
+          text: card.title.text.slice(0, 100)
+        },
         match: false
       }]))
     );
   }
 
-  shuffleCards<T>(array: T[]): T[] {
+  public shuffleCards<T>(array: T[]): T[] {
     const newArray: T[] = [...array];
 
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -91,7 +104,7 @@ export class CardsMatch implements OnInit {
     return newArray;
   }
 
-  toggleMatchCard(MatchCard: MatchCard) {
+  public toggleMatchCard(MatchCard: MatchCard) {
     const current = this.qaPair();
 
     if(MatchCard.match) {
@@ -119,14 +132,14 @@ export class CardsMatch implements OnInit {
         this.matched.set(true);
         this.matchedQT.set(this.matchedQT() + 1)
 
-        if(this.matchedQT() === this.MatchCards().length/2) {
+        if(this.matchedQT() === this.matchCards().length/2) {
           this.stopTimer();
         }
 
         setTimeout(() => {
           this.qaPair.set([]);
           this.matched.set(null);
-          this.MatchCards().map(c => {
+          this.matchCards().map(c => {
             if (c.id == first.id || c.id == second.id) {
               c.match = true
             }
@@ -144,11 +157,11 @@ export class CardsMatch implements OnInit {
     }
   }
 
-  isSelected(id: string): boolean {
+  public isSelected(id: string): boolean {
     return this.qaPair().some(c => c.id === id);
   }
 
-  startTimer(): void {
+  public startTimer(): void {
     const start = performance.now();
 
     timer(0,100).pipe(
@@ -161,24 +174,29 @@ export class CardsMatch implements OnInit {
         const ms = Math.floor((totalMs % 1000) / 100);
 
         this.timer.set({ s, ms });
-        this.cdr.detectChanges(); // TODO_CHECK_IF_CDR_NECESSARY
       })
     ).subscribe();
   }
 
-  stopTimer(): void {
+  public stopTimer(): void {
     this.stopTimer$.next();
   }
 
-  playAgain(): void {
+  public playAgain(): void {
     this.timer.set({ s: 0, ms: 0 });
     this.matchedQT.set(0);
     this.matched.set(null);
-    this.generateMatchCards();
+    this.generatematchCards();
     this.startTimer();
   }
 
-  changeGameMode(mode: GameMode) {
+  public startGame(): void {
+    this.generatematchCards();
+    this.startTimer();
+    this.isStarted = true
+  }
+
+  public changeGameMode(mode: GameMode) {
     switch (mode) {
       case 'default':
         void this.router.navigate(['../'], { relativeTo: this.route });
@@ -194,13 +212,17 @@ export class CardsMatch implements OnInit {
     }
   }
 
+  get title() {
+    return this.currentModule()?.title
+  }
+
   ngOnInit(): void {
     this.cardsState.module$.subscribe(module => {
       if(!module) return 
       this.currentModule.set(module);
 
-      this.generateMatchCards();
-      this.startTimer();
+      // this.generatematchCards();
+      // this.startTimer();
     });
   }
 }

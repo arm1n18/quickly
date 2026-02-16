@@ -12,19 +12,19 @@
          }
        </div>
      </div>
-     <div class="flex w-full h-full gap-4 overflow-hidden pb-11" [ngClass]="{
+     <div class="flex w-full h-full gap-4 overflow-hidden pb-11 max-md:flex-col" [ngClass]="{
           'justify-between': question!.question.text && question!.question.media?.content,
           'justify-center': !question!.question.text && question!.question.media?.content
         }">
 
        @if(question!.question.text) {
          @if(question!.question.text.length > 164) {
-           <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'text-xl'">
+           <p class="overflow-y-auto max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'text-xl'">
              {{ question!.question.text }}
            </p>
            <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
          } @else {
-           <p class="text-xl">
+           <p class="text-xl formatted-text">
              {{ question!.question.text }}
            </p>
          }
@@ -44,12 +44,11 @@
               @if(question!.question.media?.content) {
                 <img 
                   appImageModalDirective
-                  class="media-block sm"
+                  class="media-block sm w-24 h-24"
                   alt="imh"
                   [src]="question!.question.media?.content!"
                   [allowModal]="true"
                   [width]="'96px'"
-                  [height]="'96px'"
                 />
                 <!-- <app-image [image]="" [config]="{width: '96px', height: '96px', allowModal: true}" /> -->
               }
@@ -73,19 +72,19 @@
         </div>
         {{ numeration.pos }} з {{ numeration.from }}
       </div>
-      <div class="flex w-full h-full gap-4 overflow-hidden pb-11" [ngClass]="{
+      <div class="flex w-full h-full gap-4 overflow-hidden pb-11 max-md:flex-col" [ngClass]="{
           'justify-between': question!.answer.text && question!.answer.media?.content,
           'justify-center': !question!.answer.text && question!.answer.media?.content
         }">
 
       @if(question!.answer.text) {
         @if(question!.answer.text.length > 164) {
-          <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.answer.media?.content != undefined ? 'text-lg' : 'text-xl'">
+          <p class="overflow-y-auto max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="question!.answer.media?.content != undefined ? 'text-lg' : 'text-xl'">
             {{ question!.answer.text }}
           </p>
           <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
         } @else {
-          <p class="text-xl">
+          <p class="text-xl formatted-text">
             {{ question!.answer.text }}
           </p>
         }
@@ -101,12 +100,10 @@
             <!-- <div class="bg-cover bg-no-repeat bg-center h-24 w-24 rounded-xl flex-shrink-0 cursor-zoom-in" [style.background-image]="'url(' + question!.answer.media?.content + ')'"></div> -->
             <img 
               appImageModalDirective
-              class="media-block sm"
+              class="media-block sm w-24 h-24"
               alt="imh"
               [src]="question!.answer.media?.content!"
               [allowModal]="true"
-              [width]="'96px'"
-              [height]="'96px'"
             />
           }
         }

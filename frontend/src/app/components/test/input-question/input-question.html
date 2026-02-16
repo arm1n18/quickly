@@ -20,13 +20,13 @@
         @if(question?.question!.text) {
           @if(question!.question.text!.length > 164) {
             <div class="flex flex-col relative">
-              <p class="overflow-y-auto scrollbar max-h-full pb-1 wrap-break-word whitespace-pre-wrap in-shadow-white" [ngClass]="question?.question!.media?.content != undefined ? 'text-lg' : 'title'">
+              <p class="overflow-y-auto scrollbar max-h-full pb-1 formatted-text whitespace-pre-wrap in-shadow-white" [ngClass]="question?.question!.media?.content != undefined ? 'text-lg' : 'title'">
                 {{question?.question!.text}}
               </p>
   <!--            <div class="absolute bottom-0 left-0 w-full h-8 pointer-events-none z-10 in-shadow-white"></div>-->
             </div>
           } @else {
-            <p class="text-xl">
+            <p class="text-xl formatted-text">
               {{question?.question!.text}}
             </p>
           }
@@ -44,12 +44,11 @@
             }@case ("image") {
                 <img 
                   appImageModalDirective
-                  class="media-block sm"
+                  class="media-block sm h-24 w-24"
                   alt="imh"
                   [src]="question!.question.media?.content!"
                   [allowModal]="true"
                   [width]="'96px'"
-                  [height]="'96px'"
                 />
               <!-- <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" /> -->
             }
@@ -86,7 +85,7 @@
 
       @if(question!.question.text) {
         @if(question!.question.text.length > 164) {
-          <p class="overflow-y-auto max-h-full pb-1 wrap-break-word whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'title'">
+          <p class="overflow-y-auto max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'title'">
             {{question!.question.text}}
           </p>
           <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>

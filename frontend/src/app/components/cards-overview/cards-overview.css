@@ -51,4 +51,8 @@
     display: flex;
     flex-direction: column;
   }
+
+  .card-overview-content {
+    grid-template-columns: none;
+  }
 }

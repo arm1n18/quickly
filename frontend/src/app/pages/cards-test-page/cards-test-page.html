@@ -4,14 +4,14 @@
       
       <app-dropdown 
         [list]="dropdownList"
-        [config]="{title: {text: 'Тестування'}, divider: 'line', icon: {
+        [config]="{title: {text: 'Тестування'}, hideOnSmall: true, divider: 'line', icon: {
           name: 'Document',
           color: 'var(--accent)'
         }}" 
         class="game-header-left"
       />
 
-      <div class="justify-self-center flex flex-col items-center text-[var(--dark-accent)]">
+      <div class="game-header-center text-[var(--dark-accent)]">
         <div>{{ showConfig.showAnswers ? getResult.correct.length : getResult.answered }} / {{ testConfig().maxQuestions }}</div>
         <div>{{ module.title }}</div>
       </div>

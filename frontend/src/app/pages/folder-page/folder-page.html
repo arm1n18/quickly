@@ -120,12 +120,14 @@
         } @else {
             <div class="flex flex-col gap-4 items-center mt-24">
                 <h1 class="title text-center">Папка порожня</h1>
-                <span class="text-center">Додайте модулі до папки, щоб переглянути їх.</span>
-                <app-custom-button
-                    (click)="openAddModuleModal()"
-                >
-                    Додати модуль
-                </app-custom-button>
+                @if(isAuthenticated && folder.isOwner) {
+                    <span class="text-center">Додайте модулі до папки, щоб переглянути їх.</span>
+                    <app-custom-button
+                        (click)="openAddModuleModal()"
+                    >
+                        Додати модуль
+                    </app-custom-button>
+                }
             </div>
         }
     }

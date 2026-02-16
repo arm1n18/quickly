@@ -9,7 +9,7 @@
         </div>
 
         @if(!isReceiveCode()) {
-            @if(mode() == 'reset') {
+            @if(mode == 'reset') {
                 <div class="flex flex-col gap-4 flex-1">
                     <div class="flex flex-col gap-2">
                         <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
@@ -77,7 +77,7 @@
 
                     <div class="flex flex-col gap-4 max-md:mt-auto">
                         <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{choosenMode}}</app-custom-button>
-                        @if(mode() == 'register') {
+                        @if(mode == 'register') {
                             <span class="text-sm text-[var(--dark-accent)] mx-auto">
                                 У вас вже є обліковий запис?
                                 <span 
@@ -102,13 +102,13 @@
                         }
 
                         
-                        @if(mode() == 'login') {
+                        @if(mode == 'login') {
                             <!-- SEPARATOR -->
                             <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
                             
                             <span 
                                 class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto"
-                                (click)="mode.set('reset')"
+                                (click)="mode = ('reset')"
                             >
                                 Забули пароль?
                             </span>

@@ -30,6 +30,7 @@ export interface DropdownConfig {
     name: Icons,
     color?: string;
   };
+  hideOnSmall: boolean;
 }
 
 // TODO_AUTO_POSITION
@@ -55,7 +56,8 @@ export class DropdownComponent {
   @Input() config: Partial<DropdownConfig> = {
     divider: 'gap',
     rememberSelection: true,
-    theme: 'hover-only'
+    theme: 'hover-only',
+    hideOnSmall: false,
   };
   @Input() position: Partial<{px: PositionXType, py: PositionYType}> = {
     px: 'left',

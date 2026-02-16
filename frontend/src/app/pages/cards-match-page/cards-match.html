@@ -2,61 +2,69 @@
   <div class="game-header">
     <app-dropdown 
       [list]="dropdownList"
-      [config]="{title: {text: 'Підбір'}, divider: 'line', icon: {
+      [config]="{title: {text: 'Підбір'}, hideOnSmall: true, divider: 'line', icon: {
         name: 'Notes',
         color: 'var(--accent)'
       }}" 
       class="game-header-left"
     />
 
-    <div class="game-header-center">{{ timer().s }},{{ timer().ms }}</div>
+    <div class="game-header-center text-[var(--dark-accent)]">
+        <div>{{ timer().s }},{{ timer().ms }}</div>
+        <div>{{ title }}</div>
+    </div>
     <div class="flex gap-2 game-header-right">
-      <!-- <app-custom-button theme="secondary" rounded="md">
-        Вхід
-      </app-custom-button>
-      <app-custom-button rounded="md">
-        Зареєструватись
-      </app-custom-button> -->
       <app-custom-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
         <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
       </app-custom-button>
     </div>
   </div>
   
-  @if(matchedQT() === MatchCards().length/2){
-  <div class="game-footer">
-    <app-custom-button rounded="md" theme="secondary">
-      Зареєструватись, щоб зберегити відповідь
-    </app-custom-button>
-    <app-custom-button rounded="md" (click)="playAgain()">
-      <app-icon [icon]="'Game'" [size]="24" [fill]="'#FFF'" />
-      Грати знову
-    </app-custom-button>
-  </div>
-  } @else {
-      <div class="cardsMatchWrapper">
-      @for (card of MatchCards(); track card) {
-        <div
-          [ngClass]="{
-            'selected': isSelected(card.id),
-            'hidden': card.match,
-            'matched': matched() && isSelected(card.id),
-            'not-matched': matched() != null && !matched() && isSelected(card.id)
-           }"
-          class="matchCard" (click)="toggleMatchCard(card)"
-        >
-          <div class="matchCard-text">
-            @if(!card.match) {
-              {{ card.content.text }}
-            }
-          </div>
+  @if(isStarted) {
+    @if(matchedQT() == matchCards().length/2){
+      <div class="flex flex-col gap-4 items-center my-auto">
+          <img src="favicon.png" class="size-24" />
+          <h1 class="title font-medium text-center">Чудово! Хочете спробувати ще?</h1>
+          <span class="text-center">
+            Спробуйте пройти гру швидше, ніж за {{ timer().s }}.{{ timer().ms }} секунд.
+          </span>
 
-          @if(card.content.media?.type === 'image') {
-            <div class="z-1 absolute w-full h-full opacity-20 bg-no-repeat bg-cover" [style.background-image]="'url(' + card.content.media!.content + ')'">
+          <app-custom-button (click)="playAgain()">Грати знову</app-custom-button>
+      </div>
+      } @else {
+          <div class="cardsMatchWrapper">
+          @for (card of matchCards(); track card) {
+            <div
+              [ngClass]="{
+                'selected': isSelected(card.id),
+                'hidden': card.match,
+                'matched': matched() && isSelected(card.id),
+                'not-matched': matched() != null && !matched() && isSelected(card.id)
+              }"
+              class="matchCard" (click)="toggleMatchCard(card)"
+            >
+              <div class="matchCard-text formatted-text prevent-select">
+                @if(!card.match) {
+                  {{ card.content.text }}
+                }
+              </div>
+
+              @if(card.content.media?.type === 'image') {
+                <div class="bg-image " [style.background-image]="'url(' + card.content.media!.content + ')'">
+                </div>
+              }
             </div>
           }
         </div>
-      }
-    </div>
-}
+    }
+  } @else {
+     <div class="flex flex-col gap-4 items-center my-auto">
+          <img src="favicon.png" class="size-24" />
+          <h1 class="title font-medium text-center">Розпочати?</h1>
+          <span class="text-center">Поєднайте всі терміни з визначеннями якнайшвидше.</span>
+
+          <app-custom-button (click)="startGame()">Розпочати гру</app-custom-button>
+      </div>
+  }
+  
 </main>
