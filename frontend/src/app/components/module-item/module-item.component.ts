@@ -4,21 +4,22 @@ import { ApiService } from '../../services/api/api.service';
 import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { PortalService } from '../../services/portal/portal';
-import { ConfirmModalComponent, CustomButtonComponent, DropdownComponent, DropdownItem, IconComponent } from '../ui';
-import { UserModule } from '../../interfaces/module.interface';
+import { ConfirmModalComponent, CustomButtonComponent, DropdownComponent, DropdownItem, IconComponent, AvatarComponent } from '../ui';
+import { ModuleSummary, UserModule } from '../../interfaces/module.interface';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-module-item',
-  imports: [AsyncPipe, IconComponent, CustomButtonComponent, DropdownComponent],
+  imports: [AsyncPipe, IconComponent, CustomButtonComponent, DropdownComponent, AvatarComponent],
   templateUrl: './module-item.html',
   styleUrl: './module-item.css',
 })
 
 export class ModuleItemComponent {
-  @Input({required: true}) module: UserModule | null = null;
+  @Input({required: true}) module: ModuleSummary | null = null;
   @Input({required: true}) href: string = '';
+  @Input({required: false}) showAuthor: boolean = false;
   public isLoading: WritableSignal<boolean> = signal(false);
 
   public dropdownList: WritableSignal<DropdownItem[][]> = signal([

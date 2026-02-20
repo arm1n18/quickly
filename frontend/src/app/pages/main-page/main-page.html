@@ -27,7 +27,7 @@
         </div>
     </section>
 
-    <section class="flex justify-between w-full max-w-230 mx-auto items-center gap-8 max-md:flex-col px-3">
+    <section class="flex justify-between w-full max-w-300 mx-auto items-center gap-8 max-md:flex-col px-3">
         <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
             <h2 class="font-medium text-3xl text-[var(--dark-accent)]">
                 Навчайтеся крок за кроком
@@ -44,15 +44,14 @@
                 </p>
             </div>
 
-            <app-custom-button>
-                <!-- <app-icon [icon]="'Search'" [size]="24" [stroke]="'#FFF'" [fill]="'transparent'" /> -->
+            <app-custom-button (click)="findModules()">
                 Переглянути модулі
             </app-custom-button>
         </div>
         <img src="images/cards_1.png" class="max-h-96 max-md:max-h-[412px] md:scale" />
     </section>
 
-    <section class="flex justify-between w-full max-w-230 mx-auto items-center gap-8 max-md:flex-col-reverse px-3">
+    <section class="flex justify-between w-full max-w-300 mx-auto items-center gap-8 max-md:flex-col-reverse px-3">
         <img src="images/match_1.png" class="max-h-96 max-md:max-h-[412px] md:scale" />
 
         <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
@@ -75,7 +74,7 @@
         
     </section>
 
-    <section class="flex justify-between w-full max-w-230 mx-auto items-center gap-8 max-md:flex-col px-3">
+    <section class="flex justify-between w-full max-w-300 mx-auto items-center gap-8 max-md:flex-col px-3">
         <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
             <h2 class="font-medium text-3xl text-[var(--dark-accent)]">
                 Відстежуйте свій прогрес

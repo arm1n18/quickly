@@ -104,10 +104,6 @@ export interface UserModule {
   hasImages: boolean;
 }
 
-export interface UserModulesResponse {
-  modules: UserModule[];
-}
-
 export interface ModuleSummary {
   id: number;
   title: string;
@@ -115,9 +111,11 @@ export interface ModuleSummary {
   author: UserInfo;
   isOwner: boolean;
   isSaved: boolean;
-  keywords: Keyword[];
   objects: number;
-  hasImages: boolean;
+  media: {
+    hasMedia: boolean;
+    thumbnail?: string;
+  }
 }
 
 export interface ModulesSummary {

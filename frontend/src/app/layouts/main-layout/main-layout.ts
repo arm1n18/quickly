@@ -1,4 +1,4 @@
-import { Component, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
 import { AvatarComponent, CustomButtonComponent, CustomInputComponent, DropdownItem, IconComponent, DropdownComponent, ModalComponent, ConfirmModalComponent } from "../../components/ui";
 import { ModuleSummary } from '../../interfaces/module.interface';
 import { ApiService } from '../../services/api/api.service';
@@ -22,12 +22,14 @@ import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 
 
 export class MainLayout {
   @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
+  @Input() isLocalSearch: boolean = true;
   
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
   public showSearchDropdown: boolean = false;
   public isLoading: boolean = false;
 
   private search$ = new Subject<string>();
+  @Output() searchChange = new EventEmitter<string>();
 
   public dropdownList: WritableSignal<DropdownItem[][]> = signal([
     [
@@ -60,7 +62,8 @@ export class MainLayout {
   ) {}
 
   public search(text: string) {
-    this.search$.next(text)
+    this.search$.next(text);
+    if(!this.isLocalSearch) this.searchChange.emit(text)
   }
 
   public navigateToModule(id: number, e: Event) {
@@ -135,7 +138,8 @@ export class MainLayout {
     //   this.toggleAuthModal(true)
     // }
 
-    this.search$
+    if(this.isLocalSearch) {
+      this.search$
       .pipe(
         debounceTime(500),
         distinctUntilChanged(),
@@ -143,7 +147,7 @@ export class MainLayout {
           if(text.trim().length == 0) { 
             return of({ modules: [] }) 
           }  else{
-            return this.api.module.getModuleByName(text);
+            return this.api.module.getModules(text);
           }
         }),
           tap(resp => {
@@ -151,5 +155,6 @@ export class MainLayout {
           })
       )
       .subscribe();
+    }
   }
 }

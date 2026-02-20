@@ -5,6 +5,7 @@ import { Footer } from "../../layouts/footer/footer";
 import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { AuthFormComponent } from '../../components';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-main-page',
@@ -14,8 +15,13 @@ import { AuthFormComponent } from '../../components';
 })
 export class MainPageComponent {
   constructor(
+    private router: Router,
     private portal: PortalService
   ) {}
+
+  public findModules() {
+    this.router.navigate(['/search'])
+  }
 
   public toggleAuthModal(state: boolean, mode: 'register' | 'login') {
     if (state && !this.portal.isAnyOpen()) {

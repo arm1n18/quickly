@@ -115,15 +115,27 @@ func (f *folderRepo) GetFolder(ctx context.Context, userID int, username, slug s
 						'id', m.module_id,
 						'title', m.title,
 						'slug', m.slug,
+						'author', json_build_object('name', u.username, 'avatar', u.avatar),
 						'isOwner', m.user_id = $3,
 						'isSaved', (SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $3 AND module_id = m.module_id)),
 						'objects', (
-							SELECT COUNT(*) FROM modules m WHERE m.module_id = fm.module_id
-						)
+							SELECT COUNT(*) FROM module_cards mc WHERE mc.module_id = m.module_id
+						),
+						'media', json_build_object('hasMedia', m.has_images, 'thumbnail', media.thumbnail)
 						
 					)
 				) as modules
 				FROM modules m
+				LEFT JOIN users u ON u.user_id = m.user_id
+
+				LEFT JOIN LATERAL (
+					SELECT description_media AS thumbnail
+					FROM module_cards
+					WHERE module_id = m.module_id
+					AND description_media IS NOT NULL
+					ORDER BY card_id
+					LIMIT 1
+				) media ON TRUE
 				WHERE m.module_id = fm.module_id AND (NOT m.is_private OR m.user_id = $3)
 			) folders ON TRUE
 			

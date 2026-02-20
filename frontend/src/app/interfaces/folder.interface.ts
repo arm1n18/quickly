@@ -1,4 +1,4 @@
-import { UserModule } from "./module.interface";
+import { ModuleSummary } from "./module.interface";
 import { UserInfo } from "./user.interface";
 
 export interface FolderSummary {
@@ -20,5 +20,5 @@ export interface Folder {
     author: UserInfo;
     isOwner: boolean;
     objects: number;
-    modules: UserModule[];
+    modules: ModuleSummary[];
 }

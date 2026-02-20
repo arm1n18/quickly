@@ -4,7 +4,6 @@ import {CardsMatch, CardsPage} from './pages';
 import {CardsTestPage} from './pages/cards-test-page/cards-test-page.component';
 import { CardsPrintPage } from './pages/cards-print-page/cards-print-page.component';
 import { FlashcardsPage } from './pages/flashcards-page/flashcards-page.component';
-import { SelectMissingWordsPage } from './pages/select-missing-words-page/select-missing-words-page.component';
 import { UserProfile } from './pages/user-profile/user-profile.component';
 import { UserModulesComponent } from './components/user-modules-component/user-modules.component';
 import { UserFoldersComponent } from './components/user-folders-component/user-folders.component';
@@ -16,11 +15,27 @@ import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-pa
 import { MainPageComponent } from './pages/main-page/main-page.component';
 import { AuthGuard } from './services/authGuard/auth-guard';
 import { IdeasPageComponent } from './pages/ideas-page/ideas-page.component';
+import { TestInfoPageComponent } from './pages/test-info-page/test-info-page.component';
+import { ModuleInfoPageComponent } from './pages/module-info-page/module-info-page.component';
+import { SearchPageComponent } from './pages/search-page/search-page.component';
 
 export const routes: Routes = [
   {
     path: '',
     component: MainPageComponent
+  },
+  {
+    path: 'features',
+    children: [
+      {
+        path: 'test',
+        component: TestInfoPageComponent
+      },
+      {
+        path: 'cards',
+        component: ModuleInfoPageComponent
+      },
+    ]
   },
   {
     path: 'user/:username',
@@ -54,6 +69,10 @@ export const routes: Routes = [
     path: 'module/:id/update',
     component: UpdateModulePage,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'search',
+    component: SearchPageComponent,
   },
   {
     path: 'module/:id',

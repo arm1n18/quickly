@@ -20,7 +20,7 @@
 
 .header-center {
     width: 100%;
-    max-width: 50rem;
+    max-width: calc(50rem - 24px);
     justify-self: center;
 }
 

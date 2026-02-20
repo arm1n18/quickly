@@ -39,26 +39,20 @@ type Module struct {
 	IsSaved     bool      `json:"isSaved"`
 }
 
-type ModuleSummary struct {
-	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Slug      string    `json:"slug"`
-	Author    Author    `json:"author"`
-	Keywords  []Keyword `json:"keywords"`
-	Objects   int       `json:"objects"`
-	HasImages bool      `json:"hasImages"`
-	IsOwner   bool      `json:"isOwner"`
-	IsSaved   bool      `json:"isSaved"`
+type Media struct {
+	HasMedia  bool    `json:"hasMedia"`
+	Thumbnail *string `json:"thumbnail"`
 }
 
-type UserModule struct {
-	ID        int    `json:"id"`
-	Title     string `json:"title"`
-	Slug      string `json:"slug"`
-	Objects   int    `json:"objects"`
-	HasImages bool   `json:"hasImages"`
-	IsOwner   bool   `json:"isOwner"`
-	IsSaved   bool   `json:"isSaved"`
+type ModuleSummary struct {
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Slug    string `json:"slug"`
+	Author  Author `json:"author"`
+	Objects int    `json:"objects"`
+	Media   Media  `json:"media"`
+	IsOwner bool   `json:"isOwner"`
+	IsSaved bool   `json:"isSaved"`
 }
 
 type CreateCard struct {
@@ -68,10 +62,6 @@ type CreateCard struct {
 
 type ModulesSummaryResponse struct {
 	Modules []ModuleSummary `json:"modules"`
-}
-
-type UserModulesResponse struct {
-	Modules []UserModule `json:"modules"`
 }
 
 type CreateModuleRequest struct {

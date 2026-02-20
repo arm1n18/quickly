@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UserInfo } from '../../interfaces/user.interface';
 import { BehaviorSubject } from 'rxjs';
-import { UserModule } from '../../interfaces/module.interface';
+import { ModuleSummary, UserModule } from '../../interfaces/module.interface';
 import { FolderSummary } from '../../interfaces/folder.interface';
 
 @Injectable({
@@ -21,14 +21,14 @@ export class ProfileStateService {
     return this._user$.value[key];
   }
 
-  private _modules$ = new BehaviorSubject<UserModule[]>([]);
+  private _modules$ = new BehaviorSubject<ModuleSummary[]>([]);
   public modules$ = this._modules$.asObservable();
 
-  public addModules(modules: UserModule[]) {
+  public addModules(modules: ModuleSummary[]) {
     this._modules$.next([...this._modules$.value, ...modules]);
   }
 
-  public setModules(modules: UserModule[]) {
+  public setModules(modules: ModuleSummary[]) {
     this._modules$.next(modules);
   }
 

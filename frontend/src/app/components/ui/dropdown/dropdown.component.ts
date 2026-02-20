@@ -6,21 +6,22 @@ import { DropdownService } from '../../../services/dropdownService/dropdown-serv
 
 export interface DropdownItem {
   title: {
-    text: string,
+    text: string;
     color?: string;
   };
-  onClick?: () => void;
   icon?: {
     name: Icons,
     color?: string;
   };
   disabled?: boolean;
   preselected?: boolean;
+  onClick?: () => void;
 }
 
 export interface DropdownConfig {
   title: {
-    text: string,
+    text: string;
+    label?: string;
     color?: string;
   };
   divider: DividerType;
@@ -31,6 +32,7 @@ export interface DropdownConfig {
     color?: string;
   };
   hideOnSmall: boolean;
+  fullWidth: boolean;
 }
 
 // TODO_AUTO_POSITION

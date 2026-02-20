@@ -20,18 +20,23 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	svc := service.NewModuleService(psql)
 	authsvc := service.NewAuthService(psql, redis, ekey, jwtkey, nil)
 
-	//yes
 	router.Get("/search", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
-		title := c.Query("title")
 		lastId, err := strconv.Atoi(c.Query("lastId"))
 		if err != nil {
 			lastId = 0
 		}
 
-		resp, err := svc.FindModulesByTitle(c.Context(), utils.GetUserId(c), title, lastId)
+		query := module.FindMoulesQuery{
+			Title:    c.Query("title"),
+			Keywords: strings.Split(c.Query("keywords"), ","),
+			Limit:    c.Query("limit"),
+			LastId:   lastId,
+		}
+
+		resp, err := svc.FindModules(c.Context(), utils.GetUserId(c), query)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
+				"error": err.Error(),
 			})
 		}
 
@@ -41,27 +46,30 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
+	// })
 
-	router.Get("/search-by-keywords", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
-		keywords := strings.Split(c.Query("keywords"), ",")
-
-		resp, err := svc.FindModulesByKeywords(c.Context(), utils.GetUserId(c), keywords)
+	router.Get("/keywords", func(c *fiber.Ctx) error {
+		resp, err := svc.GetKeywords(c.Context(), c.Query("title"))
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
+				"error": err.Error(),
 			})
 		}
 
-		if resp == nil {
-			resp = &model.ModulesSummaryResponse{
-				Modules: []model.ModuleSummary{},
-			}
-		}
-
-		return c.Status(fiber.StatusOK).JSON(resp)
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"keywords": resp})
 	})
 
-	//change route
+	router.Get("/keywords/:slug", func(c *fiber.Ctx) error {
+		resp, err := svc.GetKeywordsBySlug(c.Context(), strings.Split(c.Params("slug"), ","))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"keywords": resp})
+	})
+
 	router.Get("/user/:username", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		username := c.Params("username")
 		name := c.Query("title")
@@ -78,8 +86,8 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		}
 
 		if resp == nil {
-			resp = &model.UserModulesResponse{
-				Modules: []model.UserModule{},
+			resp = &model.ModulesSummaryResponse{
+				Modules: []model.ModuleSummary{},
 			}
 		}
 
@@ -101,15 +109,14 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		}
 
 		if resp == nil {
-			resp = &model.UserModulesResponse{
-				Modules: []model.UserModule{},
+			resp = &model.ModulesSummaryResponse{
+				Modules: []model.ModuleSummary{},
 			}
 		}
 
 		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
-	//yes
 	router.Get("/:id", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		id, ok := strconv.Atoi(c.Params("id"))
 		if ok != nil {
@@ -126,7 +133,6 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"module": resp})
 	})
 
-	//yes
 	router.Put("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
@@ -155,7 +161,6 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.SendStatus(fiber.StatusOK)
 	})
 
-	//yes
 	router.Patch("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
@@ -202,7 +207,6 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		return c.SendStatus(fiber.StatusOK)
 	})
 
-	//yes
 	router.Post("/", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		body := model.CreateModuleRequest{}
 

@@ -48,63 +48,78 @@
         @if((folder.modules || []).length > 0) {
             @for(module of folder.modules; track module) {
                 <div class="item" (click)="openModule(`/module/${module.id}`)">
-                    <div class="flex gap-4 items-center">
-                        <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
-    
-                        <div class="flex gap-2 items-center text-sm">
-                            <div class="flex flex-col">
-                                <span>{{`Модулів: ${module.objects}`}}</span>
-                                <span>{{module.title}}</span>
+                    <div class="flex justify-between w-full">
+                        <div class="header">
+                            <div class="flex gap-4">
+                                @if(module.media.hasMedia && module.media.thumbnail) {
+                                    <img [src]="module.media.thumbnail" class="size-10 object-cover rounded-xl" />
+                                }@else {
+                                    <div class="flex p-2 h-fit w-fit rounded-xl bg-[var(--hover-secondary)]">
+                                        <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+                                    </div>
+                                }
+
+                                <div class="flex flex-col text-sm">
+                                    <span class="font-medium line-clamp-2">{{module.title}}</span>
+                                    <!-- <div class="flex justify-center px-2 py-1 bg-[var(--hover-secondary)] rounded-xl">
+                                        <span>{{`Карток: ${module.objects}`}}</span>
+                                    </div> -->
+                                    <span>{{`Карток: ${module.objects}`}}</span>
+                                </div>
                             </div>
-                            @if(module.hasImages) {
-                                <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
-                            }
                         </div>
+
+                        @if(true) {
+                            <div class="flex gap-4">
+                                <app-custom-button 
+                                    [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
+                                    [size]="'symbol'"
+                                    [disabled]="isLoading()"
+                                    (click)="toggleSaveModule($event, $index)"
+                                >
+                                    <app-icon 
+                                        [icon]="'Bookmark'" 
+                                        [size]="24"
+                                    /> 
+                                </app-custom-button>
+            
+                                @if(folder.isOwner) {
+                                    <app-dropdown 
+                                        [list]="dropdownListModule()"
+                                        [config]="{
+                                            rememberSelection: false,
+                                            divider: 'line',
+                                        }"
+                                        [position]="{
+                                            px: 'right',
+                                            py: 'bottom'
+                                        }"
+                                        class="game-header-left"
+                                    >
+                                        <app-custom-button btn 
+                                            theme="hover-only-dark" 
+                                            [size]="'symbol'"
+                                            [disabled]="isLoading()"
+                                            (click)="selectedModule = $index"
+                                        >
+                                            <app-icon
+                                                [icon]="'MenuDots'"
+                                                [size]="24"
+                                                
+                                            />
+                                        </app-custom-button>
+                                    </app-dropdown>
+                                }
+                            </div>
+                        }
+
+                        
                     </div>
                     
-                    @if(isAuthenticated | async) {
-                        <div class="flex gap-4">
-                            <app-custom-button 
-                                [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
-                                [size]="'symbol'"
-                                [disabled]="isLoading()"
-                                (click)="toggleSaveModule($event, $index)"
-                            >
-                                <app-icon 
-                                    [icon]="'Bookmark'" 
-                                    [size]="24"
-                                /> 
-                            </app-custom-button>
-        
-                            @if(folder.isOwner) {
-                                <app-dropdown 
-                                    [list]="dropdownListModule()"
-                                    [config]="{
-                                        rememberSelection: false,
-                                        divider: 'line',
-                                    }"
-                                    [position]="{
-                                        px: 'right',
-                                        py: 'bottom'
-                                    }"
-                                    class="game-header-left"
-                                >
-                                    <app-custom-button btn 
-                                        theme="hover-only-dark" 
-                                        [size]="'symbol'"
-                                        [disabled]="isLoading()"
-                                        (click)="selectedModule = $index"
-                                    >
-                                        <app-icon
-                                            [icon]="'MenuDots'"
-                                            [size]="24"
-                                            
-                                        />
-                                    </app-custom-button>
-                                </app-dropdown>
-                            }
-                        </div>
-                    }
+                    <div class="flex gap-4">
+                        <app-avatar [name]="module.author.name" [size]="'sm'" />
+                        <span class="text-sm">{{module.author.name}}</span>
+                    </div>
                 </div>
             }
 
@@ -185,7 +200,7 @@
                                         <span>{{`Модулів: ${module.objects}`}}</span>
                                         <span>{{module.title}}</span>
                                     </div>
-                                    @if(module.hasImages) {
+                                    @if(module.media.hasMedia) {
                                         <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
                                     }
                                 </div>
@@ -223,10 +238,10 @@
 
                             <div class="flex gap-2 items-center text-sm">
                                 <div class="flex flex-col">
-                                    <span>{{`Модулів: ${module.objects}`}}</span>
+                                    <span>{{`Карток: ${module.objects}`}}</span>
                                     <span>{{module.title}}</span>
                                 </div>
-                                @if(module.hasImages) {
+                                @if(module.media.hasMedia) {
                                     <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
                                 }
                             </div>

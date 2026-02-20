@@ -8,12 +8,12 @@ import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe, NgClass } from '@angular/common';
-import { UserModule } from '../../interfaces/module.interface';
+import { ModuleSummary } from '../../interfaces/module.interface';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { Segment } from '../../components/ui/segmented-controls/segmented-controls.component';
 
 @Component({
-  imports: [AsyncPipe, MainLayout, IconComponent, AvatarComponent,
+  imports: [MainLayout, IconComponent, AvatarComponent,
     DropdownComponent,
     CustomButtonComponent, CustomInputComponent,
     ReactiveFormsModule, NgClass, SegmentedControlsComponent],
@@ -35,8 +35,8 @@ export class FolderPage implements OnInit {
 
   public folder: WritableSignal<Folder | null> = signal(null);
 
-  public userModules: WritableSignal<UserModule[] | null> = signal(null);
-  public userSavedModules: WritableSignal<UserModule[] | null> = signal(null);
+  public userModules: WritableSignal<ModuleSummary[] | null> = signal(null);
+  public userSavedModules: WritableSignal<ModuleSummary[] | null> = signal(null);
 
   public isLoading: WritableSignal<boolean> = signal(false);
   public selectedModule: number = -1;
@@ -305,7 +305,7 @@ export class FolderPage implements OnInit {
     this.router.navigate(['/module/create'])
   }
 
-  public toggleModuleToFolder(module: UserModule) {
+  public toggleModuleToFolder(module: ModuleSummary) {
     if(this.isLoading() || !this.folder()) return
 
     const newFolder = {...this.folder()} as Folder

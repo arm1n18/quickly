@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, QueryList, signal, ViewChildren, WritableSignal } from '@angular/core';
 import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
-import { UserModule } from '../../interfaces/module.interface';
+import { ModuleSummary, UserModule } from '../../interfaces/module.interface';
 import { ModuleItemComponent } from "../module-item/module-item.component";
 import { ApiService } from '../../services/api/api.service';
 import { ActivatedRoute } from '@angular/router';
@@ -16,7 +16,7 @@ import { debounceTime, distinctUntilChanged, Subject, switchMap, tap } from 'rxj
 
 export class UserModulesComponent implements OnInit, AfterViewInit {
   @ViewChildren('item') items!: QueryList<ElementRef<HTMLElement>>;
-  public modules: WritableSignal<UserModule[]> = signal([]);
+  public modules: WritableSignal<ModuleSummary[]> = signal([]);
   public isLoading: WritableSignal<boolean> = signal(false);
   public hasMore: WritableSignal<boolean> = signal(true);
   public username: WritableSignal<string> = signal("");
@@ -60,7 +60,15 @@ export class UserModulesComponent implements OnInit, AfterViewInit {
     });
 
 
-    this.store.modules$.subscribe(modules => this.modules.set(modules));
+    this.store.modules$.subscribe(modules => this.modules.set(modules.map(module => {
+      return {
+        ...module,
+        author: {
+          avatar: '',
+          name: '',
+        }
+      }
+    })));
 
     if (this.modules().length === 0) {
       this.loadModules();

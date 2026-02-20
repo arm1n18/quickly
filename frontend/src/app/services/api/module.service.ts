@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Module, ModulesSummary, UserModulesResponse } from '../../interfaces/module.interface';
+import { Module, ModulesSummary } from '../../interfaces/module.interface';
+import { Keyword } from '../../components/ui/keywords-input/keywords-input.component';
 
 @Injectable({
   providedIn: 'root',
@@ -16,28 +17,36 @@ export class ModuleService {
     return this.http.get<{module: Module}>(`${this.apiRoute}/${id}`)
   }
 
-  public getModuleByName(title: string): Observable<ModulesSummary> {
-    return this.http.get<ModulesSummary>(`${this.apiRoute}/search?title=${title}`)
+  public getModules(title?: string, keywords?: string[], limit?: string, lastId?: number): Observable<ModulesSummary> {
+    const p = new URLSearchParams();
+    if(title) p.append("title", title)
+    if(limit) p.append("limit", limit)
+    if(keywords) p.append("keywords", keywords.join(','))
+    if(lastId) p.append("lastId", String(lastId))
+
+    const query = p.toString() ? `?${p.toString()}` : '';
+
+    return this.http.get<ModulesSummary>(`${this.apiRoute}/search${query}`)
   }
 
-  public getUserModules(username: string, title?: string, lastId?: number): Observable<UserModulesResponse> {
+  public getUserModules(username: string, title?: string, lastId?: number): Observable<ModulesSummary> {
     const p = new URLSearchParams();
     if(title) p.append("title", title)
     if(lastId) p.append("lastId", String(lastId))
 
     const query = p.toString() ? `?${p.toString()}` : '';
     
-    return this.http.get<UserModulesResponse>(`${this.apiRoute}/user/${username}${query}`)
+    return this.http.get<ModulesSummary>(`${this.apiRoute}/user/${username}${query}`)
   }
 
-  public getUserSavedModules(title?: string, lastId?: number): Observable<UserModulesResponse> {
+  public getUserSavedModules(title?: string, lastId?: number): Observable<ModulesSummary> {
     const p = new URLSearchParams();
     if(title) p.append("title", title)
     if(lastId) p.append("lastId", String(lastId))
 
     const query = p.toString() ? `?${p.toString()}` : '';
     
-    return this.http.get<UserModulesResponse>(`${this.apiRoute}/saved${query}`)
+    return this.http.get<ModulesSummary>(`${this.apiRoute}/saved${query}`)
   }
 
   public postModule(module: any): Observable<{id: number}> {
@@ -62,5 +71,18 @@ export class ModuleService {
 
   public unsaveModule(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiRoute}/${id}/save`, { responseType: 'text' as 'json' })
+  }
+
+  public findKeywords(title?: string): Observable<{keywords: Keyword[]}> {
+    const p = new URLSearchParams();
+    if(title) p.append("title", title)
+
+    const query = p.toString() ? `?${p.toString()}` : '';
+
+    return this.http.get<{keywords: Keyword[]}>(`${this.apiRoute}/keywords${query}`)
+  }
+
+  public getKeywordsBySlug(keywords: string[]): Observable<{keywords: Keyword[]}> {
+    return this.http.get<{keywords: Keyword[]}>(`${this.apiRoute}/keywords/${keywords.join(',')}`)
   }
 }

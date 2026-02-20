@@ -1,11 +1,11 @@
 :host {
     display: flex;
+    flex-direction: column;
+    gap: 2rem;
     padding: 1rem;
-    /* gap: 1rem; */
     border: 2px solid var(--secondary);
     border-radius: 1rem;
     background-color: var(--lightGrey);
-    align-items: center;
     cursor: pointer;
     width: 100%;
     justify-content: space-between;
@@ -14,4 +14,11 @@
 
 :host:hover {
     border: 2px solid var(--hover-secondary);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
 }

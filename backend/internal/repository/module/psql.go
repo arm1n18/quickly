@@ -17,12 +17,21 @@ type Query struct {
 	LastId int
 }
 
+type FindMoulesQuery struct {
+	Title    string
+	Keywords []string
+	Limit    string
+	LastId   int
+}
+
 type ModuleRepository interface {
 	GetByID(ctx context.Context, userID, id int) (*model.Module, *model.ErrorResponse)
-	FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error)
-	FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error)
-	ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.UserModulesResponse, error)
-	ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.UserModulesResponse, error)
+	Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, error)
+
+	// FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error)
+	// FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error)
+	ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, error)
+	ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, error)
 
 	CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
 	UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) error
@@ -32,6 +41,8 @@ type ModuleRepository interface {
 	SaveModule(ctx context.Context, userID int, moduleID int) error
 	UnsaveModule(ctx context.Context, userID int, moduleID int) error
 
+	FindKeywords(ctx context.Context, title string) ([]model.Keyword, error)
+	FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, error)
 	InsertKeywords(ctx context.Context, keywords []string) error
 }
 
@@ -127,91 +138,8 @@ func (m *moduleRepo) GetByID(ctx context.Context, userID, id int) (*model.Module
 	return &module, nil
 }
 
-func (m *moduleRepo) FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error) {
-	conn, err := m.psql.Acquire(ctx)
-	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
-	}
-	defer conn.Release()
+func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, error) {
 
-	args := []interface{}{title}
-
-	query := `SELECT
-		m.module_id as id,
-		m.title,
-		m.slug,
-		m.has_images,
-		json_build_object('name', u.username, 'avatar', u.avatar) AS author,
-		m.user_id = $2 as is_owner,
-		kw.keywords,
-		mc.objects
-	FROM modules m
-		LEFT JOIN users u ON u.user_id = m.user_id
-
-		LEFT JOIN LATERAL (
-			SELECT COUNT(*) as objects
-			FROM module_cards mc 
-			WHERE mc.module_id = m.module_id
-		) mc ON TRUE
-
-		LEFT JOIN LATERAL (
-			SELECT
-				json_agg(json_build_object('name', kt.name, 'slug', kw.kw_slug)) AS keywords
-			FROM
-				module_keywords mk
-				JOIN keywords kw ON kw.kw_id = mk.kw_id
-				JOIN keyword_translations kt ON  kt.kw_id = kw.kw_id
-			WHERE
-				mk.module_id = m.module_id
-				AND kt.lang IN ('ua', 'universal')
-		) kw ON TRUE
-	WHERE
-		m.title ILIKE '%' || $1 || '%'
-		AND (NOT m.is_private OR m.user_id = $2)
-	`
-
-	if lastId > 0 {
-		query += ` AND m.module_id > $2`
-		args = append(args, lastId)
-	}
-
-	query += ` LIMIT 10`
-
-	args = append(args, userID)
-
-	modules := []model.ModuleSummary{}
-
-	rows, err := conn.Query(ctx, query, args...)
-	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
-	}
-
-	for rows.Next() {
-		module := model.ModuleSummary{}
-
-		if err := rows.Scan(
-			&module.ID,
-			&module.Title,
-			&module.Slug,
-			&module.HasImages,
-			&module.Author,
-			&module.IsOwner,
-			&module.Keywords,
-			&module.Objects,
-		); err != nil {
-			log.Printf("error scanning row: %v\n", err)
-			return nil, err
-		}
-
-		modules = append(modules, module)
-	}
-
-	return &model.ModulesSummaryResponse{Modules: modules}, nil
-}
-
-func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -221,22 +149,42 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 
 	var ids []int
 
-	queryModulesIds := `SELECT
-		json_agg(module_id)
+	queryIDs := `SELECT
+		array_agg(module_id)
 	FROM (
 		SELECT m.module_id
 		FROM modules m
 			JOIN module_keywords mk ON mk.module_id = m.module_id
 			JOIN keywords k ON k.kw_id = mk.kw_id
+
+			LEFT JOIN LATERAL (
+				SELECT COUNT(*) as objects
+				FROM module_cards mc 
+				WHERE mc.module_id = m.module_id
+			) mc ON TRUE
 		WHERE
-			k.kw_slug = ANY($1)
-			AND (NOT m.is_private OR m.user_id = $2)
-			GROUP BY m.module_id
-			HAVING COUNT (DISTINCT k.kw_slug) = array_length($1, 1)
-		LIMIT 10
+			($3::text[] IS NULL OR k.kw_slug = ANY($3::text[]))
+			AND m.title ILIKE '%' || $2 || '%'
+			AND (NOT m.is_private OR m.user_id = $1)
+			AND m.module_id > $4
+	`
+
+	if query.Limit != "" {
+		switch query.Limit {
+		case "lessThanTwenty":
+			queryIDs += `AND mc.objects < 20`
+		case "twentyToFifty":
+			queryIDs += `AND mc.objects >= 20 AND mc.objects < 50`
+		case "moreThanFifty":
+			queryIDs += `AND mc.objects >= 50`
+		}
+	}
+
+	queryIDs += ` GROUP BY m.module_id
+		LIMIT 12
 	)`
 
-	err = conn.QueryRow(ctx, queryModulesIds, keywords, userID).Scan(&ids)
+	err = conn.QueryRow(ctx, queryIDs, userID, query.Title, query.Keywords, query.LastId).Scan(&ids)
 	if err != nil {
 		log.Printf("error query modules: %v\n", err)
 		return nil, err
@@ -246,14 +194,24 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 		m.module_id as id,
 		m.title,
 		m.slug,
-		m.has_images,
+		json_build_object('hasMedia', m.has_images, 'thumbnail', media.thumbnail) AS media,
 		json_build_object('name', u.username, 'avatar', u.avatar) AS author,
 		m.user_id = $2 as is_owner,
 		(SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $2 AND module_id = $1)) as is_saved,
-		kw.keywords,
 		mc.objects
 	FROM modules m
 		LEFT JOIN users u ON u.user_id = m.user_id
+
+		LEFT JOIN LATERAL (
+			SELECT description_media AS thumbnail
+			FROM module_cards
+			WHERE 
+				module_id = m.module_id
+				AND description_media IS NOT NULL
+			ORDER BY card_id
+			LIMIT 1
+		) media ON TRUE
+
 
 		LEFT JOIN LATERAL (
 			SELECT COUNT(*) as objects
@@ -261,17 +219,6 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 			WHERE mc.module_id = m.module_id
 		) mc ON TRUE
 
-		LEFT JOIN LATERAL (
-			SELECT
-				json_agg(json_build_object('name', kt.name, 'slug', kw.kw_slug)) AS keywords
-			FROM
-				module_keywords mk
-				JOIN keywords kw ON kw.kw_id = mk.kw_id
-				JOIN keyword_translations kt ON  kt.kw_id = kw.kw_id
-			WHERE
-				mk.module_id = m.module_id
-				AND kt.lang IN ('ua', 'universal')
-		) kw ON TRUE
 	WHERE
 		m.module_id = $1
 	`
@@ -285,11 +232,10 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 			&module.ID,
 			&module.Title,
 			&module.Slug,
-			&module.HasImages,
+			&module.Media,
 			&module.Author,
 			&module.IsOwner,
 			&module.IsSaved,
-			&module.Keywords,
 			&module.Objects,
 		); err != nil {
 			log.Printf("error query module: %v\n", err)
@@ -302,7 +248,7 @@ func (m *moduleRepo) FindByKeywords(ctx context.Context, userID int, keywords []
 	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.UserModulesResponse, error) {
+func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -319,10 +265,20 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 		m.slug,
 		m.user_id = $2 as is_owner,
 		(SELECT EXISTS(SELECT 1 FROM user_saved_modules WHERE user_id = $2 AND module_id = m.module_id)) as is_saved,
-		m.has_images,
+		json_build_object('hasMedia', m.has_images, 'thumbnail', media.thumbnail) AS media,
 		mc.objects
 	FROM modules m
 		JOIN users u ON u.user_id = m.user_id
+
+		LEFT JOIN LATERAL (
+			SELECT description_media AS thumbnail
+			FROM module_cards
+			WHERE 
+				module_id = m.module_id
+				AND description_media IS NOT NULL
+			ORDER BY card_id
+			LIMIT 1
+		) media ON TRUE
 
 		LEFT JOIN LATERAL (
 			SELECT COUNT(*) as objects
@@ -348,7 +304,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 
 	query += ` ORDER BY m.module_id LIMIT 10`
 
-	modules := []model.UserModule{}
+	modules := []model.ModuleSummary{}
 
 	rows, err := conn.Query(ctx, query, args...)
 	if err != nil {
@@ -357,7 +313,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 	}
 
 	for rows.Next() {
-		module := model.UserModule{}
+		module := model.ModuleSummary{}
 
 		if err := rows.Scan(
 			&module.ID,
@@ -365,7 +321,7 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 			&module.Slug,
 			&module.IsOwner,
 			&module.IsSaved,
-			&module.HasImages,
+			&module.Media,
 			&module.Objects,
 		); err != nil {
 			log.Printf("error scanning row: %v\n", err)
@@ -375,10 +331,10 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 		modules = append(modules, module)
 	}
 
-	return &model.UserModulesResponse{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.UserModulesResponse, error) {
+func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, error) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
 		log.Printf("unable to acquire connection: %v\n", err)
@@ -394,11 +350,23 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 			m.title,
 			m.slug,
 			m.user_id = $1 as is_owner,
-			m.has_images,
+			json_build_object('hasMedia', m.has_images, 'thumbnail', media.thumbnail) AS media,
 			mc.objects
 		FROM user_saved_modules usv
 		JOIN modules m ON m.module_id = usv.module_id
+
 		JOIN users u ON u.user_id = m.user_id
+
+		LEFT JOIN LATERAL (
+			SELECT description_media AS thumbnail
+			FROM module_cards
+			WHERE 
+				module_id = m.module_id
+				AND description_media IS NOT NULL
+			ORDER BY card_id
+			LIMIT 1
+		) media ON TRUE
+
 		LEFT JOIN LATERAL (
 			SELECT COUNT(*) as objects
 			FROM module_cards mc 
@@ -422,7 +390,7 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 
 	query += `  LIMIT 10`
 
-	modules := []model.UserModule{}
+	modules := []model.ModuleSummary{}
 
 	rows, err := conn.Query(ctx, query, args...)
 	if err != nil {
@@ -431,14 +399,14 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 	}
 
 	for rows.Next() {
-		module := model.UserModule{}
+		module := model.ModuleSummary{}
 
 		if err := rows.Scan(
 			&module.ID,
 			&module.Title,
 			&module.Slug,
 			&module.IsOwner,
-			&module.HasImages,
+			&module.Media,
 			&module.Objects,
 		); err != nil {
 			log.Printf("error scanning row: %v\n", err)
@@ -450,7 +418,7 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 		modules = append(modules, module)
 	}
 
-	return &model.UserModulesResponse{Modules: modules}, nil
+	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
 func (m *moduleRepo) CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
@@ -718,6 +686,91 @@ func (m *moduleRepo) UpdateModuleCard(ctx context.Context, userID int, card mode
 	}
 
 	return nil
+}
+
+func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Keyword, error) {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return nil, protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	query := `SELECT
+		kt.name, kw.kw_slug
+		FROM keyword_translations kt
+			JOIN keywords kw ON kw.kw_id = kt.kw_id
+		WHERE
+			kt.name ILIKE '%' || $1 || '%' 
+			AND kt.lang IN ('ua', 'universal')
+			LIMIT 10
+		`
+
+	keywords := []model.Keyword{}
+
+	rows, err := conn.Query(ctx, query, title)
+	if err != nil {
+		log.Printf("error query modules: %v\n", err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		keyword := model.Keyword{}
+
+		if err := rows.Scan(
+			&keyword.Name,
+			&keyword.Slug,
+		); err != nil {
+			log.Printf("error scanning row: %v\n", err)
+			return nil, err
+		}
+
+		keywords = append(keywords, keyword)
+	}
+
+	return keywords, nil
+}
+
+func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, error) {
+	conn, err := m.psql.Acquire(ctx)
+	if err != nil {
+		log.Printf("unable to acquire connection: %v\n", err)
+		return nil, protocol.ErrInternal
+	}
+	defer conn.Release()
+
+	query := `SELECT
+		kt.name, kw.kw_slug
+		FROM keywords kw
+			JOIN keyword_translations kt ON kt.kw_id = kw.kw_id
+		WHERE
+			kw.kw_slug = ANY($1)
+			AND kt.lang IN ('ua', 'universal')
+		`
+
+	keywords := []model.Keyword{}
+
+	rows, err := conn.Query(ctx, query, slugs)
+	if err != nil {
+		log.Printf("error query modules: %v\n", err)
+		return nil, err
+	}
+
+	for rows.Next() {
+		keyword := model.Keyword{}
+
+		if err := rows.Scan(
+			&keyword.Name,
+			&keyword.Slug,
+		); err != nil {
+			log.Printf("error scanning row: %v\n", err)
+			return nil, err
+		}
+
+		keywords = append(keywords, keyword)
+	}
+
+	return keywords, nil
 }
 
 func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) error {

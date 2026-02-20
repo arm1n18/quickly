@@ -20,7 +20,7 @@ export class CardsRootPage implements OnInit {
     private cardsState: CardsState,
     private route: ActivatedRoute,
     private router: Router,
-    private apiService: ApiService
+    private api: ApiService
   ) {}
 
   ngOnInit() {
@@ -30,7 +30,7 @@ export class CardsRootPage implements OnInit {
 
       const id = Number(idStr);
 
-      this.apiService.module.getModule(id)
+      this.api.module.getModule(id)
         .subscribe({
         next: resp => {
             this.cardsState.setModule(resp.module)
