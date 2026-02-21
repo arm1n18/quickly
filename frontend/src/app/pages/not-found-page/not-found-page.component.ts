@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 
 @Component({
   selector: 'app-not-found-page',
-  imports: [MainLayout],
+  imports: [MainLayoutComponent],
   templateUrl: './not-found-page.html',
   styleUrl: './not-found-page.css',
 })

@@ -8,8 +8,10 @@
             class="w-full"
             [title]="'Пошук'"
             [icon]="{show: true}"
+            [allowClear]="true"
             (inputChange)="search($event)"
             (inputFocused)="showSearchDropdown = $event"
+            [onSubmit]="navigateToSearch.bind(this)"
         />
 
         @if(showSearchDropdown && modules().length > 0) {

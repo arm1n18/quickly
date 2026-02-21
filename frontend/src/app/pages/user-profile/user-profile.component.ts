@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, WritableSignal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from "@angular/router";
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { ApiService } from '../../services/api/api.service';
 import { UserInfo } from '../../interfaces/user.interface';
 import { ProfileStateService } from '../../services/profileStateService/profile-state.service';
@@ -12,7 +12,7 @@ import { Footer } from "../../layouts/footer/footer";
 
 @Component({
   selector: 'app-user-profile',
-  imports: [AsyncPipe, AvatarComponent, MainLayout, SegmentedControlsComponent, RouterOutlet, Footer],
+  imports: [AsyncPipe, AvatarComponent, MainLayoutComponent, SegmentedControlsComponent, RouterOutlet, Footer],
   templateUrl: './user-profile.html',
   styleUrl: './user-profile.css',
 })

@@ -10,7 +10,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { AuthFormComponent } from '../../components';
 import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserAvatarComponent } from "../../components/user-avatar/user-avatar.component";
-import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-main-layout',
@@ -20,7 +20,7 @@ import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 
   styleUrl: './main-layout.css',
 })
 
-export class MainLayout {
+export class MainLayoutComponent {
   @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
   @Input() isLocalSearch: boolean = true;
   
@@ -28,7 +28,7 @@ export class MainLayout {
   public showSearchDropdown: boolean = false;
   public isLoading: boolean = false;
 
-  private search$ = new Subject<string>();
+  private search$ = new BehaviorSubject<string>('');
   @Output() searchChange = new EventEmitter<string>();
 
   public dropdownList: WritableSignal<DropdownItem[][]> = signal([
@@ -70,6 +70,20 @@ export class MainLayout {
     e.stopPropagation()
     this.router.navigate([`/module/${id}`])
     this.showSearchDropdown = false
+  }
+
+  public navigateToSearch() {
+    const value = this.search$.value.trim()
+    if(this.isLocalSearch && value.length > 0) {
+      this.router.navigate(['/search'], {
+        queryParams: { title: this.search$.value }
+      });
+    } else {
+      this.router.navigate([], {
+        queryParams: { title: this.search$.value },
+        queryParamsHandling: 'merge'
+      })
+    }
   }
 
   public toggleAuthModal(state: boolean) {

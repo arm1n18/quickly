@@ -52,14 +52,6 @@ func (m *ModuleService) FindModules(ctx context.Context, userID int, query modul
 	return m.repo.Find(ctx, userID, query)
 }
 
-// func (m *ModuleService) FindModulesByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error) {
-// 	return m.repo.FindByTitle(ctx, userID, title, lastId)
-// }
-
-// func (m *ModuleService) FindModulesByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error) {
-// 	return m.repo.FindByKeywords(ctx, userID, keywords)
-// }
-
 func (m *ModuleService) CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
 	if len(module.Cards) < 3 || len(module.Cards) > 50 {
 		return nil, fmt.Errorf("Invalid range")

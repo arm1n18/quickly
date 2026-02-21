@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, signal, WritableSignal } from '@angular/core';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { FormArray, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api/api.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +19,7 @@ interface UpdateCardForm extends CardForm {
 
 @Component({
   selector: 'app-update-module-page',
-  imports: [ReactiveFormsModule, NgClass, MainLayout, ImageModalDirective, CustomButtonComponent, IconComponent, CustomInputComponent, TextAreaComponent],
+  imports: [ReactiveFormsModule, NgClass, MainLayoutComponent, ImageModalDirective, CustomButtonComponent, IconComponent, CustomInputComponent, TextAreaComponent],
   templateUrl: './update-module-page.html',
   styleUrl: './update-module-page.css',
 })

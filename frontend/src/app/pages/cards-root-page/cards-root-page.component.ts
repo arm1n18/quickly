@@ -2,12 +2,12 @@ import {Component, OnInit, signal, WritableSignal} from '@angular/core';
 import {CardsState} from '../../state/cards-state/cards-state';
 import {ActivatedRoute, Router, RouterOutlet} from '@angular/router';
 import { ApiService } from '../../services/api/api.service';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 
 @Component({
   standalone: true,
   selector: 'app-cards-root-page',
-  imports: [RouterOutlet, MainLayout],
+  imports: [RouterOutlet, MainLayoutComponent],
   templateUrl: './cards-root-page.html',
   styleUrl: './cards-root-page.css'
 })

@@ -2,9 +2,9 @@
 
 <main class="flex flex-col gap-4 max-w-300 mx-auto px-3">
     <h1 class="title font-medium">
-        Результат пошуку {{ searchValue() && searchValue().length > 0 ? ('«' + searchValue() + '»') : '' }}
+        Результат пошуку {{ currentSearch() && currentSearch().length > 0 ? ('«' + currentSearch() + '»') : '' }}
     </h1>
-    <app-segmented-controls [segments]="[{title: 'Модулі'}, {title: 'Папки'}]" />
+    <!-- <app-segmented-controls [segments]="[{title: 'Модулі'}, {title: 'Папки'}]" /> -->
     <div class="flex gap-4 md:items-end max-md:flex-col">
         <app-keywords-input
             class="md:max-w-lg"
@@ -33,7 +33,13 @@
     </div>
     <div class="flex gap-4 max-sm:flex-col">
         @for(module of modules(); track module) {
-            <app-module-item [module]="module" [href]="`/module/${module.id}`" [showAuthor]="true" class="sm:max-w-1/2 md:max-w-1/3" />
+            <div #item class="w-full sm:max-w-1/2 md:max-w-1/3">
+                <app-module-item [module]="module" [href]="`/module/${module.id}`" [showAuthor]="true" class="w-full" />
+            </div>
         }
+
     </div>
+    @if(isLoading()) {
+        <div class="loader mx-auto"></div>
+    }
 </main>

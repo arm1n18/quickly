@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, signal, WritableSignal } from '@angular/core';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { Card, MediaType, Module } from '../../interfaces/module.interface';
 import { PortalModule } from "@angular/cdk/portal";
 import { NgClass } from '@angular/common';
@@ -30,7 +30,7 @@ export interface CardForm {
 
 @Component({
   selector: 'app-create-module-page',
-  imports: [MainLayout, ReactiveFormsModule, DragDropModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent],
+  imports: [MainLayoutComponent, ReactiveFormsModule, DragDropModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent],
   templateUrl: './create-module-page.html',
   styleUrl: './create-module-page.css',
 })

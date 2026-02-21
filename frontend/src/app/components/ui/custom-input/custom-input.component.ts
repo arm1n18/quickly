@@ -13,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 export class CustomInputComponent {
   @Input() title: any;
-  @Input() value: any;
+  @Input() value: string = '';
   @Input() password: boolean = false;
   @Input() inputId: string | undefined;
   @Input() set delay(value: number) {
@@ -22,10 +22,12 @@ export class CustomInputComponent {
   @Input() styles: { [key: string]: any} = {};
   @Input() width: string = '100%'
   @Input() icon: Partial<{show:boolean, name: Icons}> = {};
+  @Input() allowClear: boolean = false;
+  @Input() onSubmit?: () => void;
   @Output() inputChange = new EventEmitter<any>();
   @Output() inputFocused = new EventEmitter<boolean>();
   private _delay$ = new BehaviorSubject<number>(500);
-  private input$ = new Subject<string>();
+  private input$ = new BehaviorSubject<string>('');
   public focused: boolean = false
   public type: string | null = null;
 
@@ -40,8 +42,12 @@ export class CustomInputComponent {
     event.stopPropagation();
     
     const newValue = (event.target as HTMLInputElement).value
-    this.value = newValue
-    this.input$.next(newValue)
+    this.changeInput(newValue)
+  }
+
+  public changeInput(value: string) {
+    this.value = value
+    this.input$.next(value)
   }
 
   public showPassword() {
@@ -74,5 +80,24 @@ export class CustomInputComponent {
     if(this.password) {
       this.showPassword()
     }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onEnter(e: KeyboardEvent) {
+    const target = e.target as HTMLElement;
+
+    if (e.key !== 'Enter') return;
+
+    if (target.tagName !== 'INPUT' || !this.focused) return;
+    if(!(this.input$.value.trim().length > 0)) {
+      this.focused = false;
+      const input = this.elementRef.nativeElement.querySelector('input');
+      input.blur();
+      this.inputFocused.emit(false);
+      
+      return
+    }
+
+    this.onSubmit?.();
   }
 }

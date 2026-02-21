@@ -3,7 +3,7 @@ import {Component, OnInit, signal, WritableSignal,} from '@angular/core';
 import {Module, GameMode} from '../../interfaces/module.interface';
 import {ActivatedRoute, Router} from '@angular/router';
 import {CardsState} from '../../state/cards-state/cards-state';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { copyToClipboard } from '../../utils/clipboard';
 import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
@@ -24,7 +24,7 @@ interface isLoadingInterface {
 @Component({
   standalone: true,
   selector: 'app-cards-page',
-  imports: [AsyncPipe, MainLayout, RatingComponent, CustomButtonComponent,
+  imports: [AsyncPipe, MainLayoutComponent, RatingComponent, CustomButtonComponent,
     IconComponent, DropdownComponent, QuizCardsComponent, AvatarComponent, CardsOverviewComponent, Footer],
   templateUrl: './cards-page.html',
   styleUrl: './cards-page.css'

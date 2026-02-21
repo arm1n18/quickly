@@ -2,7 +2,7 @@ import { Component, OnInit, signal, TemplateRef, ViewChild, WritableSignal } fro
 import { Folder } from '../../interfaces/folder.interface';
 import { ApiService } from '../../services/api/api.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { IconComponent, AvatarComponent, DropdownComponent, CustomButtonComponent, ConfirmModalComponent, ModalComponent, DropdownItem, CustomInputComponent, SegmentedControlsComponent } from "../../components/ui";
 import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -13,7 +13,7 @@ import { AuthStateService } from '../../services/auth/authStateService/auth-stat
 import { Segment } from '../../components/ui/segmented-controls/segmented-controls.component';
 
 @Component({
-  imports: [MainLayout, IconComponent, AvatarComponent,
+  imports: [MainLayoutComponent, IconComponent, AvatarComponent,
     DropdownComponent,
     CustomButtonComponent, CustomInputComponent,
     ReactiveFormsModule, NgClass, SegmentedControlsComponent],

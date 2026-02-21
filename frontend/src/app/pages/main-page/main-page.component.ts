@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { CustomButtonComponent } from "../../components/ui";
 import { Footer } from "../../layouts/footer/footer";
 import { PortalService } from '../../services/portal/portal';
@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-main-page',
-  imports: [MainLayout, CustomButtonComponent, Footer],
+  imports: [MainLayoutComponent, CustomButtonComponent, Footer],
   templateUrl: './main-page.html',
   styleUrl: './main-page.css',
 })

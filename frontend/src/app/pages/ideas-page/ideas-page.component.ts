@@ -1,6 +1,6 @@
 import { Component, signal, TemplateRef, WritableSignal } from '@angular/core';
 import { IdeaItemComponent } from "../../components/idea-item/idea-item.component";
-import { MainLayout } from "../../layouts/main-layout/main-layout";
+import { MainLayoutComponent } from "../../layouts/main-layout/main-layout.component";
 import { CustomButtonComponent, CustomInputComponent, ModalComponent, TextAreaComponent, SegmentedControlsComponent } from "../../components/ui";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgClass } from '@angular/common';
@@ -12,7 +12,7 @@ import { TaskItemComponent } from "../../components/task-item/task-item.componen
 
 @Component({
   selector: 'app-ideas-page',
-  imports: [IdeaItemComponent, NgClass, MainLayout, CustomButtonComponent, ReactiveFormsModule, CustomInputComponent, TextAreaComponent, SegmentedControlsComponent, TaskItemComponent],
+  imports: [IdeaItemComponent, NgClass, MainLayoutComponent, CustomButtonComponent, ReactiveFormsModule, CustomInputComponent, TextAreaComponent, SegmentedControlsComponent, TaskItemComponent],
   templateUrl: './ideas-page.html',
   styleUrl: './ideas-page.css',
 })

@@ -14,10 +14,21 @@
         [attr.type]="type"
         [id]="inputId"
         [placeholder]="title ?? ''"
-        [value]="value ?? ''"
+        [value]="value"
         (input)="onInputChange($event)"
     />
-     @if(password){
+
+    @if(allowClear && focused && value.length > 0){
+        <app-icon 
+            [icon]="'FillCross'" 
+            [size]="24"
+            [fill]="'#A7B2FF'" 
+            class="cursor-pointer"
+            (click)="changeInput('')"
+        />
+    }
+
+    @if(password){
         <div class="flex items-center justify-center cursor-pointer p-1 hover:bg-indigo-100 rounded-lg">
             <app-icon 
                 [icon]="type == 'password' ? 'EyeClose' : 'Eye'" 
