@@ -17,4 +17,7 @@ export class UserService {
     return this.http.get<UserInfo>(`${this.apiRoute}/${username}`)
   }
 
+  public changeUsername(username: string): Observable<{accessToken: string}> {
+    return this.http.patch<{accessToken: string}>(`${this.apiRoute}/me`, {username: username})
+  }
 }

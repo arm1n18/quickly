@@ -29,7 +29,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 		if err != nil {
 			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": err.Error(),
+				"message": err.Error(),
 			})
 		}
 
@@ -67,7 +67,7 @@ func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
 		if err != nil {
 			authService.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": err.Error(),
+				"message": err.Error(),
 			})
 		}
 

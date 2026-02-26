@@ -3,7 +3,6 @@ package folder
 import (
 	"context"
 	"fmt"
-	"log"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
 	"web-quiz/internal/utils"
@@ -18,13 +17,13 @@ type Query struct {
 }
 
 type FolderRepository interface {
-	ListFolders(ctx context.Context, userID int, username string, queryParams Query) (*model.FoldersSummary, error)
-	GetFolder(ctx context.Context, userID int, username, slug string) (*model.Folder, error)
-	CreateFolder(ctx context.Context, userID int, title string) (string, error)
-	UpdateFolder(ctx context.Context, userID int, oldSlug, title string) (string, error)
-	DeleteFolder(ctx context.Context, userID int, username, slug string) error
-	AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) error
-	DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error
+	ListFolders(ctx context.Context, userID int, username string, queryParams Query) (*model.FoldersSummary, *model.ErrorResponse)
+	GetFolder(ctx context.Context, userID int, username, slug string) (*model.Folder, *model.ErrorResponse)
+	CreateFolder(ctx context.Context, userID int, title string) (string, *model.ErrorResponse)
+	UpdateFolder(ctx context.Context, userID int, oldSlug, title string) (string, *model.ErrorResponse)
+	DeleteFolder(ctx context.Context, userID int, username, slug string) *model.ErrorResponse
+	AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) *model.ErrorResponse
+	DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) *model.ErrorResponse
 }
 
 type folderRepo struct {
@@ -35,11 +34,11 @@ func NewFolderRepository(psql *pgxpool.Pool) FolderRepository {
 	return &folderRepo{psql: psql}
 }
 
-func (f *folderRepo) ListFolders(ctx context.Context, userID int, username string, queryParams Query) (*model.FoldersSummary, error) {
+func (f *folderRepo) ListFolders(ctx context.Context, userID int, username string, queryParams Query) (*model.FoldersSummary, *model.ErrorResponse) {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:ListFolders:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -83,18 +82,18 @@ func (f *folderRepo) ListFolders(ctx context.Context, userID int, username strin
 
 	err = conn.QueryRow(ctx, query, args...).Scan(&userFolders.Folders)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("FOLDER:PSQL:ListFolders:QueryRow", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return &userFolders, nil
 }
 
-func (f *folderRepo) GetFolder(ctx context.Context, userID int, username, slug string) (*model.Folder, error) {
+func (f *folderRepo) GetFolder(ctx context.Context, userID int, username, slug string) (*model.Folder, *model.ErrorResponse) {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:GetFolder:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -152,8 +151,8 @@ func (f *folderRepo) GetFolder(ctx context.Context, userID int, username, slug s
 		&folder.Modules,
 	)
 	if err != nil {
-		log.Printf("error query folder: %v\n", err)
-		return nil, err
+		utils.LogError("FOLDER:PSQL:GetFolder:QueryRow", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	folder.Objects = len(folder.Modules)
@@ -161,18 +160,18 @@ func (f *folderRepo) GetFolder(ctx context.Context, userID int, username, slug s
 	return &folder, nil
 }
 
-func (f *folderRepo) DeleteFolder(ctx context.Context, userID int, username, slug string) error {
+func (f *folderRepo) DeleteFolder(ctx context.Context, userID int, username, slug string) *model.ErrorResponse {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:DeleteFolder:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("FOLDER:PSQL:DeleteFolder:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -189,25 +188,25 @@ func (f *folderRepo) DeleteFolder(ctx context.Context, userID int, username, slu
 
 	commandTag, err := tx.Exec(ctx, query, slug, username, userID)
 	if err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("folder not found")
+		return protocol.ReturnError(404, fmt.Errorf("Папку не знайдено"))
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (f *folderRepo) CreateFolder(ctx context.Context, userID int, title string) (string, error) {
+func (f *folderRepo) CreateFolder(ctx context.Context, userID int, title string) (string, *model.ErrorResponse) {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return "", protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:CreateFolder:AcquireConnection", err)
+		return "", protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -222,19 +221,19 @@ func (f *folderRepo) CreateFolder(ctx context.Context, userID int, title string)
 	err = conn.QueryRow(ctx, query, userID, title, utils.Slug(title)).Scan(&slug)
 	if err != nil {
 		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
-			return "", fmt.Errorf("Folder already exists")
+			return "", protocol.ReturnError(400, fmt.Errorf("Папка вже існує"))
 		}
-		return "", err
+		return "", protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return slug, nil
 }
 
-func (f *folderRepo) UpdateFolder(ctx context.Context, userID int, oldSlug, title string) (string, error) {
+func (f *folderRepo) UpdateFolder(ctx context.Context, userID int, oldSlug, title string) (string, *model.ErrorResponse) {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return "", protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:UpdateFolder:AcquireConnection", err)
+		return "", protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -243,28 +242,28 @@ func (f *folderRepo) UpdateFolder(ctx context.Context, userID int, oldSlug, titl
 	query := `UPDATE folders SET title=$1, slug = $2 WHERE slug=$3 AND user_id = $4`
 	res, err := conn.Exec(ctx, query, title, newSlug, oldSlug, userID)
 	if err != nil {
-		return "", err
+		return "", protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if res.RowsAffected() == 0 {
-		return "", fmt.Errorf("Failed to update")
+		return "", protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return newSlug, nil
 }
 
-func (f *folderRepo) AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) error {
+func (f *folderRepo) AddModuleToFolder(ctx context.Context, userID, moduleID int, slug string) *model.ErrorResponse {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:AddModuleToFolder:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("FOLDER:PSQL:AddModuleToFolder:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -280,32 +279,32 @@ func (f *folderRepo) AddModuleToFolder(ctx context.Context, userID, moduleID int
 
 	commandTag, err := tx.Exec(ctx, query, slug, userID, moduleID)
 	if err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("module or folder not found")
+		return protocol.ReturnError(404, fmt.Errorf("Папку або модуль не знайдено"))
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (f *folderRepo) DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) error {
+func (f *folderRepo) DeleteModuleFromFolder(ctx context.Context, userID, moduleID int, slug string) *model.ErrorResponse {
 	conn, err := f.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("FOLDER:PSQL:DeleteModuleFromFolder:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("FOLDER:PSQL:DeleteModuleFromFolder:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -322,15 +321,15 @@ func (f *folderRepo) DeleteModuleFromFolder(ctx context.Context, userID, moduleI
 
 	commandTag, err := tx.Exec(ctx, query, userID, slug, moduleID)
 	if err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("module or folder not found")
+		return protocol.ReturnError(404, fmt.Errorf("Папку або модуль не знайдено"))
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil

@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"web-quiz/internal/middleware"
+	"web-quiz/internal/model"
+	"web-quiz/internal/protocol"
 	"web-quiz/internal/repository/folder"
 	"web-quiz/internal/service"
 	"web-quiz/internal/utils"
@@ -23,7 +26,8 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			lastId = 0
 		}
 
-		folders, err := svc.ListUserFolders(
+		var folders *model.FoldersSummary
+		if resp, err := svc.ListUserFolders(
 			c.Context(),
 			utils.GetUserId(c),
 			c.Params("username"),
@@ -31,12 +35,10 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 				Name:   c.Query("name"),
 				LastId: lastId,
 			},
-		)
-
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		} else {
+			folders = resp
 		}
 
 		return c.Status(fiber.StatusOK).JSON(folders)
@@ -51,9 +53,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		)
 
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(folder)
@@ -64,9 +64,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			Title string `json:"title"`
 		}
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		resp, err := svc.CreateFolder(
@@ -76,9 +74,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		)
 
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err,
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -91,9 +87,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			Title string `json:"title"`
 		}
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		resp, err := svc.UpdateFolder(
@@ -104,9 +98,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		)
 
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -123,9 +115,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		)
 
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err,
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -136,9 +126,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			Id int `json:"id"`
 		}
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		err := svc.AddModuleToFolder(
@@ -149,9 +137,7 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		)
 
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -160,22 +146,16 @@ func RegisterFolderRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Delete("/:slug/module/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
-		err = svc.RemoveModuleFromFolder(
+		if err := svc.RemoveModuleFromFolder(
 			c.Context(),
 			utils.GetUserId(c),
 			id,
 			c.Params("slug"),
-		)
-
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err,
-			})
+		); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)

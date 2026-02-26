@@ -18,6 +18,7 @@ import { IdeasPageComponent } from './pages/ideas-page/ideas-page.component';
 import { TestInfoPageComponent } from './pages/test-info-page/test-info-page.component';
 import { ModuleInfoPageComponent } from './pages/module-info-page/module-info-page.component';
 import { SearchPageComponent } from './pages/search-page/search-page.component';
+import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,10 @@ export const routes: Routes = [
         component: ModuleInfoPageComponent
       },
     ]
+  },
+  {
+    path: 'settings',
+    component: SettingsPageComponent,
   },
   {
     path: 'user/:username',

@@ -20,7 +20,7 @@ export class AvatarComponent {
   
   @Input() avatarUrl?: string;
   @Input({required: true}) name: string = '';
-  @Input() size: 'md' | 'sm' = 'md';
+  @Input() size: 'xl'| 'md' | 'sm' = 'md';
 
   get initials(): string {
     return this.name.trim().charAt(0).toUpperCase();

@@ -17,7 +17,8 @@
                             inputId="email" 
                             [title]="'Пошта'"
                             [delay]="0"
-                            [value]="authForm.get('email')?.value"
+                            [value]="authForm.get('email')?.value ?? ''"
+                            [maxLength]="50"
                             (inputChange)="authForm.get('email')?.setValue($event)"
                         />
                     </div>
@@ -54,7 +55,8 @@
                             inputId="email" 
                             [title]="'Пошта'"
                             [delay]="0"
-                            [value]="authForm.get('email')?.value"
+                            [maxLength]="50"
+                            [value]="authForm.get('email')?.value ?? ''"
                             (inputChange)="authForm.get('email')?.setValue($event)"
                         />
                     </div>
@@ -64,8 +66,10 @@
                         <app-custom-input 
                             inputId="password"
                             [delay]="0"
-                            [value]="authForm.get('password')?.value"
-                            [password]="true" [title]="'Пароль'" 
+                            [value]="authForm.get('password')?.value ?? ''"
+                            [maxLength]="50"
+                            [isPassword]="true" 
+                            [title]="'Пароль'" 
                             (inputChange)="authForm.get('password')?.setValue($event)"
                         />
                         <span class="text-xs text-[var(--text-secondary2)]">Пароль повинен бути довжиною від 6 до 50 символів.</span>

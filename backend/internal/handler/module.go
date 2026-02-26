@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,27 +34,17 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			LastId:   lastId,
 		}
 
-		resp, err := svc.FindModules(c.Context(), utils.GetUserId(c), query)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+		if resp, err := svc.FindModules(c.Context(), utils.GetUserId(c), query); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		} else {
+			return c.Status(fiber.StatusOK).JSON(resp)
 		}
-
-		if resp == nil || resp.Modules == nil {
-			return c.Status(fiber.StatusOK).JSON(fiber.Map{"modules": []string{}})
-		}
-
-		return c.Status(fiber.StatusOK).JSON(resp)
 	})
-	// })
 
 	router.Get("/keywords", func(c *fiber.Ctx) error {
 		resp, err := svc.GetKeywords(c.Context(), c.Query("title"))
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"keywords": resp})
@@ -62,9 +53,7 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Get("/keywords/:slug", func(c *fiber.Ctx) error {
 		resp, err := svc.GetKeywordsBySlug(c.Context(), strings.Split(c.Params("slug"), ","))
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"keywords": resp})
@@ -78,20 +67,11 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			lastId = 0
 		}
 
-		resp, err := svc.ListUserModules(c.Context(), utils.GetUserId(c), username, module.Query{Name: name, LastId: lastId})
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if resp, err := svc.ListUserModules(c.Context(), utils.GetUserId(c), username, module.Query{Name: name, LastId: lastId}); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		} else {
+			return c.Status(fiber.StatusOK).JSON(resp)
 		}
-
-		if resp == nil {
-			resp = &model.ModulesSummaryResponse{
-				Modules: []model.ModuleSummary{},
-			}
-		}
-
-		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
 	router.Get("/saved", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
@@ -101,28 +81,17 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 			lastId = 0
 		}
 
-		resp, err := svc.ListUserSavedModules(c.Context(), utils.GetUserId(c), module.Query{Name: name, LastId: lastId})
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if resp, err := svc.ListUserSavedModules(c.Context(), utils.GetUserId(c), module.Query{Name: name, LastId: lastId}); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+		} else {
+			return c.Status(fiber.StatusOK).JSON(resp)
 		}
-
-		if resp == nil {
-			resp = &model.ModulesSummaryResponse{
-				Modules: []model.ModuleSummary{},
-			}
-		}
-
-		return c.Status(fiber.StatusOK).JSON(resp)
 	})
 
 	router.Get("/:id", middleware.OptionalJWTMiddleware(authsvc), func(c *fiber.Ctx) error {
 		id, ok := strconv.Atoi(c.Params("id"))
 		if ok != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
 		resp, err := svc.GetModuleByID(c.Context(), utils.GetUserId(c), id)
@@ -136,26 +105,19 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Put("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
 		body := model.UpdateModuleRequest{}
 
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		body.ID = id
 
-		err = svc.UpdateModule(c.Context(), utils.GetUserId(c), body)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if err := svc.UpdateModule(c.Context(), utils.GetUserId(c), body); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -164,26 +126,19 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Patch("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
 		body := model.UpdateModuleCard{}
 
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		body.ID = id
 
-		err = svc.UpdateModuleCard(c.Context(), utils.GetUserId(c), body)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if err := svc.UpdateModuleCard(c.Context(), utils.GetUserId(c), body); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -192,16 +147,11 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Delete("/:id", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
-		err = svc.DeleteModule(c.Context(), utils.GetUserId(c), id)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if err := svc.DeleteModule(c.Context(), utils.GetUserId(c), id); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -211,16 +161,12 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		body := model.CreateModuleRequest{}
 
 		if err := c.BodyParser(&body); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		resp, err := svc.CreateModule(c.Context(), utils.GetUserId(c), body)
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(resp)
@@ -229,16 +175,11 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Post("/:id/save", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
-		err = svc.SaveModule(c.Context(), utils.GetUserId(c), id)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if err := svc.SaveModule(c.Context(), utils.GetUserId(c), id); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -247,16 +188,11 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 	router.Delete("/:id/save", middleware.JWTMiddleware(authsvc, false), func(c *fiber.Ctx) error {
 		id, err := strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": "Can`t parse id",
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, fmt.Errorf("Can`t parse number"))
 		}
 
-		err = svc.UnsaveModule(c.Context(), utils.GetUserId(c), id)
-		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+		if err := svc.UnsaveModule(c.Context(), utils.GetUserId(c), id); err != nil {
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -266,16 +202,12 @@ func RegisterModuleRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.
 		keywords := []string{}
 
 		if err := c.BodyParser(&keywords); err != nil {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		err := svc.AddKeywords(c.Context(), keywords)
 		if err != nil {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Помилка запиту до бази даних",
-			})
+			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{

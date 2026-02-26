@@ -12,24 +12,35 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 })
 
 export class CustomInputComponent {
-  @Input() title: any;
-  @Input() value: string = '';
-  @Input() password: boolean = false;
   @Input() inputId: string | undefined;
+  @Input() title: string = '';
+  @Input() isPassword: boolean = false;
+  @Input() disabled: boolean = false;
+
+  @Input() set value(val: string) {
+    this._value = val;
+  }
   @Input() set delay(value: number) {
     this._delay$.next(value ?? 500);
   };
+
   @Input() styles: { [key: string]: any} = {};
-  @Input() width: string = '100%'
+  @Input() width: string = '100%';
   @Input() icon: Partial<{show:boolean, name: Icons}> = {};
+  @Input() maxLength: number | null = null; 
   @Input() allowClear: boolean = false;
+
   @Input() onSubmit?: () => void;
+
+  private _value: string = '';
+  private _delay$ = new BehaviorSubject<number>(500);
+  private input$ = new Subject<string>();
+
+  public focused: boolean = false;
+  public type: string | null = null;
+    
   @Output() inputChange = new EventEmitter<any>();
   @Output() inputFocused = new EventEmitter<boolean>();
-  private _delay$ = new BehaviorSubject<number>(500);
-  private input$ = new BehaviorSubject<string>('');
-  public focused: boolean = false
-  public type: string | null = null;
 
   constructor(private elementRef: ElementRef) {
     this.input$.pipe(debounceTime(this.delay), takeUntilDestroyed()).subscribe(value => {
@@ -46,7 +57,7 @@ export class CustomInputComponent {
   }
 
   public changeInput(value: string) {
-    this.value = value
+    this._value = value
     this.input$.next(value)
   }
 
@@ -56,6 +67,10 @@ export class CustomInputComponent {
     } else {
       this.type = "password"
     }
+  }
+
+  get value(): string {
+    return this._value;
   }
 
   @HostListener('document:click', ['$event'])
@@ -77,7 +92,7 @@ export class CustomInputComponent {
   }
 
   ngOnInit() {
-    if(this.password) {
+    if(this.isPassword) {
       this.showPassword()
     }
   }
@@ -89,7 +104,7 @@ export class CustomInputComponent {
     if (e.key !== 'Enter') return;
 
     if (target.tagName !== 'INPUT' || !this.focused) return;
-    if(!(this.input$.value.trim().length > 0)) {
+    if(!(this._value.trim().length > 0)) {
       this.focused = false;
       const input = this.elementRef.nativeElement.querySelector('input');
       input.blur();

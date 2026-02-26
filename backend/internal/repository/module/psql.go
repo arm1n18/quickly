@@ -3,7 +3,6 @@ package module
 import (
 	"context"
 	"fmt"
-	"log"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
 	"web-quiz/internal/utils"
@@ -26,24 +25,24 @@ type FindMoulesQuery struct {
 
 type ModuleRepository interface {
 	GetByID(ctx context.Context, userID, id int) (*model.Module, *model.ErrorResponse)
-	Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, error)
+	Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, *model.ErrorResponse)
 
-	// FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, error)
-	// FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, error)
-	ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, error)
-	ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, error)
+	// FindByTitle(ctx context.Context, userID int, title string, lastId int) (*model.ModulesSummaryResponse, *model.ErrorResponse)
+	// FindByKeywords(ctx context.Context, userID int, keywords []string) (*model.ModulesSummaryResponse, *model.ErrorResponse)
+	ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, *model.ErrorResponse)
+	ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, *model.ErrorResponse)
 
-	CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error)
-	UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) error
-	UpdateModuleCard(ctx context.Context, userID int, module model.UpdateModuleCard) error
-	DeleteModule(ctx context.Context, userID int, moduleID int) error
+	CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, *model.ErrorResponse)
+	UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) *model.ErrorResponse
+	UpdateModuleCard(ctx context.Context, userID int, module model.UpdateModuleCard) *model.ErrorResponse
+	DeleteModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse
 
-	SaveModule(ctx context.Context, userID int, moduleID int) error
-	UnsaveModule(ctx context.Context, userID int, moduleID int) error
+	SaveModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse
+	UnsaveModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse
 
-	FindKeywords(ctx context.Context, title string) ([]model.Keyword, error)
-	FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, error)
-	InsertKeywords(ctx context.Context, keywords []string) error
+	FindKeywords(ctx context.Context, title string) ([]model.Keyword, *model.ErrorResponse)
+	FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, *model.ErrorResponse)
+	InsertKeywords(ctx context.Context, keywords []string) *model.ErrorResponse
 }
 
 type moduleRepo struct {
@@ -57,7 +56,7 @@ func NewModuleRepository(psql *pgxpool.Pool) ModuleRepository {
 func (m *moduleRepo) GetByID(ctx context.Context, userID, id int) (*model.Module, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
+		utils.LogError("MODULE:PSQL:GetByID:AcquireConnection", err)
 		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
@@ -125,7 +124,7 @@ func (m *moduleRepo) GetByID(ctx context.Context, userID, id int) (*model.Module
 		if err == pgx.ErrNoRows {
 			return nil, protocol.ReturnError(404, protocol.ErrNotFound)
 		}
-		log.Printf("error query module: %v\n", err)
+		utils.LogError("MODULE:PSQL:GetByID:QueryRow", err)
 		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
@@ -138,12 +137,12 @@ func (m *moduleRepo) GetByID(ctx context.Context, userID, id int) (*model.Module
 	return &module, nil
 }
 
-func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, error) {
+func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery) (*model.ModulesSummaryResponse, *model.ErrorResponse) {
 
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:Find:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -186,8 +185,8 @@ func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery
 
 	err = conn.QueryRow(ctx, queryIDs, userID, query.Title, query.Keywords, query.LastId).Scan(&ids)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:Find:QueryRow", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	queryModule := `SELECT
@@ -238,8 +237,8 @@ func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery
 			&module.IsSaved,
 			&module.Objects,
 		); err != nil {
-			log.Printf("error query module: %v\n", err)
-			return nil, err
+			utils.LogError("MODULE:PSQL:Find:QueryRow", err)
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		modules = append(modules, module)
@@ -248,11 +247,11 @@ func (m *moduleRepo) Find(ctx context.Context, userID int, query FindMoulesQuery
 	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, error) {
+func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username string, queryParams Query) (*model.ModulesSummaryResponse, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:ListByUserID:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -308,8 +307,8 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 
 	rows, err := conn.Query(ctx, query, args...)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:ListByUserID:Query", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for rows.Next() {
@@ -324,8 +323,8 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 			&module.Media,
 			&module.Objects,
 		); err != nil {
-			log.Printf("error scanning row: %v\n", err)
-			return nil, err
+			utils.LogError("MODULE:PSQL:ListByUserID:Scan", err)
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		modules = append(modules, module)
@@ -334,11 +333,11 @@ func (m *moduleRepo) ListByUserID(ctx context.Context, userID int, username stri
 	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, error) {
+func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryParams Query) (*model.ModulesSummaryResponse, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:ListSavedByUserID:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -394,8 +393,8 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 
 	rows, err := conn.Query(ctx, query, args...)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:ListSavedByUserID:Query", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for rows.Next() {
@@ -409,8 +408,8 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 			&module.Media,
 			&module.Objects,
 		); err != nil {
-			log.Printf("error scanning row: %v\n", err)
-			return nil, err
+			utils.LogError("MODULE:PSQL:ListSavedByUserID:Scan", err)
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		module.IsSaved = true
@@ -421,22 +420,22 @@ func (m *moduleRepo) ListSavedByUserID(ctx context.Context, userID int, queryPar
 	return &model.ModulesSummaryResponse{Modules: modules}, nil
 }
 
-func (m *moduleRepo) CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, error) {
+func (m *moduleRepo) CreateModule(ctx context.Context, userID int, module model.CreateModuleRequest) (*model.CreateModuleResponse, *model.ErrorResponse) {
 	if len(module.Cards) == 0 {
-		return nil, fmt.Errorf("сards can not be empty")
+		return nil, protocol.ReturnError(400, protocol.ErrBadRequest)
 	}
 
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:CreateModule:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:CreateModule:BeginTransaction", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -456,33 +455,34 @@ func (m *moduleRepo) CreateModule(ctx context.Context, userID int, module model.
 
 	err = tx.QueryRow(ctx, queryCreateModule, userID, module.Title, module.Description, utils.Slug(module.Title), hasImages).Scan(&moduleID)
 	if err != nil {
-		return nil, err
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for _, card := range module.Cards {
-		if err = insertCard(tx, ctx, moduleID, card); err != nil {
-			return nil, err
+		if err := insertCard(tx, ctx, moduleID, card); err != nil {
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return nil, err
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
+
 	return &model.CreateModuleResponse{ID: moduleID}, nil
 }
 
-func (m *moduleRepo) DeleteModule(ctx context.Context, userID int, moduleID int) error {
+func (m *moduleRepo) DeleteModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:DeleteModule:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:DeleteModule:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -491,34 +491,34 @@ func (m *moduleRepo) DeleteModule(ctx context.Context, userID int, moduleID int)
 
 	query := `DELETE FROM modules WHERE module_id = $1 AND user_id = $2`
 
-	commandTag, err := tx.Exec(ctx, query, moduleID, userID)
+	cmdTag, err := tx.Exec(ctx, query, moduleID, userID)
 	if err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("module not found")
+	if cmdTag.RowsAffected() == 0 {
+		return protocol.ReturnError(404, fmt.Errorf("Модуль не знайдено"))
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (m *moduleRepo) UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) error {
+func (m *moduleRepo) UpdateModule(ctx context.Context, userID int, module model.UpdateModuleRequest) *model.ErrorResponse {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:UpdateModule:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:UpdateModule:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -528,18 +528,18 @@ func (m *moduleRepo) UpdateModule(ctx context.Context, userID int, module model.
 	var exists bool
 	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM modules WHERE module_id=$1 AND user_id=$2)", module.ID, userID).Scan(&exists)
 	if err != nil || !exists {
-		return fmt.Errorf("module not found")
+		return protocol.ReturnError(404, fmt.Errorf("Модуль не знайдено"))
 	}
 
 	if module.Title != nil {
 		cmdTag, err := tx.Exec(ctx, `UPDATE modules SET title=$1, slug=$2 WHERE module_id=$3 AND user_id=$4`,
 			module.Title, utils.Slug(*module.Title), module.ID, userID)
 		if err != nil {
-			return err
+			return protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		if cmdTag.RowsAffected() == 0 {
-			return fmt.Errorf("module not found")
+			return protocol.ReturnError(404, fmt.Errorf("Модуль не знайдено"))
 		}
 	}
 
@@ -547,49 +547,49 @@ func (m *moduleRepo) UpdateModule(ctx context.Context, userID int, module model.
 		cmdTag, err := tx.Exec(ctx, `UPDATE modules SET description=$1 WHERE module_id=$2 AND user_id=$3`,
 			module.Description, module.ID, userID)
 		if err != nil {
-			return err
+			return protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		if cmdTag.RowsAffected() == 0 {
-			return fmt.Errorf("module not found")
+			return protocol.ReturnError(404, fmt.Errorf("Модуль не знайдено"))
 		}
 	}
 
 	for _, card := range module.Cards {
 		if card.Delete && card.ID != nil {
 			if err = deleteCard(tx, ctx, module.ID, *card.ID); err != nil {
-				return err
+				return protocol.ReturnError(500, protocol.ErrInternal)
 			}
 		} else if card.ID == nil {
 			if err = insertCard(tx, ctx, module.ID, model.CreateCard{
 				Title:       card.Title,
 				Description: card.Description,
 			}); err != nil {
-				return err
+				return protocol.ReturnError(500, protocol.ErrInternal)
 			}
 		} else {
 			if err = updateCard(tx, ctx, module.ID, card); err != nil {
-				return err
+				return protocol.ReturnError(500, protocol.ErrInternal)
 			}
 		}
 
 		if err != nil {
-			return err
+			return protocol.ReturnError(500, protocol.ErrInternal)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (m *moduleRepo) SaveModule(ctx context.Context, userID int, moduleID int) error {
+func (m *moduleRepo) SaveModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:SaveModule:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -601,28 +601,28 @@ func (m *moduleRepo) SaveModule(ctx context.Context, userID int, moduleID int) e
 
 	err = conn.QueryRow(ctx, queryHasAccess, userID, moduleID).Scan(&accessible)
 	if err != nil {
-		return protocol.ErrInternal
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if !accessible {
-		return protocol.ErrForbidden
+		return protocol.ReturnError(403, protocol.ErrForbidden)
 	}
 
 	query := `INSERT INTO user_saved_modules (user_id, module_id) 
 		VALUES ($1, $2) ON CONFLICT (user_id, module_id) DO NOTHING`
 
 	if _, err = conn.Exec(ctx, query, userID, moduleID); err != nil {
-		return protocol.ErrInternal
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (m *moduleRepo) UnsaveModule(ctx context.Context, userID int, moduleID int) error {
+func (m *moduleRepo) UnsaveModule(ctx context.Context, userID int, moduleID int) *model.ErrorResponse {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:UnsaveModule:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -634,34 +634,34 @@ func (m *moduleRepo) UnsaveModule(ctx context.Context, userID int, moduleID int)
 
 	err = conn.QueryRow(ctx, queryHasAccess, userID, moduleID).Scan(&accessible)
 	if err != nil {
-		return protocol.ErrInternal
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if !accessible {
-		return protocol.ErrForbidden
+		return protocol.ReturnError(403, protocol.ErrForbidden)
 	}
 
 	query := `DELETE FROM user_saved_modules WHERE user_id = $1 AND module_id = $2`
 
 	if _, err = conn.Exec(ctx, query, userID, moduleID); err != nil {
-		return protocol.ErrInternal
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (m *moduleRepo) UpdateModuleCard(ctx context.Context, userID int, card model.UpdateModuleCard) error {
+func (m *moduleRepo) UpdateModuleCard(ctx context.Context, userID int, card model.UpdateModuleCard) *model.ErrorResponse {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:UpdateModuleCard:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:UpdateModuleCard:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -670,29 +670,37 @@ func (m *moduleRepo) UpdateModuleCard(ctx context.Context, userID int, card mode
 
 	var exists bool
 	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM modules WHERE module_id=$1 AND user_id=$2)", card.ID, userID).Scan(&exists)
-	if err != nil || !exists {
-		return fmt.Errorf("module not found")
+	if err != nil {
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	_, err = tx.Exec(ctx, `UPDATE module_cards SET
+	if !exists {
+		return protocol.ReturnError(403, protocol.ErrForbidden)
+	}
+
+	rows, err := tx.Exec(ctx, `UPDATE module_cards SET
 		title=$1, description=$2
 	WHERE card_id=$3 AND module_id=$4`, card.Title, card.Description, card.CardID, card.ID)
 	if err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
+	}
+
+	if rows.RowsAffected() == 0 {
+		return protocol.ReturnError(404, fmt.Errorf("Модуль не знайдено"))
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Keyword, error) {
+func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Keyword, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:FindKeywords:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -710,8 +718,8 @@ func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Ke
 
 	rows, err := conn.Query(ctx, query, title)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:FindKeywords:Query", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for rows.Next() {
@@ -721,8 +729,8 @@ func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Ke
 			&keyword.Name,
 			&keyword.Slug,
 		); err != nil {
-			log.Printf("error scanning row: %v\n", err)
-			return nil, err
+			utils.LogError("MODULE:PSQL:FindKeywords:Scan", err)
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		keywords = append(keywords, keyword)
@@ -731,11 +739,11 @@ func (m *moduleRepo) FindKeywords(ctx context.Context, title string) ([]model.Ke
 	return keywords, nil
 }
 
-func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, error) {
+func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]model.Keyword, *model.ErrorResponse) {
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("MODULE:PSQL:FindKeywordsBySlug:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -752,8 +760,8 @@ func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]
 
 	rows, err := conn.Query(ctx, query, slugs)
 	if err != nil {
-		log.Printf("error query modules: %v\n", err)
-		return nil, err
+		utils.LogError("MODULE:PSQL:FindKeywordsBySlug:Query", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for rows.Next() {
@@ -763,8 +771,8 @@ func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]
 			&keyword.Name,
 			&keyword.Slug,
 		); err != nil {
-			log.Printf("error scanning row: %v\n", err)
-			return nil, err
+			utils.LogError("MODULE:PSQL:FindKeywordsBySlug:Scan", err)
+			return nil, protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		keywords = append(keywords, keyword)
@@ -773,23 +781,22 @@ func (m *moduleRepo) FindKeywordsBySlug(ctx context.Context, slugs []string) ([]
 	return keywords, nil
 }
 
-func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) error {
+func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) *model.ErrorResponse {
 	if len(keywords) == 0 {
-		// add err
-		return nil
+		return protocol.ReturnError(400, protocol.ErrBadRequest)
 	}
 
 	conn, err := m.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:InsertKeywords:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return err
+		utils.LogError("MODULE:PSQL:InsertKeywords:BeginTransaction", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -804,17 +811,17 @@ func (m *moduleRepo) InsertKeywords(ctx context.Context, keywords []string) erro
 
 		err := tx.QueryRow(ctx, queryInsertKw, utils.Slug(keyword), true).Scan(&kwId)
 		if err != nil {
-			return err
+			return protocol.ReturnError(500, protocol.ErrInternal)
 		}
 
 		_, err = tx.Exec(ctx, queryInsertKwTranslation, kwId, keyword)
 		if err != nil {
-			return err
+			return protocol.ReturnError(500, protocol.ErrInternal)
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return err
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	return nil
 }

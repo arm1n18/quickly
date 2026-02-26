@@ -19,7 +19,7 @@
                 inputId="title"
                 class="w-full" 
                 title="Назва"
-                [value]="moduleForm.get('title')?.value" 
+                [value]="moduleForm.get('title')?.value ?? ''" 
                 (inputChange)="moduleForm.get('title')?.setValue($event)"
             />
         </div>

@@ -65,16 +65,14 @@ func NewAuthService(psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string
 
 func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *model.ErrorResponse {
 	if err := utils.ValidateCredentials(req.Email, req.Password); err != nil {
-		log.Println(err)
-
+		utils.LogError("AUTH:SVC:Register:ValidateCredentials", err)
 		return protocol.ReturnError(400, err)
 	}
 
 	exists, err := a.repo.IsUserExists(ctx, req.Email)
 	if err != nil {
-		log.Println(err)
-
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Register:IsUserExists", err.Error)
+		return err
 	}
 
 	if exists {
@@ -83,40 +81,40 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *mode
 
 	user, err := a.repo.CreateUser(ctx, req.Email, req.Password)
 	if err != nil {
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Register:CreateUser", err.Error)
+		return err
 	}
 
-	if err = a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
+	if err := a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    req.Email,
 	}); err != nil {
-		log.Println(err)
-
+		utils.LogError("AUTH:SVC:Register:SetUserInRedis", err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	code := utils.GenerateCode(6)
 
-	if err = a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
+	if err := a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
 		ID:      user.ID,
 		Code:    code,
 		Purpose: "register",
 		Iat:     time.Now(),
 		Exp:     time.Now().Add(15 * time.Minute),
 	}); err != nil {
-		log.Println(err)
-
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Register:SetVerificationCode", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	log.Println(code)
 
-	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+	if err := a.mail.SendVerificationCode(req.Email, code); err != nil {
 		a.repo.RemoveUserFromRedis(ctx, req.Email)
 		a.repo.RemoveVerificationCode(ctx, req.Email, "register")
 
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Register:SendVerificationCode", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
@@ -124,47 +122,46 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *mode
 
 func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) *model.ErrorResponse {
 	if err := utils.ValidateCredentials(req.Email, req.Password); err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Login:ValidateCredentials", err)
 		return protocol.ReturnError(400, err)
 	}
 
 	user, err := a.repo.CheckUserCredentials(ctx, req.Email, req.Password)
 	if err != nil {
-		log.Println(err)
-		return protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
+		utils.LogError("AUTH:SVC:Login:CheckUserCredentials", err.Error)
+		return err
 	}
 
-	if err = a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
+	if err := a.repo.SetUserInRedis(ctx, model.GenerateJWTData{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    req.Email,
 	}); err != nil {
-		log.Println(err)
-
+		utils.LogError("AUTH:SVC:Login:SetUserInRedis", err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	code := utils.GenerateCode(6)
-	if err = a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
+	if err := a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
 		ID:      user.ID,
 		Code:    code,
 		Purpose: "login",
 		Iat:     time.Now(),
 		Exp:     time.Now().Add(15 * time.Minute),
 	}); err != nil {
-		log.Println(err)
-
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Login:SetVerificationCode", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	log.Println(code)
 
-	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
-		a.repo.RemoveUserFromRedis(ctx, req.Email)
-		a.repo.RemoveVerificationCode(ctx, req.Email, "login")
+	// if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+	// 	a.repo.RemoveUserFromRedis(ctx, req.Email)
+	// 	a.repo.RemoveVerificationCode(ctx, req.Email, "login")
 
-		return protocol.ReturnError(500, err)
-	}
+	//	utils.LogError("AUTH:SVC:Login:SendVerificationCode", err)
+	// 	return protocol.ReturnError(500, protocol.ErrInternal)
+	// }
 
 	return nil
 }
@@ -176,7 +173,7 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 
 	code, err := a.repo.GetVerificationCode(ctx, req.Email, req.Purpose)
 	if err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Verify:GetVerificationCode", err)
 		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	} else if code == nil {
 		return nil, protocol.ReturnError(500, protocol.ErrCodeNotFound)
@@ -189,7 +186,7 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 
 	user, err := a.repo.GetUserFromRedis(ctx, req.Email)
 	if err != nil && err != redis.Nil {
-		log.Println("Не вдалося знайти користувача")
+		utils.LogError("AUTH:SVC:Verify:GetUserFromRedis", err)
 		return nil, protocol.ReturnError(500, fmt.Errorf("Не вдалося знайти користувача"))
 	}
 
@@ -202,24 +199,26 @@ func (a *AuthService) Verify(ctx context.Context, req model.VerifyCodeRequest, h
 		JTI:      jti,
 	}, true)
 	if err != nil {
+		utils.LogError("AUTH:SVC:Verify:generateJWT", err)
 		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	if err = a.repo.InsertRefreshToken(ctx, model.UserSessionDB{
+	if err := a.repo.InsertRefreshToken(ctx, model.UserSessionDB{
 		ID:        user.ID,
 		Token:     tokens.RefreshToken,
 		JTI:       jti,
 		UaHeaders: headers,
 	}); err != nil {
-		return nil, protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Verify:InsertRefreshToken", err.Error)
+		return nil, err
 	}
 
 	if err := a.repo.RemoveVerificationCode(ctx, user.Email, req.Purpose); err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Verify:RemoveVerificationCode", err)
 	}
 
 	if err := a.repo.RemoveUserFromRedis(ctx, user.Email); err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Verify:RemoveUserFromRedis", err)
 	}
 
 	return tokens, nil
@@ -234,15 +233,17 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *mode
 
 	err := a.repo.UpdateVerificationCode(ctx, req.Email, code, req.Purpose)
 	if err != nil {
+		utils.LogError("AUTH:SVC:SendCode:UpdateVerificationCode", err)
 		return protocol.ReturnError(403, err)
 	}
 
 	log.Println(code)
 
 	if err = a.mail.SendVerificationCode(req.Email, code); err != nil {
+		utils.LogError("AUTH:SVC:SendCode:SendVerificationCode", err)
 		a.repo.RemoveVerificationCode(ctx, req.Email, req.Purpose)
 
-		return protocol.ReturnError(500, err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
@@ -251,9 +252,8 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *mode
 func (a *AuthService) Reset(ctx context.Context, email string) *model.ErrorResponse {
 	exists, err := a.repo.IsUserExists(ctx, email)
 	if err != nil {
-		log.Println(err)
-
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:Reset:IsUserExists", err.Error)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if !exists {
@@ -265,17 +265,21 @@ func (a *AuthService) Reset(ctx context.Context, email string) *model.ErrorRespo
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	err = a.repo.SetResetPassword(ctx, resetToken, email)
-	if err != nil {
-		return protocol.ReturnError(500, err)
+	if err := a.repo.SetResetPassword(ctx, resetToken, email); err != nil {
+		utils.LogError("AUTH:SVC:Reset:SetResetPassword", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	link := "http://localhost:4200/reset/" + resetToken
 
 	if err := a.mail.SendResetPassword(email, link); err != nil {
-		a.repo.DeleteResetPassword(ctx, resetToken)
+		utils.LogError("AUTH:SVC:Reset:SendResetPassword", err)
 
-		return protocol.ReturnError(500, err)
+		if err = a.repo.DeleteResetPassword(ctx, resetToken); err != nil {
+			utils.LogError("AUTH:SVC:Reset:DeleteResetPassword", err)
+		}
+
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	log.Println(resetToken)
@@ -293,19 +297,17 @@ func (a *AuthService) ConfirmReset(ctx context.Context, token, password string) 
 
 	email, err := a.repo.GetResetPassword(ctx, token)
 	if err != nil {
-		log.Println(err)
-
-		return protocol.ReturnError(500, err)
-	}
-
-	err = a.repo.ChangePassword(ctx, email, password)
-	if err != nil {
+		utils.LogError("AUTH:SVC:ConfirmReset:GetResetPassword", err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	err = a.repo.DeleteResetPassword(ctx, token)
-	if err != nil {
-		log.Printf("Failed to delete reset token: %s\n", token)
+	if err := a.repo.ChangePassword(ctx, email, password); err != nil {
+		utils.LogError("AUTH:SVC:ConfirmReset:ChangePassword", err.Error)
+		return err
+	}
+
+	if err = a.repo.DeleteResetPassword(ctx, token); err != nil {
+		utils.LogError("AUTH:SVC:ConfirmReset:DeleteResetPassword", err)
 	}
 
 	// send email updated
@@ -316,8 +318,8 @@ func (a *AuthService) ConfirmReset(ctx context.Context, token, password string) 
 func (a *AuthService) ValidReset(ctx context.Context, token string) *model.ErrorResponse {
 	exists, err := a.repo.HasResetPassword(ctx, token)
 	if err != nil {
-		log.Println(err)
-		return protocol.ReturnError(500, err)
+		utils.LogError("AUTH:SVC:ValidReset:HasResetPassword", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if !exists {
@@ -330,6 +332,7 @@ func (a *AuthService) ValidReset(ctx context.Context, token string) *model.Error
 func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.UpdateToken, *model.ErrorResponse) {
 	accessToken, err := a.ParseUserAccessToken(req.AccessToken)
 	if err != nil {
+		utils.LogError("AUTH:SVC:Refresh:ParseUserAccessToken", err)
 		return nil, protocol.ReturnError(403, protocol.ErrInvalidCredentials)
 	}
 
@@ -339,6 +342,7 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 
 	refreshToken, err := a.ParseUserRefreshToken(req.RefreshToken)
 	if err != nil {
+		utils.LogError("AUTH:SVC:Refresh:ParseUserRefreshToken", err)
 		return nil, protocol.ReturnError(403, protocol.ErrInvalidCredentials)
 	}
 
@@ -350,9 +354,12 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 		return nil, protocol.ReturnError(403, protocol.ErrSessionInvalid)
 	}
 
-	dbToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI)
-	if err != nil {
-		return nil, protocol.ReturnError(500, err)
+	var dbToken *model.RefreshTokenDB
+	if refreshToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI); err != nil {
+		utils.LogError("AUTH:SVC:Refresh:GetRefreshToken", err.Error)
+		return nil, err
+	} else {
+		dbToken = refreshToken
 	}
 
 	if dbToken.Exp.Before(time.Now()) {
@@ -370,7 +377,7 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 		JTI:      accessToken.JTI,
 	}, false)
 	if err != nil {
-		log.Printf("помилка при генерації токенів: %v\n", err)
+		utils.LogError("AUTH:SVC:Refresh:generateJWT", err)
 		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
@@ -380,13 +387,13 @@ func (a *AuthService) Refresh(ctx context.Context, req model.Tokens) (*model.Upd
 func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.ErrorResponse {
 	refreshToken, err := a.ParseUserRefreshToken(req.RefreshToken)
 	if err != nil || refreshToken.Expired {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Logout:ParseUserRefreshToken", err)
 		return nil
 	}
 
 	accessToken, err := a.ParseUserAccessToken(req.AccessToken)
 	if err != nil || accessToken.Expired {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Logout:ParseUserAccessToken", err)
 		return nil
 	}
 
@@ -394,10 +401,12 @@ func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.Error
 		return nil
 	}
 
-	dbToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI)
-	if err != nil {
-		log.Println(err)
-		return protocol.ReturnError(500, err)
+	var dbToken *model.RefreshTokenDB
+	if refreshToken, err := a.repo.GetRefreshToken(ctx, accessToken.SUB, accessToken.JTI); err != nil {
+		utils.LogError("AUTH:SVC:Logout:GetRefreshToken", err.Error)
+		return err
+	} else {
+		dbToken = refreshToken
 	}
 
 	if !utils.VerifyHash(req.RefreshToken, []byte(dbToken.Token)) {
@@ -405,14 +414,29 @@ func (a *AuthService) Logout(ctx context.Context, req model.Tokens) *model.Error
 	}
 
 	if err = a.repo.TerminateSessionInRedis(accessToken.JTI); err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:SVC:Logout:TerminateSessionInRedis", err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	if err = a.repo.TerminateRefreshToken(ctx, dbToken.Id); err != nil {
+	if err := a.repo.TerminateRefreshToken(ctx, dbToken.Id); err != nil {
 		if err := a.redis.Del(ctx, fmt.Sprintf("terminated:session:%s", accessToken.JTI)).Err(); err != nil {
-			log.Printf("rollback failed (%s): %v\n", accessToken.JTI, err)
+			utils.LogError("AUTH:SVC:Logout:TerminateRefreshToken", err)
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (a *AuthService) TerminateToken(ctx context.Context, token string) *model.ErrorResponse {
+	accessToken, err := a.ParseUserAccessToken(token)
+	if err != nil || accessToken.Expired {
+		utils.LogError("AUTH:SVC:TerminateToken:ParseUserAccessToken", err)
+		return nil
+	}
+
+	if err := a.repo.TerminateSessionInRedis(accessToken.JTI); err != nil {
+		utils.LogError("AUTH:SVC:TerminateToken:TerminateSessionInRedis", err)
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
@@ -457,7 +481,6 @@ func (a *AuthService) generateJWT(data model.GenerateJWTData, withRefresh bool) 
 		})
 
 		tokens.RefreshToken, err = refreshToken.SignedString([]byte(a.jwtkey))
-
 		if err != nil {
 			log.Println("Failed to sign JWT:", err)
 			return nil, err

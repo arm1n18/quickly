@@ -7,11 +7,19 @@
   font-weight: 500;
 }
 
+.avatar.xl {
+  width: 6rem;
+  height: 6rem;
+  font-size: 2rem;
+  border-radius: 1.75rem;
+}
+
 .avatar.md {
-  border-radius: 1rem;
   width: 2.75rem;
   height: 2.75rem;
+  border-radius: 1rem;
 }
+
 .avatar.sm {
   width: 1.5rem;
   height: 1.5rem;

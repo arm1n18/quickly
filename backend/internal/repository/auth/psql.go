@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
 	"web-quiz/internal/utils"
@@ -19,17 +18,17 @@ type AuthRepository interface {
 	/* ---- psql ---- */
 
 	// user
-	IsUserExists(ctx context.Context, email string) (bool, error)
-	CheckUserCredentials(ctx context.Context, email, password string) (*model.UserInfo, error)
-	CreateUser(ctx context.Context, email, password string) (*model.UserInfo, error)
+	IsUserExists(ctx context.Context, email string) (bool, *model.ErrorResponse)
+	CheckUserCredentials(ctx context.Context, email, password string) (*model.UserInfo, *model.ErrorResponse)
+	CreateUser(ctx context.Context, email, password string) (*model.UserInfo, *model.ErrorResponse)
 
 	// token
-	InsertRefreshToken(ctx context.Context, token model.UserSessionDB) error
-	GetRefreshToken(ctx context.Context, userId int, jti string) (*model.RefreshTokenDB, error)
-	TerminateRefreshToken(ctx context.Context, id int) error
+	InsertRefreshToken(ctx context.Context, token model.UserSessionDB) *model.ErrorResponse
+	GetRefreshToken(ctx context.Context, userId int, jti string) (*model.RefreshTokenDB, *model.ErrorResponse)
+	TerminateRefreshToken(ctx context.Context, id int) *model.ErrorResponse
 
 	// credentials
-	ChangePassword(ctx context.Context, email, password string) error
+	ChangePassword(ctx context.Context, email, password string) *model.ErrorResponse
 
 	/* ---- redis ---- */
 
@@ -48,6 +47,8 @@ type AuthRepository interface {
 	// session
 	IsSessionTerminated(jti string) (bool, error)
 	TerminateSessionInRedis(jti string) error
+	IsTokenTerminated(jti string) (bool, error)
+	TerminateTokenInRedis(token string) error
 
 	// reset
 	HasResetPassword(ctx context.Context, token string) (bool, error)
@@ -73,37 +74,35 @@ func (a *authRepo) isUsernameFree(tx pgx.Tx, ctx context.Context, username strin
 
 	var taken bool
 	if err := tx.QueryRow(ctx, query, username).Scan(&taken); err != nil {
-		log.Println(err)
-		return false, protocol.ErrInternal
+		return false, err
 	}
 
 	return !taken, nil
 }
 
-func (a *authRepo) IsUserExists(ctx context.Context, email string) (bool, error) {
+func (a *authRepo) IsUserExists(ctx context.Context, email string) (bool, *model.ErrorResponse) {
 	conn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return false, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:IsUserExists:AcquireConnection", err)
+		return false, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
 	var exists bool
 	err = conn.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", email).Scan(&exists)
 	if err != nil {
-		log.Println(err)
-
-		return false, protocol.ErrUserNotFound
+		utils.LogError("AUTH:PSQL:IsUserExists:QueryRow", err)
+		return false, protocol.ReturnError(404, protocol.ErrUserNotFound)
 	}
 
 	return exists, nil
 }
 
-func (a *authRepo) CheckUserCredentials(ctx context.Context, email, password string) (*model.UserInfo, error) {
+func (a *authRepo) CheckUserCredentials(ctx context.Context, email, password string) (*model.UserInfo, *model.ErrorResponse) {
 	conn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:CheckUserCredentials:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -114,23 +113,24 @@ func (a *authRepo) CheckUserCredentials(ctx context.Context, email, password str
 	)
 	err = conn.QueryRow(ctx, "SELECT user_id, username, password_hash FROM users WHERE email=$1", email).Scan(&userId, &username, &hashPassword)
 	if err != nil {
-		log.Println(err)
-		return nil, protocol.ErrUserNotFound
+		utils.LogError("AUTH:PSQL:CheckUserCredentials:QueryRow", err)
+		protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
 	if err != nil {
-		return nil, protocol.ErrInvalidCredentials
+		utils.LogError("AUTH:PSQL:CompareHashAndPassword", err)
+		protocol.ReturnError(403, fmt.Errorf("Пошта та пароль не співпадають"))
 	}
 
 	return &model.UserInfo{ID: userId, Username: username}, nil
 }
 
-func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*model.UserInfo, error) {
+func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*model.UserInfo, *model.ErrorResponse) {
 	conn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:CreateUser:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer conn.Release()
 
@@ -140,8 +140,8 @@ func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*mod
 
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		log.Printf("unable to begin transaction: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:CreateUser:BeginTransaction", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	defer func() {
@@ -151,9 +151,8 @@ func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*mod
 	username := utils.NameFromEmail(email)
 	free, err := a.isUsernameFree(tx, ctx, username)
 	if err != nil {
-		log.Println(err)
-
-		return nil, err
+		utils.LogError("AUTH:PSQL:CreateUser:isUsernameFree", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	for tries := 0; tries < 10 && !free; tries++ {
@@ -162,9 +161,7 @@ func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*mod
 	}
 
 	if !free {
-		log.Println("cannot generate unique username")
-
-		return nil, errors.New("cannot generate unique username")
+		return nil, protocol.ReturnError(500, fmt.Errorf("Не вдалось згенерувати ім`я користувача"))
 	}
 
 	query := `INSERT INTO users (username, email, password_hash)
@@ -172,15 +169,14 @@ func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*mod
 
 	err = tx.QueryRow(ctx, query, username, email, hashPassword).Scan(&userId)
 	if err != nil {
-		log.Println(err)
-
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:CreateUser:QueryRow", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		log.Fatalf("unable to commit transaction: %v", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:CreateUser:CommitTransaction", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return &model.UserInfo{ID: userId, Username: username}, nil
@@ -188,17 +184,18 @@ func (a *authRepo) CreateUser(ctx context.Context, email, password string) (*mod
 
 /* ---- Token ---- */
 
-func (a *authRepo) InsertRefreshToken(ctx context.Context, token model.UserSessionDB) error {
+func (a *authRepo) InsertRefreshToken(ctx context.Context, token model.UserSessionDB) *model.ErrorResponse {
 	dbConn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:InsertRefreshToken:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer dbConn.Release()
 
 	hashToken, err := utils.GetHash(token.Token)
 	if err != nil {
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:InsertRefreshToken:GetHash", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	query := `INSERT INTO sessions (user_id, os, device, browser, token, jti, expires_at)
@@ -207,19 +204,20 @@ func (a *authRepo) InsertRefreshToken(ctx context.Context, token model.UserSessi
 	_, err = dbConn.Exec(ctx, query, token.ID, token.OS,
 		token.Device, token.Browser, string(hashToken), token.JTI)
 	if err != nil {
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:InsertRefreshToken:Exec", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return nil
 }
 
-func (a *authRepo) GetRefreshToken(ctx context.Context, userId int, jti string) (*model.RefreshTokenDB, error) {
+func (a *authRepo) GetRefreshToken(ctx context.Context, userId int, jti string) (*model.RefreshTokenDB, *model.ErrorResponse) {
 	var res model.RefreshTokenDB
 
 	dbConn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return nil, protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:GetRefreshToken:AcquireConnection", err)
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer dbConn.Release()
 
@@ -227,21 +225,21 @@ func (a *authRepo) GetRefreshToken(ctx context.Context, userId int, jti string) 
 
 	err = dbConn.QueryRow(ctx, query, userId, jti).Scan(&res.Id, &res.Token, &res.Exp)
 	if err != nil {
-		log.Println(err)
+		utils.LogError("AUTH:PSQL:GetRefreshToken:QueryRow", err)
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, protocol.ErrNotFound
+			return nil, protocol.ReturnError(404, protocol.ErrNotFound)
 		}
-		return nil, protocol.ErrInternal
+		return nil, protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	return &res, nil
 }
 
-func (a *authRepo) TerminateRefreshToken(ctx context.Context, id int) error {
+func (a *authRepo) TerminateRefreshToken(ctx context.Context, id int) *model.ErrorResponse {
 	dbConn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:TerminateRefreshToken:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer dbConn.Release()
 
@@ -251,12 +249,12 @@ func (a *authRepo) TerminateRefreshToken(ctx context.Context, id int) error {
 	`
 	rows, err := dbConn.Exec(ctx, query, id)
 	if err != nil {
-		log.Println(err)
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:TerminateRefreshToken:Exec", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if rows.RowsAffected() == 0 {
-		return protocol.ErrNotFound
+		return protocol.ReturnError(404, protocol.ErrNotFound)
 	}
 
 	return nil
@@ -264,11 +262,11 @@ func (a *authRepo) TerminateRefreshToken(ctx context.Context, id int) error {
 
 /* ---- Credentials ---- */
 
-func (a *authRepo) ChangePassword(ctx context.Context, email, password string) error {
+func (a *authRepo) ChangePassword(ctx context.Context, email, password string) *model.ErrorResponse {
 	dbConn, err := a.psql.Acquire(ctx)
 	if err != nil {
-		log.Printf("unable to acquire connection: %v\n", err)
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:ChangePassword:AcquireConnection", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 	defer dbConn.Release()
 
@@ -280,12 +278,12 @@ func (a *authRepo) ChangePassword(ctx context.Context, email, password string) e
 	`
 	rows, err := dbConn.Exec(ctx, query, email, hashPassword)
 	if err != nil {
-		log.Println(err)
-		return protocol.ErrInternal
+		utils.LogError("AUTH:PSQL:ChangePassword:Exec", err)
+		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
 	if rows.RowsAffected() == 0 {
-		return protocol.ErrNotFound
+		return protocol.ReturnError(404, protocol.ErrNotFound)
 	}
 
 	return nil

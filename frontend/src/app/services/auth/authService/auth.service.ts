@@ -38,6 +38,12 @@ export class AuthService {
     this.state.setPayload(payload);
   }
 
+  public updateToken(accessToken: string) {
+    this.storage.saveToken(accessToken);
+    this.state.setPayload(this.decode(accessToken))
+    this.refresh$.next(accessToken);
+  }
+
   private refreshToken(): Observable<string> {
     if(this.isRefreshing) {
       return this.refresh$.pipe(

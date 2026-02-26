@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"web-quiz/internal/mail"
 	"web-quiz/internal/middleware"
@@ -22,14 +21,11 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		req := model.AuthRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			log.Println(err)
-
 			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
 		err := svc.Register(c.Context(), req)
 		if err != nil {
-
 			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
 		}
 
@@ -40,8 +36,6 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		req := model.AuthRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			log.Println(err)
-
 			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
@@ -73,9 +67,6 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		}
 
 		svc.SetCookie(c, success.RefreshToken)
-
-		log.Println("Set-Cookie header:", string(c.Response().Header.Peek("Set-Cookie")))
-
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"accessToken": success.AccessToken,
 		})
@@ -102,7 +93,6 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 			Email string `json:"email"`
 		}
 		if err := c.BodyParser(&body); err != nil {
-			log.Println(err)
 			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 
@@ -121,7 +111,6 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		}
 
 		if err := c.BodyParser(&body); err != nil {
-			log.Println(err)
 			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
 		}
 

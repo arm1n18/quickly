@@ -245,6 +245,28 @@ func (a *authRepo) TerminateSessionInRedis(jti string) error {
 	return nil
 }
 
+func (a *authRepo) IsTokenTerminated(token string) (bool, error) {
+	key := fmt.Sprintf("terminated:token:%s", token)
+
+	exists, err := a.redis.Exists(context.Background(), key).Result()
+	if err != nil {
+		return false, err
+	}
+
+	return exists == 1, nil
+}
+
+func (a *authRepo) TerminateTokenInRedis(token string) error {
+	key := fmt.Sprintf("terminated:token:%s", token)
+
+	err := a.redis.Set(context.Background(), key, token, 15*time.Minute).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 /* ---- Reset ---- */
 
 func (a *authRepo) HasResetPassword(ctx context.Context, token string) (bool, error) {
