@@ -1,5 +1,5 @@
 <div #overlay [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2'" (click)="closeModal($event)"></div>
-<form class="modal-containter" [formGroup]="authForm">
+<form class="modal-containter" [formGroup]="authForm" (ngSubmit)="sendData()">
     <div class="modal-content">
         <div class="flex justify-between w-full items-center mb-4">
             <h1 class="title">{{choosenMode}}</h1>
@@ -14,12 +14,12 @@
                     <div class="flex flex-col gap-2">
                         <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
                         <app-custom-input 
-                            inputId="email" 
+                            inputID="email" 
                             [title]="'Пошта'"
                             [delay]="0"
-                            [value]="authForm.get('email')?.value ?? ''"
+                            [value]="this.authForm.controls.email.value"
                             [maxLength]="50"
-                            (inputChange)="authForm.get('email')?.setValue($event)"
+                            (inputChange)="authForm.controls.email.patchValue($event)"
                         />
                     </div>
                     
@@ -30,7 +30,13 @@
                     }
 
                     <div class="flex flex-col gap-4 max-md:mt-auto">
-                        <app-custom-button size="w-full" [disabled]="!authForm.get('email')?.valid" (click)="resetPassword()">Скинути</app-custom-button>
+                        <app-custom-button 
+                            size="w-full" 
+                            [disabled]="!this.authForm.controls.email.valid"
+                            (click)="resetPassword()"
+                        >
+                            Скинути
+                        </app-custom-button>
                     
                         <!-- SEPARATOR -->
                         <div class="h-0.25 bg-[var(--secondary)] shrink-0  w-full"></div>
@@ -52,25 +58,25 @@
                     <div class="flex flex-col gap-2">
                         <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
                         <app-custom-input 
-                            inputId="email" 
+                            inputID="email" 
                             [title]="'Пошта'"
                             [delay]="0"
                             [maxLength]="50"
-                            [value]="authForm.get('email')?.value ?? ''"
-                            (inputChange)="authForm.get('email')?.setValue($event)"
+                            [value]="this.authForm.controls.email.value"
+                            (inputChange)="authForm.controls.email.patchValue($event)"
                         />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="text-md text-[var(--dark-accent)]" for="password">Пароль</label>
                         <app-custom-input 
-                            inputId="password"
+                            inputID="password"
                             [delay]="0"
-                            [value]="authForm.get('password')?.value ?? ''"
+                            [value]="this.authForm.controls.password.value"
                             [maxLength]="50"
                             [isPassword]="true" 
                             [title]="'Пароль'" 
-                            (inputChange)="authForm.get('password')?.setValue($event)"
+                            (inputChange)="authForm.controls.password.patchValue($event)"
                         />
                         <span class="text-xs text-[var(--text-secondary2)]">Пароль повинен бути довжиною від 6 до 50 символів.</span>
                     </div>
@@ -80,7 +86,7 @@
                     }
 
                     <div class="flex flex-col gap-4 max-md:mt-auto">
-                        <app-custom-button size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{choosenMode}}</app-custom-button>
+                        <app-custom-button type="submit" size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{choosenMode}}</app-custom-button>
                         @if(mode == 'register') {
                             <span class="text-sm text-[var(--dark-accent)] mx-auto">
                                 У вас вже є обліковий запис?
@@ -124,11 +130,11 @@
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col gap-4">
                     <span class="text-md text-[var(--dark-accent)]">
-                        Код надіслано на {{authForm.get('email')?.value}}
+                        Код надіслано на {{this.authForm.controls.email.value}}
                     </span>
 
                     <app-otp-input 
-                        [length]="6" 
+                        [length]="5" 
                         class="mx-auto" 
                         (inputChange)="onOtpChange($event)"
                     />
@@ -165,16 +171,17 @@
                 }
 
                 <div class="flex flex-col gap-4">
-                    <app-custom-button 
-                    size="w-full" 
-                    [disabled]="!(authForm.valid && remainingGenerations > 0)"
-                    (click)="newAttempt()"
-                >
-                    Підтвердити
-                </app-custom-button>
-                <span (click)="returnToChangeData()" class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto">
-                    Змінити дані
-                </span>
+                    <app-custom-button
+                        type="submit"
+                        size="w-full" 
+                        [disabled]="!(authForm.valid && remainingGenerations > 0)"
+                        (click)="newAttempt()"
+                    >
+                        Підтвердити
+                    </app-custom-button>
+                    <span (click)="returnToChangeData()" class="text-sm text-[var(--accent)] hover:underline underline-offset-4 cursor-pointer mx-auto">
+                        Змінити дані
+                    </span>
                 </div>
             </div>
         }

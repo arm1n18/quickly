@@ -4,7 +4,6 @@
     <h1 class="title font-medium">
         Результат пошуку {{ currentSearch() && currentSearch().length > 0 ? ('«' + currentSearch() + '»') : '' }}
     </h1>
-    <!-- <app-segmented-controls [segments]="[{title: 'Модулі'}, {title: 'Папки'}]" /> -->
     <div class="flex gap-4 md:items-end max-md:flex-col">
         <app-keywords-input
             class="md:max-w-lg"
@@ -39,6 +38,7 @@
         }
 
     </div>
+    
     @if(isLoading()) {
         <div class="loader mx-auto"></div>
     }

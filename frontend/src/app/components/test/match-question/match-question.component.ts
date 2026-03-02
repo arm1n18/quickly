@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {ContentBlock, TestMatchCard} from '../../../interfaces/module.interface';
 import {NgClass} from '@angular/common';
 import { IconComponent } from '../../ui';
@@ -16,7 +16,7 @@ import { ImageModalDirective } from"../../../directives/imageDirective/image-mod
   styleUrl: './match-question.css'
 })
 
-export class MatchQuestionComponent implements OnInit {
+export class MatchQuestionComponent implements OnInit, OnChanges {
   constructor(public feedback: Feedback) {}
 
   @Input({ required: true }) showAnswer: boolean = false;
@@ -24,7 +24,8 @@ export class MatchQuestionComponent implements OnInit {
   @Input({ required: true }) questions: {questions: TestMatchCard[], answers: ContentBlock[]} | undefined;
   @Input() answers: (ContentBlock | undefined)[] = []
   @Output() questionChange = new EventEmitter<{index: number, answer: string | undefined}>();
-  selectedBlock: number = 0;
+  public selectedBlock: number = 0;
+  public feedbackMessage: string[] = [];
 
   get answerBlocks() {
     return Array.from({ length: this.questions?.questions.length ?? 0 }, (_, i) => ({ id: i }))
@@ -34,11 +35,11 @@ export class MatchQuestionComponent implements OnInit {
     return this.questions?.answers?.some(a => a.text!.length > 164) ?? false;
   }
   
-  isCorrectAnswer(index: number): boolean {
+  public isCorrectAnswer(index: number): boolean {
     return this.showAnswer ? this.questions?.questions[index].answer.text === this.answered![index] : false
   }
 
-  getAnswerText(blockId?: number): string {
+ public  getAnswerText(blockId?: number): string {
     if (blockId === undefined) return '';
     const answer = this.answers[blockId];
     if (answer === undefined) {
@@ -47,21 +48,20 @@ export class MatchQuestionComponent implements OnInit {
     return answer.text || '';
   }
 
-  isAnswered(answer: ContentBlock): boolean {
+  public isAnswered(answer: ContentBlock): boolean {
     return this.answers.some(a => a === answer);
   }
 
-  toggleAnswerBlock(answer: ContentBlock) {
+  public toggleAnswerBlock(answer: ContentBlock) {
     if(this.selectedBlock == -1 || this.isAnswered(answer)) return;
-
+    
     this.answers[this.selectedBlock] = answer;
     this.toggleChooseAnswer(answer.text, this.selectedBlock);
     this.selectedBlock = this.answers.findIndex(a => a === undefined);
   }
 
-  toggleChooseAnswer(newAnswer: string | undefined, index: number) {
+  public toggleChooseAnswer(newAnswer: string | undefined, index: number) {
     if(this.showAnswer) return
-
     if (this.answers[index] == newAnswer) {
       this.questionChange.emit({index, answer: undefined});
     } else {
@@ -69,14 +69,27 @@ export class MatchQuestionComponent implements OnInit {
     }
   }
 
-  removeAnswer(index: number, event: Event) {
+  public removeAnswer(index: number, event: Event) {
     event.stopPropagation();
+    
     this.answers[index] = undefined;
     this.toggleChooseAnswer(undefined, index)
     this.selectedBlock = index
   }
 
+  public updateFeedbackMessages() {
+    this.feedbackMessage = this.questions?.questions?.map((q, i) =>
+      this.feedback.getFeedbackMessage(this.isCorrectAnswer(i))
+    ) || [];
+  }
+
   ngOnInit() {
     this.answers = new Array(this.questions?.questions.length).fill(undefined);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['showAnswer'] && this.showAnswer) {
+      this.updateFeedbackMessages()
+    }
   }
 }

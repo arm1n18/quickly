@@ -1,13 +1,16 @@
 <button
   [disabled]="disabled"
+  [type]="type"
   [ngClass]="[
-  'btn',
-  `${danger ? 'red' : 'accent'}-${theme}`,
-  `rounded-${rounded}`,
-  size,
-  disabled ? 'disabled' : '',
-  className
-]"
+    'btn',
+    `${danger ? 'red' : 'accent'}-${theme}`,
+    `rounded-${rounded}`,
+    size,
+    (disabled || loading.isLoading) ? 'disabled' : '',
+    className
+  ]"
 >
+  @if(loading.isLoading) { <div class="loader sm mx-auto"></div> }
+
   <ng-content />
 </button>

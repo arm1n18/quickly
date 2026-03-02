@@ -6,6 +6,7 @@ import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { AuthFormComponent } from '../../components';
 import { Router } from '@angular/router';
+import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 
 @Component({
   selector: 'app-main-page',
@@ -15,6 +16,7 @@ import { Router } from '@angular/router';
 })
 export class MainPageComponent {
   constructor(
+    private auth: AuthStateService,
     private router: Router,
     private portal: PortalService
   ) {}
@@ -31,5 +33,9 @@ export class MainPageComponent {
     } else if (!state && this.portal.isAnyOpen()) {
       this.portal.close();
     }
+  }
+
+  get isAuthenticated() {
+    return this.auth.isAuthenticated()
   }
 }

@@ -131,7 +131,7 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		return c.SendStatus(fiber.StatusOK)
 	})
 
-	router.Get("/refresh", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
+	router.Post("/refresh", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
 		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
 		if !ok {
 			return c.SendStatus(fiber.StatusUnauthorized)

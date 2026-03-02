@@ -19,4 +19,6 @@ export class CustomButtonComponent {
   @Input() theme: ButtonTheme = 'primary';
   @Input() size: 'symbol' | 'text' | 'dual-child' | 'w-full' = 'text';
   @Input() disabled: boolean = false;
+  @Input() loading: {isLoading: boolean, title?: string} = { isLoading: false };
+  @Input() type: string = 'button';
 }

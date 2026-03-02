@@ -129,13 +129,14 @@
               }
             }
           }
+
         </div>
         <div class="w-full flex flex-col gap-4">
           <div [ngClass]="{
               'text-[#41C550]': showAnswer && isCorrectAnswer(i),
               'text-[#FF9F4B]': showAnswer && !isCorrectAnswer(i)
             }">
-            {{feedback.getFeedbackMessage(isCorrectAnswer(i))}}
+            {{ feedbackMessage[i] }}
           </div>
 
           <div class="w-full flex gap-4">

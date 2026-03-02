@@ -3,6 +3,7 @@
         #otpInput
         class="input"
         [value]="values[$index] || ''"
+        inputmode="numeric"
         appNumberOnly
         (input)="onInput($event, $index)"
         (keydown)="onKeyDown($event, i)"

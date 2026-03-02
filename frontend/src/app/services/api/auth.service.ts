@@ -43,7 +43,9 @@ export class AuthService {
   }
 
   public refresh(): Observable<{accessToken: string}> {    
-    return this.http.get<{accessToken: string}>(`${this.apiRoute}/refresh`)
+    return this.http.post<{accessToken: string}>(`${this.apiRoute}/refresh`, null,
+      { headers: { 'Cache-Control': 'no-cache' } }
+    )
   }
 
   public logout(): Observable<void> {    

@@ -94,7 +94,7 @@ func (a *AuthService) Register(ctx context.Context, req model.AuthRequest) *mode
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	code := utils.GenerateCode(6)
+	code := utils.GenerateCode(5)
 
 	if err := a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
 		ID:      user.ID,
@@ -141,7 +141,7 @@ func (a *AuthService) Login(ctx context.Context, req model.AuthRequest) *model.E
 		return protocol.ReturnError(500, protocol.ErrInternal)
 	}
 
-	code := utils.GenerateCode(6)
+	code := utils.GenerateCode(5)
 	if err := a.repo.SetVerificationCode(ctx, req.Email, model.VerificationCode{
 		ID:      user.ID,
 		Code:    code,
@@ -229,7 +229,7 @@ func (a *AuthService) SendCode(ctx context.Context, req model.AuthRequest) *mode
 		return protocol.ReturnError(400, protocol.ErrInvalidPurpose)
 	}
 
-	code := utils.GenerateCode(6)
+	code := utils.GenerateCode(5)
 
 	err := a.repo.UpdateVerificationCode(ctx, req.Email, code, req.Purpose)
 	if err != nil {
@@ -584,6 +584,8 @@ func (a *AuthService) ParseUserAccessToken(accessToken string) (*model.UserAcces
 }
 
 func (a *AuthService) ParseUserRefreshToken(refreshToken string) (*model.UserRefreshToken, error) {
+	log.Println("refreshToken:", refreshToken)
+
 	var expired bool
 
 	parser := jwt.NewParser(jwt.WithoutClaimsValidation())
@@ -804,6 +806,7 @@ func (a *AuthService) SetCookie(c *fiber.Ctx, token string) {
 }
 
 func (a *AuthService) RemoveCookie(c *fiber.Ctx, key string) {
+	log.Println("removed")
 	c.Cookie(&fiber.Cookie{
 		Name:    key,
 		Value:   "",

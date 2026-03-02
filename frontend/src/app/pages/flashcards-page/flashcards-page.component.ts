@@ -80,7 +80,7 @@ export class FlashcardsPage {
   public changeGameMode(mode: GameMode) {
     switch (mode) {
       case 'default':
-        void this.router.navigate(['../'], { relativeTo: this.route });
+         void this.router.navigate(['/']);
         break;
       case 'test':
         void this.router.navigate(['../test'], { relativeTo: this.route });

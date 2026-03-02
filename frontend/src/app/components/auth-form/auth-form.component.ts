@@ -86,12 +86,12 @@ export class AuthFormComponent {
   public sendData() {
     if(this.isLoading) return
 
-    this.isLoading = true
+    this.isLoading = true;
 
     this.api.auth.auth(
         this.mode == 'register' ? 'register' : 'login',
-        this.authForm.get('email')!.value,
-        this.authForm.get('password')!.value
+        this.authForm.controls.email.value,
+        this.authForm.controls.password.value,
     ).subscribe({
         next: () => {
           this.isLoading = false
@@ -99,7 +99,6 @@ export class AuthFormComponent {
           this.receiveCodeStage();
         },
         error: err => {
-          console.log(err)
           this.isLoading = false
           this.errorMessage.set(err.error.message || 'Щось пішло не так')
         }
@@ -107,7 +106,7 @@ export class AuthFormComponent {
   }
 
   private receiveCodeStage() {
-    const currentEmail = this.authForm.get('email')!.value;
+    const currentEmail = this.authForm.controls.email.value;
 
     if (this.prevEmail && this.prevEmail !== currentEmail) {
       this.codeGenerations = 1
@@ -123,7 +122,7 @@ export class AuthFormComponent {
     if (!this.authForm.contains('code')) {
       this.authForm.addControl(
         'code', new FormArray<FormControl<string>>(
-          Array.from({ length: 6 }, () =>
+          Array.from({ length: 5 }, () =>
             new FormControl('', { nonNullable: true })
           )
         ),
@@ -143,7 +142,7 @@ export class AuthFormComponent {
 
     this.isLoading = true
     this.api.auth.verify({
-        email: this.authForm.get('email')!.value,
+        email: this.authForm.controls.email.value,
         code: code,
         purpose: this.mode == 'register' ? 'register' : 'login'
       }
@@ -169,9 +168,10 @@ export class AuthFormComponent {
       return
     }
 
-    this.isLoading = true
+    this.isLoading = true;
+    
     this.api.auth.resendCode(
-        this.authForm.get('email')!.value,
+        this.authForm.controls.email.value,
         this.mode === 'register' ? 'register' : 'login'
     ).subscribe({
         next: () => {
@@ -197,7 +197,7 @@ export class AuthFormComponent {
   public resetPassword() {
     if(this.isLoading) return
 
-    const email = this.authForm.get('email')!.value
+    const email = this.authForm.controls.email.value
 
     this.isLoading = true
 

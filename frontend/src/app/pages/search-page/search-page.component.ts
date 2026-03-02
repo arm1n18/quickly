@@ -28,12 +28,16 @@ export class SearchPageComponent implements OnInit {
   @ViewChildren('item') items!: QueryList<ElementRef<HTMLElement>>;
   
   public modules: WritableSignal<ModuleSummary[]> = signal([]);
+  public keywords: WritableSignal<Keyword[]> = signal([]);
+  
   private search$ = new Subject<string>();
   public currentSearch: WritableSignal<string> = signal('');
+
+  private keywordsSearch$ = new Subject<string>();
+  public selectedKeywords: WritableSignal<Keyword[]> = signal([]);
+
   public hasMore: WritableSignal<boolean> = signal(true);
-  private kwSearch$ = new Subject<string>();
   public isLoading: WritableSignal<boolean> = signal(false);
-  private initialized: boolean = false;
   
   public dropdownListQT: WritableSignal<DropdownItem[][]> = signal([
     [
@@ -51,9 +55,6 @@ export class SearchPageComponent implements OnInit {
       }
     ]
   ]);
-
-  public selectedKeywords: WritableSignal<Keyword[]> = signal([]);
-  public keywords: WritableSignal<Keyword[]> = signal([]);
 
   constructor(
     private route: ActivatedRoute,
@@ -75,40 +76,9 @@ export class SearchPageComponent implements OnInit {
     })
   }
 
-  private changeSearchQuery(text: string) {
-    // this.router.navigate([], {
-    //   queryParams: { title: text.length > 0 ? text : null },
-    //   queryParamsHandling: 'merge'
-    // })
-
-    // this.search$.next(text)
-    // this.currentSearch.set(text)
-  }
-
-  public search(text: string) {
-    this.search$.next(text)
-  }
-
   public changeSelectedKeywords(keywords: Keyword[]) {
     this.selectedKeywords.set(keywords);
     this.changeKeywordsQuery(keywords.map(k => k.slug))
-  }
-
-  public searchKeywords(text: string) {
-    this.kwSearch$.next(text)
-  }
-
-  private getLimitTitle(limit: string): string | null {
-    switch (limit) {
-      case 'lessThanTwenty': 
-        return '< 20 карток'
-      case 'twentyToFifty': 
-        return '20-50 карток'
-      case 'moreThanFifty': 
-        return '50+ карток'
-      default:
-        return null
-    }
   }
 
   private updatePreselectedLimit(limit?: string) {
@@ -128,6 +98,27 @@ export class SearchPageComponent implements OnInit {
         return i
       })
       this.dropdownListQT.set([updatedList])
+    }
+  }
+
+  public search(text: string) {
+    this.search$.next(text)
+  }
+
+  public searchKeywords(text: string) {
+    this.keywordsSearch$.next(text)
+  }
+
+  private getLimitTitle(limit: string): string | null {
+    switch (limit) {
+      case 'lessThanTwenty': 
+        return '< 20 карток'
+      case 'twentyToFifty': 
+        return '20-50 карток'
+      case 'moreThanFifty': 
+        return '50+ карток'
+      default:
+        return null
     }
   }
 
@@ -208,21 +199,7 @@ export class SearchPageComponent implements OnInit {
       this.changeKeywordsQuery([])
     }
 
-    // this.search$
-    //   .pipe(
-    //     debounceTime(500),
-    //     distinctUntilChanged(),
-    //     tap(text => {
-    //       if (!this.initialized) {
-    //         this.initialized = true; 
-    //         return;
-    //       }
-    //       this.changeSearchQuery(text)
-    //     })
-    //   )
-    //   .subscribe();
-
-    this.kwSearch$
+    this.keywordsSearch$
       .pipe(
         startWith(''),
         debounceTime(500),

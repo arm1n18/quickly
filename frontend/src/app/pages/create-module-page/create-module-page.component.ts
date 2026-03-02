@@ -5,7 +5,6 @@ import { PortalModule } from "@angular/cdk/portal";
 import { NgClass } from '@angular/common';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ImageModalDirective } from "../../directives/imageDirective/image-modal.directive";
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../services/api/api.service';
 import { Router } from '@angular/router';
 import { isImgUrl } from '../../utils/validate';
@@ -30,7 +29,7 @@ export interface CardForm {
 
 @Component({
   selector: 'app-create-module-page',
-  imports: [MainLayoutComponent, ReactiveFormsModule, DragDropModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent],
+  imports: [MainLayoutComponent, ReactiveFormsModule, PortalModule, NgClass, ImageModalDirective, CustomButtonComponent, CustomInputComponent, TextAreaComponent, IconComponent],
   templateUrl: './create-module-page.html',
   styleUrl: './create-module-page.css',
 })
@@ -43,7 +42,7 @@ export class CreateModulePage implements OnInit {
     private cdr: ChangeDetectorRef
   ){}
 
-  moduleForm = new FormGroup<{
+  public moduleForm = new FormGroup<{
     title: FormControl<string>,
     description: FormControl<string | null>,
     cards: FormArray<FormGroup<CardForm>>
@@ -58,7 +57,7 @@ export class CreateModulePage implements OnInit {
   private isSubmitting: boolean = false;
 
   public addCard(index: number, data?: Card){
-    const cards = this.moduleForm.get('cards') as FormArray<FormGroup<CardForm>>;
+    const cards = this.moduleForm.controls.cards;
 
     if(cards.length == 50) {
       return
@@ -85,15 +84,16 @@ export class CreateModulePage implements OnInit {
   }
 
   private dublicateModule(module: Module) {
-    this.moduleForm.get('title')?.setValue(module.title)
-    this.moduleForm.get('description')?.setValue(module.description)
+    this.moduleForm.controls.title.patchValue(module.title)
+    this.moduleForm.controls.description.patchValue(module.description)
+
     for(let i = 0; i < module.cards.length; i++) {
       this.addCard(i, module.cards[i])
     }
   }
 
   public removeCard(index: number){
-    const cards = this.moduleForm.get('cards') as FormArray<FormGroup<CardForm>>;
+    const cards = this.moduleForm.controls.cards;
 
     if (index >= 0 && index < cards.length) {
       cards.removeAt(index);
@@ -138,11 +138,6 @@ export class CreateModulePage implements OnInit {
   public changeSelectedCard(index: number, target: "title" | "description") {
     this.loadImage.set({card: -1, target: undefined});
     this.loadImage.set({card: index, target: target})
-  }
-
-  public dropCard(event: CdkDragDrop<FormGroup<CardForm>[]>) {
-    const cardsArray = this.cards;
-    moveItemInArray(cardsArray.controls, event.previousIndex, event.currentIndex);
   }
 
   private buildPayload() {

@@ -16,31 +16,29 @@
                 ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
             </span>
             <app-custom-input 
-                inputId="title"
+                inputID="title"
                 class="w-full" 
                 title="Назва"
-                [value]="moduleForm.get('title')?.value ?? ''" 
+                [value]="moduleForm.controls.title.value" 
                 (inputChange)="moduleForm.get('title')?.setValue($event)"
             />
         </div>
         <div class="flex flex-col gap-4 w-full">
             <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (moduleForm.get('description')?.value?.length ?? 0) > 500 }">
                 ОПИС
-                ({{moduleForm.get('description')?.value?.length ?? 0}}/500)
+                ({{moduleForm.controls.description.value?.length ?? 0}}/500)
             </span>
             <app-text-area
                 class="w-full" 
                 [delay]="0"
-                [value]="moduleForm.get('description')?.value || ''" 
+                [value]="moduleForm.controls.description.value ?? ''" 
                 (inputChange)="moduleForm.get('description')?.setValue($event)"
             />
         </div>
 
-        <div formArrayName="cards" class="flex flex-col w-full" cdkDropList [cdkDropListData]="cards.controls" (cdkDropListDropped)="dropCard($event)">
-                @for(card of cards.controls; track card) {
-                    <!-- <ng-template #cardPreview> -->
-                        
-                        <div [formGroupName]="$index" cdkDrag cdkDragLockAxis="y" class="draggable-card" >
+        <div formArrayName="cards" class="flex flex-col w-full">
+                @for(card of cards.controls; track card) {                        
+                        <div [formGroupName]="$index" class="draggable-card" >
                             <div class="flex w-full justify-between items-center">
                                 <span>{{$index+1}}</span>
 
@@ -59,38 +57,9 @@
                                     <div class="flex gap-4">
                                         <app-text-area 
                                             class="w-full" [delay]="0"
-                                            [value]="card.get('title.text')?.value || ''" 
+                                            [value]="card.get('title.text')?.value ?? ''" 
                                             (inputChange)="card.get('title.text')?.setValue(normalizeText($event))"
                                         />
-                                        
-                                        <!-- @if(card.get('title.media.content')?.value; as content) {
-                                            <div class="relative">
-                                                <img 
-                                                    appImageModalDirective
-                                                    class="media-block sm"
-                                                    alt="imh"
-                                                    [src]="content"
-                                                    [allowModal]="true"
-                                                    [width]="'64px'"
-                                                    [height]="'64px'"
-                                                />
-
-                                                <div 
-                                                    class="absolute top-0 right-0 p-2 rounded-full bg-[var(--secondary)] cursor-pointer"
-                                                    (click)="updateCardMediaContent('title', $index, '')"
-                                                >
-                                                    <app-icon [icon]="'Trash'" [size]="16" fill="var(--hover-secondary2)" />
-                                                </div>
-                                            </div>
-                                        } @else {
-                                            <app-custom-button
-                                                [theme]="'hover-only-dark'"
-                                                [size]="'symbol'"
-                                                (click)="changeSelectedCard($index, 'title')"
-                                            >
-                                                <app-icon [icon]="'Image'" [size]="24"/>
-                                            </app-custom-button>
-                                        } -->
                                     </div>
 
                                     <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (card.get('title')?.get('text')?.value?.length ?? 0) > 500 }">
@@ -103,7 +72,7 @@
                                     <div class="flex gap-4">
                                         <app-text-area 
                                             class="w-full" [delay]="0"
-                                            [value]="card.get('description.text')?.value || ''" 
+                                            [value]="moduleForm.controls.description.value ?? ''" 
                                             (inputChange)="card.get('description.text')?.setValue(normalizeText($event))"
                                         />
                                         
@@ -152,7 +121,7 @@
                                         (inputChange)="updateCardMediaContent(loadImage().target!, $index, $event)"
                                     />
 
-                                    <app-custom-button [theme]="'hover-only'" (click)="loadImage.set({card: -1, target: undefined})" [size]="'w-full'" class="max-md:w-full">
+                                    <app-custom-button [theme]="'hover-only'" (click)="loadImage.set({card: -1, target: undefined})" [size]="'w-full'" >
                                         Приховати
                                         <app-icon [icon]="'ChevronFillUp'"
                                             [size]="24"
@@ -181,7 +150,6 @@
                                 </app-custom-button>
                             </div>
                         }
-                    <!-- </ng-template> -->
                 }
         </div>
 

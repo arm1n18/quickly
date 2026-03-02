@@ -36,7 +36,7 @@ export class UserProfile implements OnInit {
     this.selectedSegment.set(index);
     this.router.navigate(
       [index === 0 ? 'modules' : 'folders'],
-      { relativeTo: this.route }
+      { relativeTo: this.route, replaceUrl: true }
     )
   }
 

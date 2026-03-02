@@ -1,7 +1,6 @@
 <div
     class="input cursor-text"
     [style.width] = "width"
-    [ngStyle]="styles"
     [ngClass]="{
         'focus': focused
     }"
@@ -12,11 +11,11 @@
     <input
         class="w-full h-full"
         [attr.type]="type"
-        [id]="inputId"
-        [placeholder]="title ?? ''"
+        [id]="inputID"
+        [placeholder]="title"
         [value]="value"
         [disabled]="disabled"
-        [maxLength]="maxLength ?? null"
+        [attr.maxLength]="maxLength ?? null"
         (input)="onInputChange($event)"
     />
 

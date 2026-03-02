@@ -165,6 +165,8 @@ export class QuizCardsComponent {
   }
 
   public toggleShuffle() {
+    this.currentCardIndex.set(0)
+    this.quizChange.emit(0)
     if (this.isActive().isShuffleActive) {
       this.shuffledCards.set(null);
       this.isActive.update(current => ({

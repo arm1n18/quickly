@@ -16,7 +16,7 @@
                 ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
             </span>
             <app-custom-input 
-                inputId="title"
+                inputID="title"
                 class="w-full" 
                 title="Назва"
                 [value]="moduleForm.get('title')?.value ?? ''" 
@@ -149,7 +149,7 @@
                                 (inputChange)="updateCardMediaContent(loadImage().target!, $index, $event)"
                             />
 
-                            <app-custom-button [theme]="'hover-only'" (click)="loadImage.set({card: -1, target: undefined})" [size]="'w-full'" class="max-md:w-full">
+                            <app-custom-button [theme]="'hover-only'" (click)="loadImage.set({card: -1, target: undefined})" [size]="'w-full'" >
                                 Приховати
                                 <app-icon [icon]="'ChevronFillUp'"
                                     [size]="24"

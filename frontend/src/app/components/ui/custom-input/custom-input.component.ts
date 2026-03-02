@@ -1,4 +1,4 @@
-import { NgStyle, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { IconComponent,Icons } from "../icon/icon.component";
 import { BehaviorSubject, debounceTime, Subject } from 'rxjs';
@@ -6,13 +6,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-custom-input',
-  imports: [NgStyle, IconComponent, NgClass],
+  imports: [IconComponent, NgClass],
   templateUrl: './custom-input.html',
   styleUrl: './custom-input.css',
 })
 
 export class CustomInputComponent {
-  @Input() inputId: string | undefined;
+  @Input() inputID: string | undefined;
   @Input() title: string = '';
   @Input() isPassword: boolean = false;
   @Input() disabled: boolean = false;
@@ -24,7 +24,6 @@ export class CustomInputComponent {
     this._delay$.next(value ?? 500);
   };
 
-  @Input() styles: { [key: string]: any} = {};
   @Input() width: string = '100%';
   @Input() icon: Partial<{show:boolean, name: Icons}> = {};
   @Input() maxLength: number | null = null; 
@@ -73,6 +72,12 @@ export class CustomInputComponent {
     return this._value;
   }
 
+  ngOnInit() {
+    if(this.isPassword) {
+      this.showPassword()
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const clickedInside = this.elementRef.nativeElement.contains(event.target)
@@ -88,12 +93,6 @@ export class CustomInputComponent {
         input.blur();
         this.inputFocused.emit(false);
       }
-    }
-  }
-
-  ngOnInit() {
-    if(this.isPassword) {
-      this.showPassword()
     }
   }
 

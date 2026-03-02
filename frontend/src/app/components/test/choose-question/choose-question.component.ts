@@ -25,31 +25,10 @@ export class ChooseQuestionComponent implements OnChanges {
   @Input({ required: true }) numeration: { pos: number; from: number } = { pos: 0, from: 0 };
   @Input({ required: true }) question: TestQACard | undefined;
   @Output() questionChange = new EventEmitter<string | undefined>();
-  // selectedAnswer: number | undefined;
-  skipped: boolean = false;
-  feedbackMessage = '';
+  public skipped: boolean = false;
+  public feedbackMessage = '';
 
-  // toggleChooseAnswer(newAnswer: number) {
-  //   if(this.showAnswer) return
-
-  //   if (this.answered == newAnswer) {
-  //     this.selectedAnswer = undefined;
-  //     this.questionChange.emit(undefined)
-  //   } else {
-  //     this.selectedAnswer = newAnswer;
-  //     this.questionChange.emit(this.question?.answers[newAnswer].text);
-  //   }
-  // }
-
-  // skipQuestion() {
-  //   if(this.showAnswer) return
-
-  //   this.skipped = true;
-  //   this.selectedAnswer = undefined;
-  //   this.questionChange.emit("")
-  // }
-
-  toggleChooseAnswer(newAnswer: string) {
+  public toggleChooseAnswer(newAnswer: string) {
     if(this.showAnswer) return
 
     if (this.answered == newAnswer) {
@@ -59,14 +38,26 @@ export class ChooseQuestionComponent implements OnChanges {
     }
   }
 
-  skipQuestion() {
+  public skipQuestion() {
     if(this.showAnswer) return
 
     this.skipped = true;
     this.questionChange.emit('')
   }
 
-  get isGrid(): boolean {
+  public speakText(text: string, event: Event) {
+    event.stopPropagation();
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
+  }
+
+   get isGrid(): boolean {
     return this.question?.answers?.some(a => a.text!.length > 164) ?? false;
   }
 
@@ -79,20 +70,8 @@ export class ChooseQuestionComponent implements OnChanges {
     return this.correctAnswer == this.answered;
   }
 
-  speakText(text: string, event: Event) {
-    event.stopPropagation();
-
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-      return;
-    }
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.speak(utterance);
-  }
-
   ngOnChanges(changes: SimpleChanges) {
-    if(changes['showAnswer'] && this.showAnswer && this.answered !== undefined) {
+    if(changes['showAnswer'] && this.showAnswer) {
       this.feedbackMessage = this.feedback.getFeedbackMessage(this.isAnsweredCorrect);
     }
   }

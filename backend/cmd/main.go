@@ -69,7 +69,7 @@ func main() {
 	app.Use(cors.New((cors.Config{
 		AllowOrigins:     "http://" + cfg.Host + ":4200",
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, app-os, app-device, app-browser",
+		AllowHeaders:     "Origin, Content-Type, Cache-Control, Accept, Authorization, app-os, app-device, app-browser",
 		ExposeHeaders:    "Content-Length",
 		AllowCredentials: true,
 	})))

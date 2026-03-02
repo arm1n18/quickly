@@ -8,6 +8,10 @@
   gap: 8px;
 } */
 
+:host {
+  display: block;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

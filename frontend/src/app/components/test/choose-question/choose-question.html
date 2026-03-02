@@ -60,7 +60,7 @@
         'text-[#41C550]': showAnswer && isAnsweredCorrect,
         'text-[#FF9F4B]': showAnswer && !isAnsweredCorrect
       }">
-      @if ((answered || answered == '') && showAnswer) {
+      @if ((answered || answered == '' || answered == undefined) && showAnswer) {
         {{feedbackMessage}}
       } @else {
         Оберіть відповідь

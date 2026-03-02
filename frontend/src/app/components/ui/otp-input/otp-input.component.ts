@@ -9,7 +9,7 @@ import { NumberOnly } from "../../../directives/numberOnlyDirective/number-only.
 })
 
 export class OtpInputComponent {
-  @Input() length: number = 6;
+  @Input() length: number = 4;
   @Output() inputChange = new EventEmitter<{id: number, value: string}>();
   selectedOtp: number = 2;
   values: string[] = [];

@@ -89,7 +89,7 @@ export class TfQuestionComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if(changes['showAnswer'] && this.showAnswer && this.answered !== undefined) {
+    if(changes['showAnswer'] && this.showAnswer) {
       this.feedbackMessage = this.feedback.getFeedbackMessage(this.isCorrectAnswer(this.answered!));
     }
   }

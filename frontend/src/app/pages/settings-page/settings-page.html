@@ -8,12 +8,12 @@
         <h2 class="text-md text-[var(--text-secondary2)]">Особиста інформація</h2>
             @if(authState.isAuthenticated$ | async) {
                 <div class="w-full flex gap-8 flex-col">
-                    <form class="w-full flex gap-8 justify-between" [formGroup]="userInfoForm">
+                    <form class="w-full flex gap-8 md:justify-between max-md:flex-col-reverse" [formGroup]="userInfoForm">
                         <div class="w-full flex flex-col gap-4">
                             <div class="flex flex-col gap-2">
                                 <label class="text-md text-[var(--dark-accent)]" for="username">Ім`я користувача</label>
                                 <app-custom-input 
-                                    inputId="username" 
+                                    inputID="username" 
                                     [title]="'Ім`я користувача'"
                                     [maxLength]="25"
                                     [delay]="0"
@@ -26,7 +26,7 @@
                             <div class="flex flex-col gap-2">
                                 <label class="text-md text-[var(--dark-accent)]" for="email">Ел. пошта</label>
                                 <app-custom-input 
-                                    inputId="email" 
+                                    inputID="email" 
                                     [title]="'Пошта'"
                                     [maxLength]="50"
                                     [disabled]="true"
@@ -45,6 +45,7 @@
                     </form>
                     <app-custom-button
                         [disabled]="!userInfoForm.valid || !changed || isLoading"
+                        [className]="'max-md:w-full'"
                         (click)="changeUsername()"
                     >
                         Зберегти зміни

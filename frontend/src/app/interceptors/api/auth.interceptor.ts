@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { switchMap } from 'rxjs';
+import { switchMap, tap } from 'rxjs';
 import { AuthService } from '../../services/auth/authService/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
