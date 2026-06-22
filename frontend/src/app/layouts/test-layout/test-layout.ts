@@ -65,7 +65,7 @@ export class TestLayout implements OnInit {
   public changeGameMode(mode: GameMode) {
     switch (mode) {
       case 'default':
-        void this.router.navigate(['/']);
+        void this.router.navigate(['../'], { relativeTo: this.route });
         break;
       default:
         void this.router.navigate([`../${mode}`], { relativeTo: this.route });

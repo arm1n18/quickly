@@ -3,5 +3,9 @@ package utils
 import "log"
 
 func LogError(fn string, err error) {
-	log.Printf("-ERR %s: %s\n", fn, err.Error())
+	if err == nil {
+		return
+	}
+
+	log.Printf("\033[31m-ERR %s = %s\033[0m\n", fn, err.Error())
 }

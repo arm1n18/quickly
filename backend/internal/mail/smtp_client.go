@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/smtp"
+	"web-quiz/internal/protocol"
 )
 
 type SMTPClient struct {
@@ -24,7 +25,7 @@ func NewSMTPClient(domain, port, email, password string) *SMTPClient {
 	}
 }
 
-func (s *SMTPClient) SendVerificationCode(to string, code int) error {
+func (s *SMTPClient) SendVerificationCode(to string, code int) *protocol.AppError {
 	tmpl := template.Must(template.ParseFiles("internal/mail/templates/verification.tmpl"))
 
 	data := struct {
@@ -35,7 +36,7 @@ func (s *SMTPClient) SendVerificationCode(to string, code int) error {
 
 	buf := new(bytes.Buffer)
 	if err := tmpl.Execute(buf, data); err != nil {
-		return err
+		return protocol.ErrInternal.Wrap(err)
 	}
 
 	auth := smtp.PlainAuth("", s.email, s.password, s.domain)
@@ -45,15 +46,14 @@ func (s *SMTPClient) SendVerificationCode(to string, code int) error {
 
 	err := smtp.SendMail(s.domain+":"+s.port, auth, s.email, []string{to}, msg)
 	if err != nil {
-		log.Print(err)
-		return err
+		return protocol.ErrInternal.Wrap(err)
 	}
 
 	log.Print("Email успішно надіслано: ", to)
 	return nil
 }
 
-func (s *SMTPClient) SendResetPassword(to string, link string) error {
+func (s *SMTPClient) SendResetPassword(to string, link string) *protocol.AppError {
 	tmpl := template.Must(template.ParseFiles("internal/mail/templates/reset.tmpl"))
 
 	data := struct {
@@ -64,7 +64,7 @@ func (s *SMTPClient) SendResetPassword(to string, link string) error {
 
 	buf := new(bytes.Buffer)
 	if err := tmpl.Execute(buf, data); err != nil {
-		return err
+		return protocol.ErrInternal.Wrap(err)
 	}
 
 	auth := smtp.PlainAuth("", s.email, s.password, s.domain)
@@ -74,8 +74,7 @@ func (s *SMTPClient) SendResetPassword(to string, link string) error {
 
 	err := smtp.SendMail(s.domain+":"+s.port, auth, s.email, []string{to}, msg)
 	if err != nil {
-		log.Print(err)
-		return err
+		return protocol.ErrInternal.Wrap(err)
 	}
 
 	log.Print("Email успішно надіслано: ", to)

@@ -81,7 +81,8 @@ export class UserFoldersComponent implements OnInit {
         }
       })
     },{
-      threshold: 0.1
+      threshold: 0.1,
+      rootMargin: '100px'
     })
 
     this.items.changes.subscribe((list: QueryList<ElementRef<HTMLElement>>) => {

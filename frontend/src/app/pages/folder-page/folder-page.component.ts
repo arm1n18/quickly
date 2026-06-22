@@ -7,7 +7,7 @@ import { IconComponent, AvatarComponent, DropdownComponent, CustomButtonComponen
 import { PortalService } from '../../services/portal/portal';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AsyncPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { ModuleSummary } from '../../interfaces/module.interface';
 import { AuthStateService } from '../../services/auth/authStateService/auth-state.service';
 import { Segment } from '../../components/ui/segmented-controls/segmented-controls.component';

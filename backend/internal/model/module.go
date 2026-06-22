@@ -27,16 +27,22 @@ type Keyword struct {
 }
 
 type Module struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Description *string   `json:"description"`
-	Slug        string    `json:"slug"`
-	Author      Author    `json:"author"`
-	Keywords    []Keyword `json:"keywords"`
-	Objects     int       `json:"objects"`
-	Cards       []Card    `json:"cards"`
-	IsOwner     bool      `json:"isOwner"`
-	IsSaved     bool      `json:"isSaved"`
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+	Slug  string `json:"slug"`
+
+	Description *string `json:"description"`
+
+	Keywords []Keyword `json:"keywords"`
+
+	Objects int    `json:"objects"`
+	Cards   []Card `json:"cards"`
+
+	Author  Author `json:"author"`
+	IsOwner bool   `json:"isOwner"`
+
+	IsSaved    bool `json:"isSaved"`
+	Accessible bool `json:"-"`
 }
 
 type Media struct {
@@ -45,14 +51,17 @@ type Media struct {
 }
 
 type ModuleSummary struct {
-	ID      int    `json:"id"`
-	Title   string `json:"title"`
-	Slug    string `json:"slug"`
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+	Slug  string `json:"slug"`
+
+	Objects int   `json:"objects"`
+	Media   Media `json:"media"`
+
 	Author  Author `json:"author"`
-	Objects int    `json:"objects"`
-	Media   Media  `json:"media"`
 	IsOwner bool   `json:"isOwner"`
-	IsSaved bool   `json:"isSaved"`
+
+	IsSaved bool `json:"isSaved"`
 }
 
 type CreateCard struct {

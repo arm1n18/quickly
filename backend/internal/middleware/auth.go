@@ -3,15 +3,28 @@ package middleware
 import (
 	"strings"
 	"web-quiz/internal/service"
+	"web-quiz/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Handler {
+type AuthMiddleware struct {
+	jwtService *service.JWTService
+}
+
+func NewAuthMiddleware(
+	jwtService *service.JWTService,
+) *AuthMiddleware {
+	return &AuthMiddleware{
+		jwtService: jwtService,
+	}
+}
+
+func (a *AuthMiddleware) JWTMiddleware(allowExpired bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "missing authorization header",
 			})
@@ -19,23 +32,23 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid authorization header",
 			})
 		}
 
-		token, err := authService.ParseUserAccessToken(parts[1])
+		token, err := a.jwtService.ParseAccessToken(parts[1])
 		if err != nil {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": err.Error(),
+				"message": err.Code,
 			})
 		}
 
 		if !allowExpired {
 			if token.Expired {
-				authService.RemoveCookie(c, "token")
+				utils.RemoveCookie(c, "token")
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"error": "session expired",
 				})
@@ -48,7 +61,7 @@ func JWTMiddleware(authService *service.AuthService, allowExpired bool) fiber.Ha
 	}
 }
 
-func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
+func (a *AuthMiddleware) OptionalJWTMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
@@ -57,22 +70,22 @@ func OptionalJWTMiddleware(authService *service.AuthService) fiber.Handler {
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid authorization header",
 			})
 		}
 
-		token, err := authService.ParseUserAccessToken(parts[1])
+		token, err := a.jwtService.ParseAccessToken(parts[1])
 		if err != nil {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"message": err.Error(),
+				"message": err.Code,
 			})
 		}
 
 		if token.Expired {
-			authService.RemoveCookie(c, "token")
+			utils.RemoveCookie(c, "token")
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "session expired",
 			})

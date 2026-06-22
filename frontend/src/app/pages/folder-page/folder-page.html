@@ -4,7 +4,7 @@
     @if(folder(); as folder) {
         <div class="flex justify-between w-full">
             <div class="flex gap-2 items-center">   
-                <div class="bg-[var(--secondary)] p-2 rounded-2xl">
+                <div class="bg-(--secondary) p-2 rounded-2xl">
                     <app-icon [size]="32" [icon]="'Folder'" fill="var(--accent)" />
                 </div>
                 <h1 class="title">{{folder.title}}</h1>
@@ -40,8 +40,8 @@
         <div class="flex gap-4 items-center">
             <app-avatar [name]="folder.author.name" />
             <div class="flex flex-col">
-                <span class="text-xs m-0 text-[var(--dark-accent)]">Автор</span>
-                <a [href]="`/user/${folder.author.name}`" class="font-medium text-[var(--dark-accent)] hover:underline">{{folder.author.name}}</a>
+                <span class="text-xs m-0 text-(--dark-accent)">Автор</span>
+                <a [href]="`/user/${folder.author.name}`" class="font-medium text-(--dark-accent) hover:underline">{{folder.author.name}}</a>
             </div>
         </div>
         
@@ -54,7 +54,7 @@
                                 @if(module.media.hasMedia && module.media.thumbnail) {
                                     <img [src]="module.media.thumbnail" class="size-10 object-cover rounded-xl" />
                                 }@else {
-                                    <div class="flex p-2 h-fit w-fit rounded-xl bg-[var(--hover-secondary)]">
+                                    <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
                                         <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
                                     </div>
                                 }
@@ -69,7 +69,7 @@
                             </div>
                         </div>
 
-                        @if(true) {
+                        @if(module.isOwner) {
                             <div class="flex gap-4">
                                 <app-custom-button 
                                     [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
@@ -151,7 +151,7 @@
 <ng-template #modalTemplate>
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
-        <span class="text-xs text-[var(--dark-accent)]" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+        <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             Назва
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
@@ -180,7 +180,7 @@
             <h5>Модулі</h5>
             <button 
                 (click)="createModule()"
-                class="text-[var(--accent)] cursor-pointer flex gap-2 items-center"
+                class="text-(--accent) cursor-pointer flex gap-2 items-center"
             >
                 <app-icon [icon]="'Add'" [size]="16" [stroke]="'var(--accent)'"/>
                 <span>Створити</span>
@@ -219,7 +219,7 @@
                         </div>
                     }
                 } @else {
-                    <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-[var(--lightGrey)]">
+                    <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-(--lightGrey)">
                         <span class="text-center">Ви ще не створили жоден модуль.</span>
                         <app-custom-button
                             (click)="createModule()"
@@ -260,7 +260,7 @@
                     </div>
                 }
             } @else {
-                <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-[var(--lightGrey)]">
+                <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-(--lightGrey)">
                     <span class="text-center">Ви ще не створили жоден модуль.</span>
                     <app-custom-button
                         (click)="createModule()"

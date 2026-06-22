@@ -32,8 +32,9 @@ export class FolderItemComponent {
       ]}),
   })
 
-  public dropdownList: WritableSignal<DropdownItem[][]> = signal([
-    [
+  // public dropdownList: WritableSignal<DropdownItem[][]> = signal([
+  public dropdownList: DropdownItem[][] = [
+  [
       {
         title: { text: 'Редагувати' },
         icon: { name: 'Edit', color: 'var(--accent)' },
@@ -47,7 +48,7 @@ export class FolderItemComponent {
         onClick: () => this.openDeleteModal()
       }
     ]
-  ]);
+  ];
 
   constructor(
     private api: ApiService,

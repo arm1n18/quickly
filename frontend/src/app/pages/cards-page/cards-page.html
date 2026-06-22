@@ -191,8 +191,8 @@
         <div class="flex gap-4 items-center">
           <app-avatar [name]="module.author.name" />
           <div class="flex flex-col">
-            <span class="text-xs m-0 text-[var(--dark-accent)]">Автор</span>
-            <a [href]="`/user/${module.author.name}`" class="font-medium text-[var(--accent)] hover:underline">{{module.author.name}}</a>
+            <span class="text-xs m-0 text-(--dark-accent)">Автор</span>
+            <a [href]="`/user/${module.author.name}`" class="font-medium text-(--accent) hover:underline">{{module.author.name}}</a>
           </div>
         </div>
 
@@ -202,7 +202,7 @@
       </div>
 
       @if(module.description) {
-        <span class="text-sm text-[var(--text-secondary2)]">
+        <span class="text-sm text-(--text-secondary2)">
           {{module.description}}
         </span>
       }

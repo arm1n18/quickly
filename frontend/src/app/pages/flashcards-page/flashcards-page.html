@@ -12,7 +12,7 @@
             class="game-header-left"
         />
 
-        <div class="game-header-center text-[var(--dark-accent)]">
+        <div class="game-header-center text-(--dark-accent)">
             <div>{{ currentCardIndex()+1 }}/{{ module.cards.length }}</div>
             <div>{{ module.title }}</div>
         </div>
@@ -35,7 +35,7 @@
         </div>
         </div>
         <div class="w-full h-px rounded-3xl bg-(--secondary)">
-          <div [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-[var(--accent)]"></div>
+          <div [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-(--accent)"></div>
         </div>
     </div>
 
@@ -70,7 +70,7 @@
     <div class="w-full flex flex-col gap-4">
       <div class="w-full flex justify-between items-center">
         Поєднання клавіш
-        <div class="flex items-center gap-2 text-[var(--accent)] cursor-pointer" (click)="show.shortcut = !show.shortcut">
+        <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="show.shortcut = !show.shortcut">
           Переглянути
           <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
         </div>

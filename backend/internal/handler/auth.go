@@ -1,11 +1,14 @@
 package handlers
 
 import (
-	"net/http"
 	"web-quiz/internal/mail"
 	"web-quiz/internal/middleware"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
+	"web-quiz/internal/repository/auth"
+	"web-quiz/internal/repository/session"
+	"web-quiz/internal/repository/user"
+	"web-quiz/internal/repository/verification"
 	"web-quiz/internal/service"
 	"web-quiz/internal/utils"
 
@@ -15,18 +18,30 @@ import (
 )
 
 func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Client, ekey, jwtkey string, mail *mail.SMTPClient) {
-	svc := service.NewAuthService(psql, redis, ekey, jwtkey, mail)
+	/* REPOS */
+	authRepo := auth.NewAuthRepository(psql, redis)
+	userRepo := user.NewUserRepository(psql, redis)
+	verifRepo := verification.NewVerificationRepository(redis)
+	sessionRepo := session.NewSessionRepository(psql, redis)
 
+	/* SERVICES */
+	jwtSvc := service.NewJWTService(ekey, jwtkey)
+	authSvc := service.NewAuthService(authRepo, userRepo, verifRepo, sessionRepo, *jwtSvc, mail)
+
+	/* MIDDLEWARES */
+	middleware := middleware.NewAuthMiddleware(jwtSvc)
+
+	/* ROUTERS */
 	router.Post("/register", func(c *fiber.Ctx) error {
 		req := model.AuthRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
-		err := svc.Register(c.Context(), req)
+		err := authSvc.Register(c.Context(), req)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -36,12 +51,12 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		req := model.AuthRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
-		err := svc.Login(c.Context(), req)
+		err := authSvc.Login(c.Context(), req)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -51,7 +66,7 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		req := model.VerifyCodeRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
 		headers := model.UaHeaders{
@@ -61,14 +76,14 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 			Browser:   c.Get("app-browser", "unknown"),
 		}
 
-		success, err := svc.Verify(c.Context(), req, headers)
+		success, err := authSvc.Verify(c.Context(), req, headers)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
-		svc.SetCookie(c, success.RefreshToken)
+		utils.SetCookie(c, success.Refresh)
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"accessToken": success.AccessToken,
+			"accessToken": success.Access,
 		})
 	})
 
@@ -76,12 +91,12 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		req := model.AuthRequest{}
 
 		if err := c.BodyParser(&req); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
-		err := svc.SendCode(c.Context(), req)
+		err := authSvc.SendCode(c.Context(), req)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -93,12 +108,12 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 			Email string `json:"email"`
 		}
 		if err := c.BodyParser(&body); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
-		err := svc.Reset(c.Context(), body.Email)
+		err := authSvc.Reset(c.Context(), body.Email)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
@@ -111,41 +126,41 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		}
 
 		if err := c.BodyParser(&body); err != nil {
-			return protocol.ReturnErrorJSON(c, http.StatusBadRequest, protocol.ErrInvalidRequestBody)
+			return protocol.ReturnErrorJSON(c, protocol.ErrInvalidRequestBody)
 		}
 
-		err := svc.ConfirmReset(c.Context(), c.Params("token"), body.Password)
+		err := authSvc.ConfirmReset(c.Context(), c.Params("token"), body.Password)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
 	})
 
 	router.Get("/reset/:token", func(c *fiber.Ctx) error {
-		err := svc.ValidReset(c.Context(), c.Params("token"))
+		err := authSvc.ValidReset(c.Context(), c.Params("token"))
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusOK)
 	})
 
-	router.Post("/refresh", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
+	router.Post("/refresh", middleware.JWTMiddleware(true), func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[*model.AccessToken](c, "user")
 		if !ok {
 			return c.SendStatus(fiber.StatusUnauthorized)
 		}
 
-		success, err := svc.Refresh(
+		success, err := authSvc.Refresh(
 			c.Context(),
 			model.Tokens{
-				AccessToken:  user.Token,
-				RefreshToken: c.Cookies("token"),
+				Access:  user.Token,
+				Refresh: c.Cookies("token"),
 			},
 		)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -153,23 +168,23 @@ func RegisterAuthRoutes(router fiber.Router, psql *pgxpool.Pool, redis *redis.Cl
 		})
 	})
 
-	router.Post("/logout", middleware.JWTMiddleware(svc, true), func(c *fiber.Ctx) error {
-		user, ok := utils.GetLocals[*model.UserAccessToken](c, "user")
+	router.Post("/logout", middleware.JWTMiddleware(true), func(c *fiber.Ctx) error {
+		user, ok := utils.GetLocals[*model.AccessToken](c, "user")
 		if !ok {
 			return c.SendStatus(fiber.StatusUnauthorized)
 		}
 
 		req := model.Tokens{
-			AccessToken:  user.Token,
-			RefreshToken: c.Cookies("token"),
+			Access:  user.Token,
+			Refresh: c.Cookies("token"),
 		}
 
-		err := svc.Logout(c.Context(), req)
+		err := authSvc.Logout(c.Context(), req)
 		if err != nil {
-			return protocol.ReturnErrorJSON(c, err.Status, err.Error)
+			return protocol.ReturnErrorJSON(c, err)
 		}
 
-		svc.RemoveCookie(c, "token")
+		utils.RemoveCookie(c, "token")
 
 		return c.SendStatus(fiber.StatusOK)
 	})

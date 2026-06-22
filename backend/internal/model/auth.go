@@ -18,17 +18,18 @@ type AuthRequest struct {
 }
 
 type UserInfo struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email,omitempty"`
-	Avatar   string `json:"avatar,omitempty"`
+	ID           int    `json:"id"`
+	Username     string `json:"username"`
+	Email        string `json:"email,omitempty"`
+	Avatar       string `json:"avatar,omitempty"`
+	HashPassword string `json:"-"`
 }
 
 // Tokens
 
 type Tokens struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	Access  string `json:"accessToken"`
+	Refresh string `json:"refreshToken"`
 }
 
 type UpdateToken struct {
@@ -43,7 +44,7 @@ type GenerateJWTData struct {
 	JTI      string `json:"jti"`
 }
 
-type UserAccessToken struct {
+type AccessToken struct {
 	SUB     int       `json:"sub"`
 	Name    string    `json:"name"`
 	Avatar  string    `json:"avatar,omitempty"`
@@ -55,7 +56,7 @@ type UserAccessToken struct {
 	Expired bool      `json:"expired"`
 }
 
-type UserRefreshToken struct {
+type RefreshToken struct {
 	SUB     int       `json:"sub"`
 	JTI     string    `json:"jti"`
 	Token   string    `json:"token"`

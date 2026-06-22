@@ -199,7 +199,7 @@ export class CardsMatch implements OnInit {
   public changeGameMode(mode: GameMode) {
     switch (mode) {
       case 'default':
-        void this.router.navigate(['/']);
+        void this.router.navigate(['../'], { relativeTo: this.route });
         break;
       case 'test':
         void this.router.navigate(['../test'], { relativeTo: this.route });

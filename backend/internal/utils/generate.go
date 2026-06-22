@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"encoding/base64"
+	"math"
+	"math/rand"
 	"strings"
+	"time"
 )
 
-func Slug(str string) string {
+func GenerateSlug(str string) string {
 	lettersMap := map[rune]string{
 		'а': "a", 'б': "b", 'в': "v", 'г': "g",
 		'ґ': "g", 'д': "d", 'е': "e", 'є': "ye", 'ё': "jo",
@@ -29,16 +33,36 @@ func Slug(str string) string {
 	return output.String()
 }
 
-func Contains[T any](array []T, f func(T) bool) bool {
-	for _, v := range array {
-		if f(v) {
-			return true
-		}
+func GenerateOTP(length int) int {
+	if length <= 0 {
+		return 0
 	}
 
-	return false
+	min := int(math.Pow10(length - 1))
+	max := int(math.Pow10(length)) - 1
+
+	source := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(source)
+
+	return r.Intn(max-min+1) + min
 }
 
-func InRange(s string, start, end int) bool {
-	return len(s) >= start || len(s) <= end
+func GenerateResetToken() string {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+
+	token := base64.URLEncoding.EncodeToString(b)
+
+	return token
+}
+
+func UsernameFromEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) == 0 {
+		return ""
+	}
+
+	return strings.ToLower(parts[0])
 }

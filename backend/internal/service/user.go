@@ -2,45 +2,54 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strings"
 	"web-quiz/internal/model"
 	"web-quiz/internal/protocol"
+	"web-quiz/internal/repository/session"
 	"web-quiz/internal/repository/user"
 	"web-quiz/internal/utils"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type UserService struct {
-	psql *pgxpool.Pool
-	repo user.UserRepository
+	repo        user.UserRepository
+	sessionRepo session.SessionRepository
+
+	jwtSvc JWTService
 }
 
-func NewUserService(psql *pgxpool.Pool) *UserService {
+func NewUserService(
+	repo user.UserRepository,
+	sessionRepo session.SessionRepository,
+	jwtSvc JWTService,
+) *UserService {
 	return &UserService{
-		psql: psql,
-		repo: user.NewUserRepository(psql),
+		repo:        repo,
+		sessionRepo: sessionRepo,
+		jwtSvc:      jwtSvc,
 	}
 }
 
-func (u *UserService) GetUserProfile(ctx context.Context, username string) (*model.Author, *model.ErrorResponse) {
-	return u.repo.GetProfile(ctx, username)
+func (s *UserService) GetProfile(ctx context.Context, username string) (*model.Author, *protocol.AppError) {
+	return s.repo.Get(ctx, username)
 }
 
-func (u *UserService) UpdateUserInfo(ctx context.Context, authSvc *AuthService, token model.UserAccessToken, username string) (string, *model.ErrorResponse) {
+func (s *UserService) UpdateProfile(ctx context.Context, token model.AccessToken, username string) (string, *protocol.AppError) {
 	if len(strings.ReplaceAll(username, " ", "")) == 0 {
-		return "", protocol.ReturnError(400, fmt.Errorf("Імʼя не повинне бути порожнім."))
+		return "", protocol.ErrUsernameRequired
 	}
 
-	match, err := regexp.MatchString("^[A-Za-z0-9]+$", username)
-	if err != nil {
-		return "", protocol.ReturnError(500, protocol.ErrInternal)
+	if !utils.InRange(username, 4, 50) {
+		return "", protocol.ErrInvalidUsernameLength
+	}
+
+	match, mErr := regexp.MatchString("^[A-Za-z0-9]+$", username)
+	if mErr != nil {
+		return "", protocol.ErrInvalidUsername.Wrap(mErr)
 	}
 
 	if !match {
-		return "", protocol.ReturnError(400, fmt.Errorf("Імʼя може містити лише латинські літери та цифри."))
+		return "", protocol.ErrInvalidUsername
 	}
 
 	data := model.GenerateJWTData{
@@ -51,20 +60,20 @@ func (u *UserService) UpdateUserInfo(ctx context.Context, authSvc *AuthService, 
 		JTI:      token.JTI,
 	}
 
-	tokens, err := authSvc.generateJWT(data, false)
+	tokens, err := s.jwtSvc.GenerateJWT(data, false)
 	if err != nil {
-		utils.LogError("USER:SVC:UpdateUserInfo:generateJWT", err)
-		return "", protocol.ReturnError(500, protocol.ErrInternal)
-	}
-
-	if err := u.repo.UpdateUserInfo(ctx, token.SUB, username); err != nil {
-		utils.LogError("USER:SVC:UpdateUserInfo:UpdateUserInfo", err.Error)
+		utils.LogError("USER:SVC:UpdateUserInfo:generateJWT", err.Err)
 		return "", err
 	}
 
-	if err = authSvc.repo.TerminateTokenInRedis(token.Token); err != nil {
-		utils.LogError("USER:SVC:UpdateUserInfo:TerminateTokenInRedis", err)
+	if err := s.repo.Update(ctx, token.SUB, username); err != nil {
+		utils.LogError("USER:SVC:UpdateUserInfo:UpdateUserInfo", err.Err)
+		return "", err
 	}
 
-	return tokens.AccessToken, nil
+	if err = s.sessionRepo.RevokeToken(ctx, token.Token); err != nil {
+		utils.LogError("USER:SVC:UpdateUserInfo:TerminateTokenInRedis", err.Err)
+	}
+
+	return tokens.Access, nil
 }
