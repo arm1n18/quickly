@@ -1,0 +1,40 @@
+<header class="sticky z-1 top-0 w-full">
+
+    <div class="game-header">
+
+        <app-dropdown 
+            [list]="dropdownList"
+            class="game-header-left"
+        />
+
+        <div class="justify-self-center flex flex-col items-center text-">
+            <div>{{ progress.showAnswers ? progress.answeredCorrect : progress.answered }} / {{ progress.maxQuestions }}</div>
+            <div>{{ config.title }}</div>
+        </div>
+
+        <div class="flex gap-2 game-header-right">
+        @if(true) {
+            <!-- <app-button theme="secondary" rounded="md">
+            Друк
+            </app-button> -->
+            <app-button theme="hover-only" rounded="md" size="symbol" (click)="config.onModalClick()">
+            <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
+            </app-button>
+        } @else {
+            <app-button theme="secondary" rounded="md">
+            Вхід
+            </app-button>
+            <app-button rounded="md">
+            Зареєструватись
+            </app-button>
+        }
+        <app-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
+            <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
+        </app-button>
+        </div>
+    </div>
+
+    <div class="w-full h-px rounded-3xl bg-(--secondary)">
+        <div [ngStyle]="{ 'width': (Math.min(progress.answered / progress.maxQuestions, 1) * 100)+ '%' }" class="h-px rounded-3xl bg-(--accent)"></div>
+    </div>
+</header>

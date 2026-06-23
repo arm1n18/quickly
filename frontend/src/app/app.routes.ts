@@ -1,29 +1,24 @@
 import { Routes } from '@angular/router';
-import {CardsRootPage} from './pages/cards-root-page/cards-root-page.component';
-import {CardsMatch, CardsPage} from './pages';
-import {CardsTestPage} from './pages/cards-test-page/cards-test-page.component';
-import { CardsPrintPage } from './pages/cards-print-page/cards-print-page.component';
-import { FlashcardsPage } from './pages/flashcards-page/flashcards-page.component';
-import { UserProfile } from './pages/user-profile/user-profile.component';
-import { UserModulesComponent } from './components/user-modules-component/user-modules.component';
-import { UserFoldersComponent } from './components/user-folders-component/user-folders.component';
-import { FolderPage } from './pages/folder-page/folder-page.component';
-import { CreateModulePage } from './pages/create-module-page/create-module-page.component';
-import { UpdateModulePage } from './pages/update-module-page/update-module-page.component';
-import { NotFoundPage } from './pages/not-found-page/not-found-page.component';
-import { ResetPasswordPageComponent } from './pages/reset-password-page/reset-password-page.component';
-import { MainPageComponent } from './pages/main-page/main-page.component';
-import { AuthGuard } from './services/authGuard/auth-guard';
-import { IdeasPageComponent } from './pages/ideas-page/ideas-page.component';
-import { TestInfoPageComponent } from './pages/test-info-page/test-info-page.component';
-import { ModuleInfoPageComponent } from './pages/module-info-page/module-info-page.component';
-import { SearchPageComponent } from './pages/search-page/search-page.component';
-import { SettingsPageComponent } from './pages/settings-page/settings-page.component';
+import { HomePageComponent } from './features/home/pages';
+import { TestInfoPageComponent } from './features/test/pages';
+import { CreateModulePageComponent, ModuleInfoPageComponent, UpdateModulePageComponent } from './features/modules/pages';
+import { SettingsPageComponent, UserProfilePageComponent } from './features/user/pages';
+import { UserModulesComponent } from './features/modules/components';
+import { UserFoldersComponent } from './features/folders/components';
+import { FolderRootPage } from './features/folders/pages';
+import { AuthGuard } from './core/guards/auth/auth.guard';
+import { SearchPageComponent } from './features/search/pages';
+import { CardsMatchPageComponent, CardsPrintPageComponent, CardsRootPageComponent, 
+  CardsStudyPageComponent, CardsTestPageComponent, FlashcardsPageComponent } from './features/cards/pages';
+import { ResetPasswordPageComponent } from './features/auth/pages';
+import { IdeasRootPageComponent } from './features/ideas/pages';
+import { NotFoundPageComponent } from './core/pages/not-found/not-found.page';
+
 
 export const routes: Routes = [
   {
     path: '',
-    component: MainPageComponent
+    component: HomePageComponent
   },
   {
     path: 'features',
@@ -44,7 +39,7 @@ export const routes: Routes = [
   },
   {
     path: 'user/:username',
-    component: UserProfile,
+    component: UserProfilePageComponent,
     children: [
       {
         path: '',
@@ -63,16 +58,16 @@ export const routes: Routes = [
   },
   {
     path: 'user/:username/folder/:slug',
-    component: FolderPage,
+    component: FolderRootPage,
   },
   {
     path: 'module/create',
-    component: CreateModulePage,
+    component: CreateModulePageComponent,
     canActivate: [AuthGuard]
   },
   {
     path: 'module/:id/update',
-    component: UpdateModulePage,
+    component: UpdateModulePageComponent,
     canActivate: [AuthGuard]
   },
   {
@@ -81,27 +76,27 @@ export const routes: Routes = [
   },
   {
     path: 'module/:id',
-    component: CardsRootPage,
+    component: CardsRootPageComponent,
     children: [
       {
         path: '',
-        component: CardsPage,
+        component: CardsStudyPageComponent,
       },
       {
         path: 'match',
-        component: CardsMatch,
+        component: CardsMatchPageComponent,
       },
       {
         path: 'test',
-        component: CardsTestPage,
+        component: CardsTestPageComponent,
       },
       {
         path: 'flashcards',
-        component: FlashcardsPage,
+        component: FlashcardsPageComponent,
       },
       {
         path: 'print',
-        component: CardsPrintPage,
+        component: CardsPrintPageComponent,
       },
     ]
   },
@@ -111,8 +106,8 @@ export const routes: Routes = [
   },
   {
     path: 'ideas',
-    component: IdeasPageComponent,
+    component: IdeasRootPageComponent,
   },
-  { path: 'not-found', component: NotFoundPage },
-  { path: '**', component: NotFoundPage },
+  { path: 'not-found', component: NotFoundPageComponent },
+  { path: '**', component: NotFoundPageComponent },
 ];

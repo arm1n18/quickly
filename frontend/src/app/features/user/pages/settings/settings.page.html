@@ -1,0 +1,57 @@
+<app-header/>
+
+<main class="w-full px-3 min-h-dvh">
+    <div class="max-w-200 w-full mx-auto py-9 flex flex-col gap-8">
+       <h1 class="font-medium text-3xl md:text-5xl text-(--dark-accent)">Налаштування</h1>
+
+       <div class="w-full flex flex-col gap-4">
+        <h2 class="text-md text-(--text-secondary2)">Особиста інформація</h2>
+            @if(authState.isAuthenticated$ | async) {
+                <div class="w-full flex gap-8 flex-col">
+                    <form class="w-full flex gap-8 md:justify-between max-md:flex-col-reverse" [formGroup]="userInfoForm">
+                        <div class="w-full flex flex-col gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-md text-(--dark-accent)" for="username">Ім`я користувача</label>
+                                <app-custom-input 
+                                    inputID="username" 
+                                    [title]="'Ім`я користувача'"
+                                    [maxLength]="25"
+                                    [delay]="0"
+                                    [value]="userInfoForm.controls.username.value"
+                                    (inputChange)="userInfoForm.controls.username.patchValue($event)"
+                                />
+                                <span class="text-xs text-(--text-secondary2)">Ім`я повинне бути довжиною від 5 до 25 символів.</span>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-md text-(--dark-accent)" for="email">Ел. пошта</label>
+                                <app-custom-input 
+                                    inputID="email" 
+                                    [title]="'Пошта'"
+                                    [maxLength]="50"
+                                    [disabled]="true"
+                                    [delay]="0"
+                                    [value]="userInfoForm.controls.email.value"
+                                    (inputChange)="userInfoForm.controls.email.patchValue($event)"
+                                />
+                            </div>
+
+                            @if(errorMessage()){
+                                <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
+                            }
+                        </div>
+
+                        <app-avatar [name]="authState.getPartial('username')!" [size]="'xl'" />
+                    </form>
+                    <app-button
+                        [disabled]="!userInfoForm.valid || !changed || isLoading"
+                        [className]="'max-md:w-full'"
+                        (click)="changeUsername()"
+                    >
+                        Зберегти зміни
+                    </app-button>
+                </div>
+            }
+       </div>
+    </div>
+</main>

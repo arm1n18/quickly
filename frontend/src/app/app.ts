@@ -1,6 +1,6 @@
 import { RouterOutlet } from '@angular/router';
 import {Component, OnInit, ViewChild} from '@angular/core';
-import { PortalService } from './services/portal/portal';
+import { PortalService } from './core/services/portal/portal.service';
 import { CdkPortalOutlet, PortalModule } from '@angular/cdk/portal';
 
 

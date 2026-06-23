@@ -1,0 +1,1 @@
+export { IdeaComponent } from "./idea/idea.component"

@@ -1,0 +1,6 @@
+export { FlashcardsPageComponent } from "./flashcards/flashcards.page"
+export { CardsMatchPageComponent } from "./match/cards-match.page"
+export { CardsPrintPageComponent } from "./print/cards-print.page"
+export { CardsRootPageComponent } from "./root/cards-root.page"
+export { CardsStudyPageComponent } from "./study/cards-study.page"
+export { CardsTestPageComponent } from "./test/cards-test.page"

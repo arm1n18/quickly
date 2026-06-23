@@ -1,0 +1,61 @@
+  @if(hasBtn) {
+    <div (click)="toggleShow($event)">
+      <ng-content select="[btn]"></ng-content>
+    </div>
+  } @else {
+    <app-button [theme]="config.theme || 'hover-only'" rounded="md" (click)="toggleShow($event)">
+      @if(config.icon) {
+        <app-icon [icon]="config.icon.name" [size]="24" [fill]="config.icon.color ?? 'var(--text-secondary)'" />
+      }
+      <p [ngClass]="{ 'max-md:hidden': config.hideOnSmall}">
+        @if (config.title?.label) {
+          {{config.title!.label}}
+        }
+        {{preslectedValue ?? config.title?.text}}
+      </p>
+      <app-icon [icon]="'ChevronFillDown'"
+        [size]="24"
+        [fill]="'#6d4aff'"
+        [class]="'transition-all'"
+        [ngClass]="{
+        'rotate-180': show
+      }"/>
+    </app-button>
+  }
+
+  @if(show) {
+    <div class="dropdown-container drop-shadow-xl shadow-stone-200 text-(--dark-accent)"
+      [ngClass]="{
+        'with-line': config.divider == 'line',
+        'with-gap': config.divider == 'gap',
+        'left': position.px == 'left',
+        'right': position.px == 'right',
+        'top': position.py == 'top',
+        'bottom': position.py == 'bottom',
+        'w-full': config.fullWidth
+      }"
+    >
+      @for(group of list; track $index) {
+          @if($index > 0 && config.divider == 'line') {
+            <div class="w-5/6 h-px rounded-3xl bg-(--secondary) mx-auto"></div>
+          }
+          <div class="dropdown-group" [ngClass]="getGroupClasses($index, list.length)">
+            @for (el of group; track el) {
+              <div
+                class="dropdown-item w-fit"
+                [style.color]="el.title.color"
+                [ngClass]="{
+                  'selected': el.title.text === preslectedValue
+                }"
+                (click)="el.onClick?.(); select($event, el.title.text)"
+              >
+                @if(el.icon) {
+                  <app-icon [icon]="el.icon.name" [size]="24" [fill]="el.icon.color ?? 'var(--dark-accent)'" />
+                }
+                {{el.title.text}}
+              </div>
+            }
+          </div>
+      }
+    </div>
+  }

@@ -1,0 +1,286 @@
+<app-header/>
+
+<main class="max-w-200 w-full mx-auto py-9 flex flex-col gap-8 px-3">
+    @if(folder(); as folder) {
+        <div class="flex justify-between w-full">
+            <div class="flex gap-2 items-center">   
+                <div class="bg-(--secondary) p-2 rounded-2xl">
+                    <app-icon [size]="32" [icon]="'Folder'" fill="var(--accent)" />
+                </div>
+                <h1 class="title">{{folder.title}}</h1>
+            </div>
+
+            @if(folder.isOwner) {
+                <app-dropdown 
+                    [list]="dropdownListFolder()"
+                    [config]="{
+                        rememberSelection: false,
+                        divider: 'line',
+                    }"
+                    [position]="{
+                        px: 'right',
+                        py: 'bottom'
+                    }"
+                    class="game-header-left"
+                >
+                    <app-button btn 
+                        theme="hover-only-dark" 
+                        [size]="'symbol'"
+                        [disabled]="isLoading()"
+                    >
+                    <app-icon
+                        [icon]="'MenuDots'"
+                        [size]="24"
+                    />
+                    </app-button>
+                </app-dropdown>
+            }
+        </div>
+
+        <div class="flex gap-4 items-center">
+            <app-avatar [name]="folder.author.name" />
+            <div class="flex flex-col">
+                <span class="text-xs m-0 text-(--dark-accent)">Автор</span>
+                <a [href]="`/user/${folder.author.name}`" class="font-medium text-(--dark-accent) hover:underline">{{folder.author.name}}</a>
+            </div>
+        </div>
+        
+        @if((folder.modules || []).length > 0) {
+            @for(module of folder.modules; track module) {
+                <div class="item" (click)="openModule(`/module/${module.id}`)">
+                    <div class="flex justify-between w-full">
+                        <div class="header">
+                            <div class="flex gap-4">
+                                @if(module.media.hasMedia && module.media.thumbnail) {
+                                    <img [src]="module.media.thumbnail" class="size-10 object-cover rounded-xl" />
+                                }@else {
+                                    <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
+                                        <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+                                    </div>
+                                }
+
+                                <div class="flex flex-col text-sm">
+                                    <span class="font-medium line-clamp-2">{{module.title}}</span>
+                                    <!-- <div class="flex justify-center px-2 py-1 bg-[var(--hover-secondary)] rounded-xl">
+                                        <span>{{`Карток: ${module.objects}`}}</span>
+                                    </div> -->
+                                    <span>{{`Карток: ${module.objects}`}}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if(module.isOwner) {
+                            <div class="flex gap-4">
+                                <app-button 
+                                    [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
+                                    [size]="'symbol'"
+                                    [disabled]="isLoading()"
+                                    (click)="toggleSaveModule($event, $index)"
+                                >
+                                    <app-icon 
+                                        [icon]="'Bookmark'" 
+                                        [size]="24"
+                                    /> 
+                                </app-button>
+            
+                                @if(folder.isOwner) {
+                                    <app-dropdown 
+                                        [list]="dropdownListModule()"
+                                        [config]="{
+                                            rememberSelection: false,
+                                            divider: 'line',
+                                        }"
+                                        [position]="{
+                                            px: 'right',
+                                            py: 'bottom'
+                                        }"
+                                        class="game-header-left"
+                                    >
+                                        <app-button btn 
+                                            theme="hover-only-dark" 
+                                            [size]="'symbol'"
+                                            [disabled]="isLoading()"
+                                            (click)="selectedModule = $index"
+                                        >
+                                            <app-icon
+                                                [icon]="'MenuDots'"
+                                                [size]="24"
+                                                
+                                            />
+                                        </app-button>
+                                    </app-dropdown>
+                                }
+                            </div>
+                        }
+
+                        
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <app-avatar [name]="module.author.name" [size]="'sm'" />
+                        <span class="text-sm">{{module.author.name}}</span>
+                    </div>
+                </div>
+            }
+
+            @if(folder.isOwner) {
+                <app-button
+                    (click)="openAddModuleModal()"
+                    class="mx-auto"
+                >   
+                    <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                    Додати модуль
+                </app-button>
+            }
+        } @else {
+            <div class="flex flex-col gap-4 items-center mt-24">
+                <h1 class="title text-center">Папка порожня</h1>
+                @if(isAuthenticated && folder.isOwner) {
+                    <span class="text-center">Додайте модулі до папки, щоб переглянути їх.</span>
+                    <app-button
+                        (click)="openAddModuleModal()"
+                    >
+                        Додати модуль
+                    </app-button>
+                }
+            </div>
+        }
+    }
+</main>
+
+<ng-template #modalTemplate>
+    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
+        
+        <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+            Назва
+            ({{editForm.get('title')?.value?.length ?? 0}}/50)
+        </span>
+        <app-custom-input 
+            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+            (inputChange)="editForm.get('title')?.setValue($event)"
+        />
+        
+        
+        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
+            <app-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
+                Скасувати
+            </app-button>
+            <app-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
+                Оновити
+            </app-button>
+        </div>
+
+    </form>
+</ng-template>
+
+<ng-template #modalModuleTemplate>        
+    <div class="flex flex-col gap-4">
+        <app-segmented-controls [segments]="segments" (selectedSegment)="onSegmentChange($event)" />
+        <div class="flex justify-between w-full">
+            <h5>Модулі</h5>
+            <button 
+                (click)="createModule()"
+                class="text-(--accent) cursor-pointer flex gap-2 items-center"
+            >
+                <app-icon [icon]="'Add'" [size]="16" [stroke]="'var(--accent)'"/>
+                <span>Створити</span>
+            </button>
+        </div>
+
+        @if(!isLoading()) {
+            @if(selectedSegment() == 0) {
+                @if((userModules() || []).length > 0) {
+                    @for(module of userModules(); track module) {
+                        <div class="item">
+                            <div class="flex gap-4 items-center">
+                                <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+
+                                <div class="flex gap-2 items-center text-sm">
+                                    <div class="flex flex-col">
+                                        <span>{{`Модулів: ${module.objects}`}}</span>
+                                        <span>{{module.title}}</span>
+                                    </div>
+                                    @if(module.media.hasMedia) {
+                                        <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
+                                    }
+                                </div>
+                            </div>
+                                <app-button
+                                [theme]="!isSaved(module.id) ? 'secondary' : 'primary'"
+                                [size]="'symbol'"
+                                (click)="toggleModuleToFolder(module)"
+                            >
+                                @if(!isSaved(module.id)){
+                                    <app-icon [icon]="'Add'" [size]="24" [stroke]="'var(--dark-accent)'"/>
+                                } @else {
+                                    <app-icon [icon]="'Check'" [size]="24" [fill]="'transparent'" [stroke]="'#FFF'"/>
+                                }
+                            </app-button>
+                        </div>
+                    }
+                } @else {
+                    <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-(--lightGrey)">
+                        <span class="text-center">Ви ще не створили жоден модуль.</span>
+                        <app-button
+                            (click)="createModule()"
+                        >   
+                            <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                            Створити модуль
+                        </app-button>
+                    </div>
+                }
+            } @else {
+                @if((userModules() || []).length > 0) {
+                @for(module of userSavedModules(); track module) {
+                    <div class="item">
+                        <div class="flex gap-4 items-center">
+                            <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+
+                            <div class="flex gap-2 items-center text-sm">
+                                <div class="flex flex-col">
+                                    <span>{{`Карток: ${module.objects}`}}</span>
+                                    <span>{{module.title}}</span>
+                                </div>
+                                @if(module.media.hasMedia) {
+                                    <!-- <app-icon [size]="16" [icon]="module?.type == 'Module' ? '' : ''" /> -->
+                                }
+                            </div>
+                        </div>
+                            <app-button
+                            [theme]="!isSaved(module.id) ? 'secondary' : 'primary'"
+                            [size]="'symbol'"
+                            (click)="toggleModuleToFolder(module)"
+                        >
+                            @if(!isSaved(module.id)){
+                                <app-icon [icon]="'Add'" [size]="24" [stroke]="'var(--dark-accent)'"/>
+                            } @else {
+                                <app-icon [icon]="'Check'" [size]="24" [fill]="'transparent'" [stroke]="'#FFF'"/>
+                            }
+                        </app-button>
+                    </div>
+                }
+            } @else {
+                <div class="flex flex-col gap-8 p-8 items-center rounded-2xl w-full bg-(--lightGrey)">
+                    <span class="text-center">Ви ще не створили жоден модуль.</span>
+                    <app-button
+                        (click)="createModule()"
+                    >   
+                        <app-icon [icon]="'Add'" [size]="16" [stroke]="'#FFF'"/>
+                        Створити модуль
+                    </app-button>
+                </div>
+            }
+            }
+        } @else {
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
+            <div class="skeletone w-full h-20 rounded-2xl"></div>
+        }
+    </div>
+    
+    <div class="flex gap-4 w-full justify-end mt-8 max-md:mt-auto">
+        <app-button theme="primary" rounded="md" (click)="closeModal()">
+            Готово
+        </app-button>
+    </div>
+</ng-template>

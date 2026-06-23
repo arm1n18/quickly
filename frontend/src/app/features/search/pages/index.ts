@@ -1,0 +1,1 @@
+export { SearchPageComponent } from "./search/search-page.component"

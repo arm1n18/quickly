@@ -1,0 +1,70 @@
+@if(module) {
+    <div class="header">
+        <div class="flex gap-4">
+            @if(module.media.hasMedia && module.media.thumbnail) {
+                <img [src]="module.media.thumbnail" class="size-10 object-cover rounded-xl" />
+            }@else {
+                <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
+                    <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
+                </div>
+            }
+
+            <div class="flex flex-col text-sm ">
+                <span class="font-medium line-clamp-2">{{module.title}}</span>
+                <!-- <div class="flex justify-center px-2 py-1 bg-[var(--hover-secondary)] rounded-xl">
+                    <span>{{`Карток: ${module.objects}`}}</span>
+                </div> -->
+                <span>{{`Карток: ${module.objects}`}}</span>
+            </div>
+        </div>
+
+        @if(isAuthenticated | async) {
+            <div class="flex gap-4">
+                <app-button 
+                    [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
+                    [size]="'symbol'"
+                    [disabled]="isLoading()"
+                    (click)="toggleSaveModule($event)"
+                >
+                    <app-icon 
+                        [icon]="'Bookmark'" 
+                        [size]="24"
+                    /> 
+                </app-button>
+                @if(module.isOwner) {
+                    <app-dropdown 
+                        [list]="dropdownList()"
+                        [config]="{
+                            rememberSelection: false,
+                            divider: 'line',
+                        }"
+                        [position]="{
+                            px: 'right',
+                            py: 'bottom'
+                        }"
+                        class="game-header-left"
+                    >
+                        <app-button btn 
+                            theme="hover-only-dark" 
+                            [size]="'symbol'"
+                            [disabled]="isLoading()"
+                        >
+                        <app-icon
+                            [icon]="'MenuDots'"
+                            [size]="24"
+                            
+                        />
+                        </app-button>
+                    </app-dropdown>
+                }
+            </div>
+        }
+    </div>
+
+    @if(showAuthor) {
+        <div class="flex gap-4">
+            <app-avatar [name]="module.author.name" [size]="'sm'" />
+            <span class="text-sm">{{module.author.name}}</span>
+        </div>
+    }
+}

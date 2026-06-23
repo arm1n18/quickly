@@ -1,0 +1,183 @@
+import { Component, EventEmitter, Input, Output, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
+import { AvatarComponent, ButtonComponent, InputComponent, IconComponent, DropdownComponent, ModalComponent, ConfirmModalComponent } from "app/shared/ui";
+import { Router } from '@angular/router';
+import { AsyncPipe, NgClass } from '@angular/common';
+import { ComponentPortal } from '@angular/cdk/portal';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
+import { ModuleSummary } from 'app/features/modules/models/module.interface';
+import { AuthStateService } from 'app/features/auth/state/auth.state';
+import { ApiService } from 'app/core/api/api.service';
+import { PortalService } from 'app/core/services/portal/portal.service';
+import { AuthFormComponent } from 'app/features/auth/components';
+import { DropdownItem } from '../../ui/dropdown/dropdown.component';
+import { UserAvatarComponent } from "app/features/user/components";
+
+@Component({
+  selector: 'app-header',
+  imports: [
+    NgClass,
+    AsyncPipe,
+    ReactiveFormsModule,
+    AvatarComponent,
+    ButtonComponent,
+    InputComponent,
+    IconComponent,
+    DropdownComponent,
+    UserAvatarComponent
+],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css',
+})
+export class HeaderComponent {
+  @ViewChild('modalTemplate') modalTemplate!: TemplateRef<any>;
+  @Input() isLocalSearch: boolean = true;
+  
+  public modules: WritableSignal<ModuleSummary[]> = signal([]);
+  public showSearchDropdown: boolean = false;
+  public isLoading: boolean = false;
+
+  private search$ = new BehaviorSubject<string>('');
+  @Output() searchChange = new EventEmitter<string>();
+
+  public dropdownList: WritableSignal<DropdownItem[][]> = signal([
+    [
+      {
+        title: {text: 'Модуль'}, icon: { name: 'Notes', color: 'var(--accent)' },
+        onClick: () => this.addModule(),
+      },
+      {
+        title: {text: 'Папку'}, icon: { name: 'Folder', color: 'var(--accent)' },
+        onClick: () => this.openFolderModal(),
+      }
+    ]
+  ]);
+
+  public editForm = new FormGroup<{
+    title: FormControl<string>,
+  }>({
+    title: new FormControl('', {
+      nonNullable: true, 
+      validators: [
+        Validators.required, Validators.minLength(2), Validators.maxLength(50)
+      ]}),
+  })
+
+  constructor(
+    public auth: AuthStateService,
+    private api: ApiService,
+    private router: Router,
+    private portal: PortalService
+  ) {}
+
+  public search(text: string) {
+    this.search$.next(text);
+    if(!this.isLocalSearch) this.searchChange.emit(text)
+  }
+
+  public navigateToModule(id: number, e: Event) {
+    e.stopPropagation()
+    this.router.navigate([`/module/${id}`])
+    this.showSearchDropdown = false
+  }
+
+  public navigateToSearch() {
+    const value = this.search$.value.trim()
+    if(this.isLocalSearch && value.length > 0) {
+      this.router.navigate(['/search'], {
+        queryParams: { title: this.search$.value }
+      });
+    } else {
+      this.router.navigate([], {
+        queryParams: { title: this.search$.value },
+        queryParamsHandling: 'merge'
+      })
+    }
+  }
+
+  public toggleAuthModal(state: boolean) {
+    if (state && !this.portal.isAnyOpen()) {
+      this.portal.open(new ComponentPortal(AuthFormComponent), {
+
+      });
+    } else if (!state && this.portal.isAnyOpen()) {
+      this.portal.close();
+    }
+  }
+
+  public addModule() {
+    if(!this.auth.payload) {
+      this.toggleAuthModal(true)
+    } else {
+      this.router.navigate(["/module/create"])
+    }
+  }
+
+  public openFolderModal() {
+      this.portal.open(new ComponentPortal(ModalComponent), {
+        config: {
+          showCross: true,
+          title: 'Створити папку',
+          template: this.modalTemplate
+        }
+      })
+  }
+
+  public closeFolderModal() {
+    this.portal.close();
+    this.editForm.patchValue({title: ''})
+  }
+
+  public onFolderSubmit(e: Event) {
+    e.preventDefault();
+
+    if(!this.editForm.valid) return
+    
+    const newTitle = this.editForm.get('title')!.value
+    const username = this.auth.getPartial("username")
+    if(!username) return
+
+    this.isLoading = true
+
+    this.api.folder.createFolder(username, {title: newTitle})
+      .subscribe({
+        next: resp => {
+          this.isLoading = false
+          this.portal.close()
+
+          this.router.navigate([`user/${username}/folder/${resp.slug}`])
+        },
+        error: () => {
+          this.isLoading = false
+        },
+      })
+    
+  }
+
+  ngOnInit() {
+    // const state = history.state as { login?: boolean };
+
+    // if (state?.['login']) {
+    //   this.toggleAuthModal(true)
+    // }
+
+    if(this.isLocalSearch) {
+      this.search$
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap(text => {
+          if(text.trim().length == 0) { 
+            return of({ modules: [] }) 
+          }  else{
+            return this.api.module.getModules(text);
+          }
+        }),
+          tap(resp => {
+            this.modules.set(resp.modules)
+          })
+      )
+      .subscribe();
+    }
+  }
+}

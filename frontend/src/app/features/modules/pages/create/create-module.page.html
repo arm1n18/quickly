@@ -1,0 +1,168 @@
+<app-header />
+<main>
+
+    <form [formGroup]="moduleForm" class="flex flex-col w-full gap-8 max-w-300 px-3 mt-8 mx-auto items-center"  (ngSubmit)="onSubmit()">
+        <div class="flex w-full justify-between max-md:flex-col gap-4">
+            <h1 class="title">Створити новий модуль</h1>
+
+            <app-button [disabled]="!moduleForm.valid" type="submit">
+                Створити
+            </app-button>
+        </div>
+
+        <div class="flex flex-col gap-4 w-full">
+            <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (moduleForm.get('title')?.value?.length ?? 0) > 50 }">
+                НАЗВА
+                ({{moduleForm.get('title')?.value?.length ?? 0}}/50)
+            </span>
+            <app-custom-input 
+                inputID="title"
+                class="w-full" 
+                title="Назва"
+                [value]="moduleForm.controls.title.value" 
+                (inputChange)="moduleForm.get('title')?.setValue($event)"
+            />
+        </div>
+        <div class="flex flex-col gap-4 w-full">
+            <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (moduleForm.get('description')?.value?.length ?? 0) > 500 }">
+                ОПИС
+                ({{moduleForm.controls.description.value?.length ?? 0}}/500)
+            </span>
+            <app-text-area
+                class="w-full" 
+                [delay]="0"
+                [value]="moduleForm.controls.description.value ?? ''" 
+                (inputChange)="moduleForm.get('description')?.setValue($event)"
+            />
+        </div>
+
+        <div formArrayName="cards" class="flex flex-col w-full">
+                @for(card of cards.controls; track card) {                        
+                        <div [formGroupName]="$index" class="draggable-card" >
+                            <div class="flex w-full justify-between items-center">
+                                <span>{{$index+1}}</span>
+
+                                <app-button
+                                    [theme]="'hover-only-dark'"
+                                    [size]="'symbol'"
+                                    [disabled]="cards.length < 3"
+                                    (click)="removeCard($index)"
+                                >
+                                    <app-icon [icon]="'Trash'" [size]="24"/>
+                                </app-button>
+                            </div>
+
+                            <div class="flex gap-6 w-full max-md:flex-col">
+                                <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
+                                    <div class="flex gap-4">
+                                        <app-text-area 
+                                            class="w-full" [delay]="0"
+                                            [value]="card.get('title.text')?.value ?? ''" 
+                                            (inputChange)="card.get('title.text')?.setValue(normalizeText($event))"
+                                        />
+                                    </div>
+
+                                    <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (card.get('title')?.get('text')?.value?.length ?? 0) > 500 }">
+                                        ТЕРМІН
+                                        ({{card.get('title')?.get('text')?.value?.length ?? 0}}/500)
+                                    </span>
+                                </div>
+
+                                <div class="flex flex-col gap-4 w-1/2 max-md:w-full">
+                                    <div class="flex gap-4">
+                                        <app-text-area 
+                                            class="w-full" [delay]="0"
+                                            [value]="moduleForm.controls.description.value ?? ''" 
+                                            (inputChange)="card.get('description.text')?.setValue(normalizeText($event))"
+                                        />
+                                        
+                                        @if(card.get('description.media.content')?.value; as content) {
+                                            <div class="relative">
+                                                <img 
+                                                    appImageModalDirective
+                                                    class="media-block sm"
+                                                    alt="imh"
+                                                    [src]="card.get('description.media.content')?.value"
+                                                    [allowModal]="true"
+                                                    [width]="'64px'"
+                                                    [height]="'64px'"
+                                                />
+
+                                                <div 
+                                                    class="absolute top-0 right-0 p-2 rounded-full bg-(--secondary) cursor-pointer"
+                                                    (click)="updateCardMediaContent('description', $index, '')"
+                                                >
+                                                    <app-icon [icon]="'Trash'" [size]="16" fill="var(--hover-secondary2)" />
+                                                </div>
+                                            </div>
+                                        } @else {
+                                            <app-button
+                                                [theme]="'hover-only-dark'"
+                                                [size]="'symbol'"
+                                                (click)="changeSelectedCard($index, 'description')"
+                                            >
+                                                <app-icon [icon]="'Image'" [size]="24"/>
+                                            </app-button>
+                                        }
+                                    </div>
+
+                                    <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (card.get('description')?.get('text')?.value?.length?? 0) > 500 }">
+                                        ОПИС
+                                        ({{card.get('description')?.get('text')?.value?.length ?? 0}}/500)
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            @if(loadImage().card == $index) {
+                                <div class="flex w-full gap-4 items-center max-sm:flex-col">
+                                    <app-custom-input 
+                                        class="w-full"
+                                        [title]="'Посилання на зображення ' + (loadImage().target === 'title' ? 'для терміну' : 'для опису')"
+                                        (inputChange)="updateCardMediaContent(loadImage().target!, $index, $event)"
+                                    />
+
+                                    <app-button [theme]="'hover-only'" (click)="loadImage.set({card: -1, target: undefined})" [size]="'w-full'" >
+                                        Приховати
+                                        <app-icon [icon]="'ChevronFillUp'"
+                                            [size]="24"
+                                            [fill]="'var(--accent)'"
+                                        />
+                                    </app-button>
+                                </div>
+
+                                <div class="w-full bg-amber-100 rounded-2xl px-4 py-2 flex gap-4 items-center">
+                                    <app-icon [icon]="'Danger'" [size]="24" [fill]="'#fe9a00'" />
+                                    <span class="text-amber-500">Завантаження зображень працює у тестовому режимі.
+                                    Будь ласка, перевіряйте посилання перед створенням модуля.</span>
+                                </div>
+                            }
+                        </div>
+                        @if($index != cards.length-1) {
+                            <div class="relative w-full flex justify-center h-6 opacity-0 hover:opacity-100">
+                                <app-button
+                                    [theme]="'primary'"
+                                    [size]="'symbol'"
+                                    class="absolute -top-2.5"
+                                    [ngClass]="{'hidden': cards.length >= 50}"
+                                    (click)="addCard($index)"
+                                >
+                                    <app-icon [icon]="'Add'" [size]="24" [stroke]="'#FFF'"/>
+                                </app-button>
+                            </div>
+                        }
+                }
+        </div>
+
+        <div class="py-8">
+            @if((moduleForm.get('cards')?.value?.length ?? 0) < 50) {
+            <app-button 
+                [theme]="'secondary'" 
+                [disabled]="cards.length >= 50" 
+                (click)="addCard(cards.length)"
+            >
+                    Додати нову картку
+            </app-button>
+            }
+        </div>
+    </form>
+</main>

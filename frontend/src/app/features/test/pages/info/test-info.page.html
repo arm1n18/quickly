@@ -1,0 +1,68 @@
+<app-header />
+<main class="flex flex-col gap-32 w-full">
+    <section class="w-full bg-(--background) h-fit block py-16 px-3">
+        <div class="flex justify-between w-full max-w-300 mx-auto gap-16 flex-col py-8 px-3">
+            <div class="flex gap-6 max-md:mx-auto">
+                <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
+                    <app-icon [size]="44" [icon]="'Document'" fill="var(--accent)" />
+                </div>
+                <h1 class="font-medium text-6xl text-(--accent)">Тести</h1>
+            </div>
+            
+            <div class="flex justify-between w-full items-center gap-8 max-md:flex-col-reverse">
+                <img src="images/test_2.png" class="max-h-96 max-md:max-h-103 md:scale" />
+            
+                <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
+                    <h2 class="font-medium text-3xl text-(--dark-accent)">
+                        Перевірка знань стає доступнішим
+                    </h2>
+
+                    <div class="flex flex-col gap-4 max-md:text-center">
+                        <p class="text-md text-(--text-secondary2)">
+                            Створюйте власні кастомізовані тести, на основі власних та чужих модулів.
+                        </p>
+                        <p class="text-md text-(--text-secondary2)">
+                            Створені картки можно збергігати, поширювати та додавати у тематичні папки. 
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="flex justify-between w-full max-w-300 mx-auto items-center gap-8 max-md:flex-col px-3">
+        <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
+            <h2 class="font-medium text-3xl text-(--dark-accent)">
+                Різноманіття функціоналу
+            </h2>
+
+            <div class="flex flex-col gap-4 max-md:text-center">
+                <p class="text-md text-(--text-secondary2)">
+                    Модуль надає широкий спектр функціональних можливостей: створення питань у форматах 
+                    “Вірно-невірно”, “Вибір відповіді”, “Підбір” та письмових завдань. 
+                    Користувач може задавати бажну кількість питань, обирати формат відображення, 
+                    переглядати контент та налаштовувати співвідношення термін–опис і опис–термін.
+            </div>
+        </div>
+        
+          <img src="images/test_4.png" class="max-h-96 max-md:max-h-103 md:scale" />
+    </section>
+
+    <section class="flex justify-between w-full max-w-300 mx-auto items-center gap-8 max-md:flex-col-reverse px-3">
+        <img src="images/test_3.png" class="max-h-96 max-md:max-h-103 md:scale" />
+
+        <div class="flex flex-col gap-8 md:w-1/2 w-4/5 max-md:text-center">
+            <h2 class="font-medium text-3xl text-(--dark-accent)">
+                Відображення результатів
+            </h2>
+
+            <div class="flex flex-col gap-4 max-md:text-center">
+                <p class="text-md text-(--text-secondary2)">
+                    Результати відображаються одразу після виконання, допомагаючи оцінити успішність, виявити помилки та покращити засвоєння матеріалу.
+                </p>
+                </div>
+        </div>
+    </section>
+</main>
+
+<app-FooterComponent />

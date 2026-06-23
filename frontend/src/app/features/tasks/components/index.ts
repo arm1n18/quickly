@@ -1,0 +1,1 @@
+export { TaskComponent } from "./task/task.component"

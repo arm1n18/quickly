@@ -1,0 +1,1 @@
+export { IdeasRootPageComponent } from "./root/ideas-root.page"

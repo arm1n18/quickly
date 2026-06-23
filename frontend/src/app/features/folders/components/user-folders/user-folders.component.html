@@ -1,0 +1,18 @@
+@if(folders().length == 0) {
+    <span>Нічого не знайдено</span>
+} @else {
+    @for(folder of folders(); track folder) {
+        <div #item>
+            <app-folder
+                [folder]="folder"
+                [href]="'/user/' + username() + '/folder/' + folder.slug"
+            />
+        </div>
+    }   
+    
+    @if(isLoading()) {
+        <div class="skeletone w-full h-20 rounded-2xl"></div>
+        <div class="skeletone w-full h-20 rounded-2xl"></div>
+        <div class="skeletone w-full h-20 rounded-2xl"></div>
+    }
+}

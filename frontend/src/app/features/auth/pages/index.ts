@@ -1,0 +1,1 @@
+export { ResetPasswordPageComponent } from "./reset-password/reset-password.page"

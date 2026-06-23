@@ -1,0 +1,164 @@
+@if(!showAnswer) {
+  <div class="question-block gap-4 h-117">
+    <div class="w-full h-full flex flex-col gap-4">
+      <div class="flex w-full justify-between h-12 items-center">
+        <div class="flex gap-4 items-center">
+          Прослухати
+          @if(question?.question!.text){
+            <app-button theme="hover-only" size="symbol">
+              <app-icon [icon]="'Volume'" [size]="24" [fill]="'#6d4aff'" (click)="speakText(question?.question!.text!, $event)"/>
+            </app-button>
+          }
+        </div>
+        {{ numeration.pos }} з {{ numeration.from }}
+      </div>
+
+      <div class="flex w-full gap-4 overflow-hidden h-48" [ngClass]="{
+            'justify-between': question?.question!.text && question?.question!.media?.content
+          }">
+
+        @if(question?.question!.text) {
+          @if(question!.question.text!.length > 164) {
+            <div class="flex flex-col relative">
+              <p class="overflow-y-auto scrollbar max-h-full pb-1 formatted-text whitespace-pre-wrap in-shadow-white" [ngClass]="question?.question!.media?.content != undefined ? 'text-lg' : 'title'">
+                {{question?.question!.text}}
+              </p>
+  <!--            <div class="absolute bottom-0 left-0 w-full h-8 pointer-events-none z-10 in-shadow-white"></div>-->
+            </div>
+          } @else {
+            <p class="text-xl formatted-text">
+              {{question?.question!.text}}
+            </p>
+          }
+        }
+
+        @if(question?.question!.media?.content != undefined) {
+          @switch (question?.question!.media!.type) {
+            @case ("audio") {
+              <!--TODO-->
+              <audio src="{{question?.question!.media!.content}}"></audio>
+            } @case ("video") {
+              <!--TODO-->
+              <video width="224" height="112" class="object-contain media-block" src="{{question?.question!.media!.content}}"></video>
+            } @case ("image") {
+                <img 
+                  appImageModalDirective
+                  class="media-block sm h-24 w-24"
+                  alt="imh"
+                  [src]="question!.question.media!.content!"
+                  [allowModal]="true"
+                  [width]="'96px'"
+                />
+              <!-- <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" /> -->
+            }
+          }
+        }
+      </div>
+    </div>
+
+    <div class="w-full flex flex-col gap-4">
+      <div [ngClass]="{
+          'text-[#41C550]': showAnswer && isCorrectAnswer,
+          'text-[#FF9F4B]': showAnswer && !isCorrectAnswer
+        }">
+        @if (answered && showAnswer) {
+          {{feedback.getFeedbackMessage(isCorrectAnswer)}}
+        } @else {
+          Введіть відповідь
+        }
+      </div>
+      <app-custom-input [title]="'Введіть відповідь'" (inputChange)="onInputChange($event)"/>
+      <app-button rounded="md" class="self-end" (click)="nextQuestionClick()">Далі</app-button>
+    </div>
+  </div>
+} @else {
+  <div class="question-block justify-between">
+    <div class="flex justify-end w-full h-12 mb-4 items-center">
+      {{ numeration.pos }} з {{ numeration.from }}
+    </div>
+
+    <div class="flex w-full h-full gap-4 overflow-hidden pb-11" [ngClass]="{
+      'justify-between': question!.question.text && question!.question.media?.content,
+      'justify-center': !question!.question.text && question!.question.media?.content
+    }">
+
+      @if(question!.question.text) {
+        @if(question!.question.text.length > 164) {
+          <p class="overflow-y-auto max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'title'">
+            {{question!.question.text}}
+          </p>
+          <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
+        } @else {
+          <p class="text-xl">
+            {{question!.question.text}}
+          </p>
+        }
+      }
+
+      @if(question!.question.media?.content != undefined) {
+        @switch (question!.question.media!.type) {
+          @case ("audio") {
+            <!--TODO-->
+            <audio src="{{ question!.question.media!.content }}"></audio>
+          } @case ("video") {
+            <!--TODO-->
+            <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media!.content }}"></video>
+          } @case ("image") {
+            <img 
+              appImageModalDirective
+              class="media-block sm"
+              alt="imh"
+              [src]="question!.question.media!.content!"
+              [allowModal]="true"
+              [width]="'96px'"
+              [height]="'96px'"
+            />
+            <!-- <app-image [image]="question!.question.media?.content!" [config]="{width: '96px', height: '96px', allowModal: true}" /> -->
+          }
+        }
+      }
+    </div>
+    <div class="w-full flex flex-col gap-4">
+      <div [ngClass]="{
+          'text-[#41C550]': showAnswer && isCorrectAnswer,
+          'text-[#FF9F4B]': showAnswer && !isCorrectAnswer
+        }">
+        @switch (isCorrectAnswer) {
+          @case (true) {
+            Чудово!
+          }
+          @default {
+            Не зовсім правильно, але ви робите успіхи!
+          }
+        }
+      </div>
+
+      <div class="w-full flex gap-4">
+        @if(!isCorrectAnswer) {
+          <div
+            class="answer-block w-full incorrect"
+            [ngClass]="{
+              'selected':  answered && answered != undefined
+            }"
+          >
+            <div class="flex gap-2 items-center">
+              <app-icon [icon]="'Cross'" [size]="23" [fill]="'#FF9F4B'" />
+              {{answered != undefined ? answered : "Відповідь не обрана"}}
+            </div>
+          </div>
+        }
+        <div
+            class="answer-block w-full correct"
+            [ngClass]="{
+              'selected':  answered && answered != undefined
+            }"
+          >
+            <div class="flex gap-2 items-center">
+              <app-icon [icon]="'Check'" [size]="24" [stroke]="'#41C550'" [fill]="'transparent'"/>
+              {{question?.answer?.text}}
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+}
