@@ -1,35 +1,30 @@
 @if (!showAnswer) {
-  <div class="question-block gap-8 h-fit">
-    <div class="max-md:flex max-md:flex-col md:grid gap-4 w-full"
-      [ngClass]="{
-        'grid-cols-[auto_auto]': true
-      }"
-    >
-      @for (block of answerBlocks; track block.id) {
-        <div class="match-block lg formatted-text" [ngClass]="{
-            'selected': block.id === selectedBlock,
-            'chosen': answers[block.id] !== undefined && block.id !== selectedBlock,
-            'text-(--accent)': answers[block.id] == undefined && block.id == selectedBlock
-          }"
-            (click)="selectedBlock = block.id"
+  <div class="match__pairs">
+    @for (block of answerBlocks; track block.id) {
+      <div class="match__pair">
+        <div
+          class="match__slot"
+          [class.match__slot--active]="block.id === selectedBlock"
+          [class.match__slot--answered]="answers[block.id] !== undefined && block.id !== selectedBlock"
+          (click)="selectedBlock = block.id"
         >
-          <div class="w-full flex items-center justify-between">
-              {{getAnswerText(block.id)}}
+          <div class="match__slot-content">
+            {{ getAnswerText(block.id) }}
 
-            @if(answers[block.id] != undefined){
-              @if (answers[block.id]?.media?.content != undefined) {
-                <img 
-                  appImageModalDirective
-                  class="w-24 h-24 object-cover rounded-xl"
-                  alt="imh"
-                  [src]="answers[block.id]?.media!.content!"
-                  [allowModal]="true"
-                />      
+              @if (answers[block.id]?.media?.content != undefined) {   
+                <div class="media-block-wrapper media-block--xs">
+                  <img 
+                    class="media-block"
+                    appImageModalDirective
+                    [src]="answers[block.id]?.media!.content!"
+                    [allowModal]="true"
+                  />
+                </div>
               }
-            }
           </div>
 
           <app-icon
+            class="match__remove"
             [icon]="'Cross'"
             [size]="24"
             [fill]="'#A7B2FF'"
@@ -37,137 +32,143 @@
           />
         </div>
 
-        <div class="justify-between flex items-center">
-          <p class="formatted-text">{{questions!.questions[block.id]?.question!.text || ''}}</p>
+        <div class="match__question">
+          <p>
+            {{ questions!.questions[block.id]?.question!.text || '' }}
+          </p>
 
-          @if(questions!.questions[block.id]?.question?.media?.content != undefined) {
+          @if (questions!.questions[block.id]?.question?.media?.content) {
             @switch (questions!.questions[block.id]?.question!.media!.type) {
+
               @case ("audio") {
-                <!--TODO-->
-                <audio src="{{ questions!.questions[block.id]?.question?.media?.content }}"></audio>
-              } @case ("video") {
-                <!--TODO-->
-                <video width="224" height="112" class="object-contain media-block" src="{{ questions!.questions[block.id]?.question?.media?.content }}"></video>
-              } @case ("image") {<img 
-                  appImageModalDirective
-                  class="w-24 h-24 object-cover rounded-xl"
-                  alt="imh"
-                  [src]="questions!.questions[block.id].question!.media!.content!"
-                  [allowModal]="true"
-                />      
+                <audio [src]="questions!.questions[block.id].question!.media!.content"></audio>
+              }
+
+              @case ("video") {
+                <video
+                  [src]="questions!.questions[block.id].question!.media!.content"
+                ></video>
+              }
+
+              @case ("image") {
+                <div class="media-block-wrapper media-block--sm">
+                  <img 
+                    class="media-block"
+                    appImageModalDirective
+                    [src]="questions!.questions[block.id].question!.media!.content!"
+                    [allowModal]="true"
+                  />
+                </div>
               }
             }
           }
-        </div>
-      }
-    </div>
-
-    <div class="w-full h-0.5 bg-(--secondary)"></div>
-
-    <div class="flex w-full gap-2 " [ngClass]="isColumn ? 'flex-col' : 'flex-wrap'">
-      @for (answer of questions?.answers; track answer) {
-        <div
-          class="match-answer-block formatted-text"
-          [ngClass]="{ 'chosen': isAnswered(answer) }"
-          (click)="toggleAnswerBlock(answer)"
-        >
-          {{answer.text}}
-          @if (answer.media?.content) {
-            <img 
-              appImageModalDirective
-              class="w-24 h-24 object-cover rounded-xl"
-              alt="imh"
-              [src]="answer.media!.content!"
-              [allowModal]="true"
-            /> 
-          }
-        </div>
-      }
-    </div>
-  </div>
-} @else {
-  <div class="flex flex-col gap-4 w-full items-center">
-    @for(question of questions?.questions; track question; let i = $index) {
-      <div class="question-block justify-between">
-        <div class="flex justify-end w-full h-12 mb-4 items-center">
-          {{ i+1 }} з {{ questions?.questions?.length }}
-        </div>
-
-        <div class="flex w-full h-full gap-4 overflow-hidden pb-11" [ngClass]="{
-          'justify-between': question!.question.text && question!.question.media?.content,
-          'justify-center': !question!.question.text && question!.question.media?.content
-        }">
-
-          @if(question!.question.text) {
-            @if(question!.question.text.length > 164) {
-              <p class="overflow-y-auto max-h-full pb-1 formatted-text whitespace-pre-wrap" [ngClass]="question!.question.media?.content != undefined ? 'text-lg' : 'title'">
-                {{question!.question.text}}
-              </p>
-              <div class="absolute bottom-11 left-0 w-full h-8 pointer-events-none in-shadow z-10"></div>
-            } @else {
-              <p class="text-xl formatted-text">
-                {{question!.question.text}}
-              </p>
-            }
-          }
-
-          @if(question!.question.media?.content != undefined) {
-            @switch (question!.question.media!.type) {
-              @case ("audio") {
-                <!--TODO-->
-                <audio src="{{ question!.question.media!.content }}"></audio>
-              } @case ("video") {
-                <!--TODO-->
-                <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media!.content }}"></video>
-              } @case ("image") {
-                <img 
-                  appImageModalDirective
-                  class="w-24 h-24 object-cover rounded-xl"
-                  alt="imh"
-                  [src]="question!.question.media!.content!"
-                  [allowModal]="true"
-                /> 
-              }
-            }
-          }
-
-        </div>
-        <div class="w-full flex flex-col gap-4">
-          <div [ngClass]="{
-              'text-[#41C550]': showAnswer && isCorrectAnswer(i),
-              'text-[#FF9F4B]': showAnswer && !isCorrectAnswer(i)
-            }">
-            {{ feedbackMessage[i] }}
-          </div>
-
-          <div class="w-full flex gap-4">
-            @if(!isCorrectAnswer(i)) {
-              <div
-                class="answer-block w-full incorrect"
-                [ngClass]="{
-                  'selected':  answered && answered != undefined
-                }"
-              >
-                <div class="flex gap-2 items-center">
-                  <app-icon [icon]="'Cross'" [size]="23" [fill]="'#FF9F4B'" />
-                  {{answered![i] != undefined ? answered![i] : "Відповідь не обрана"}}
-                </div>
-              </div>
-            }
-            <div
-                class="answer-block w-full correct"
-                [ngClass]="{
-                  'selected':  answered && answered != undefined
-                }"
-              >
-                <div class="flex gap-2 items-center">
-                  <app-icon [icon]="'Check'" [size]="24" [stroke]="'#41C550'" [fill]="'transparent'"/>
-                  {{questions?.questions![i].answer.text}}
-                </div>
-              </div>
-          </div>
         </div>
       </div>
     }
   </div>
+
+  <div class="divider-horizontal"></div>
+
+  <div class="match__options" [class.match__options--column]="isColumn">
+
+    @for (answer of questions?.answers; track answer) {
+      <div
+        class="match__option"
+        [class.match__option--chosen]="isAnswered(answer)"
+        (click)="toggleAnswerBlock(answer)"
+      >
+        {{ answer.text }}
+
+        @if (answer.media?.content) {
+          <div class="media-block-wrapper media-block--sm">
+            <img 
+              class="media-block"
+              appImageModalDirective
+              [src]="answer.media!.content!"
+              [allowModal]="true"
+            />
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+} @else {
+  @for(question of questions?.questions; track question; let i = $index) {
+    <div class="question-result">
+      <div class="answer__header">
+        {{ i+1 }} з {{ questions?.questions?.length }}
+      </div>
+
+      <div class="answer__body" 
+        [ngClass]="{
+          'justify-between': question!.question.text && question!.question.media?.content,
+          'justify-center': !question!.question.text && question!.question.media?.content
+        }"
+      >
+
+      @if(question!.question.text) {
+        <p class="question__text"
+          [class.question__text--scroll]="question!.question.text.length > 164"
+          [class.question__text--title]="question!.question.text.length <= 164"
+        >
+          {{question!.question.text}}
+        </p>
+      }
+
+      @if(question!.question.media?.content != undefined) {
+        @switch (question!.question.media!.type) {
+          @case ("audio") {
+            <!--TODO-->
+            <audio src="{{ question!.question.media!.content }}"></audio>
+          } @case ("video") {
+            <!--TODO-->
+            <video width="224" height="112" class="object-contain media-block" src="{{ question!.question.media!.content }}"></video>
+          } @case ("image") {
+            <div class="media-block-wrapper media-block--sm">
+              <img 
+                class="media-block"
+                appImageModalDirective
+                [src]="question!.question.media!.content!"
+                [allowModal]="true"
+              />
+            </div>
+          }
+        }
+      }
+      </div>
+
+      <div class="w-full flex flex-col gap-4">
+        <div 
+          [class.answer__feedback--correct]="showAnswer && isCorrectAnswer(i)"
+          [class.answer__feedback--incorrect]="showAnswer && !isCorrectAnswer(i)"
+        >
+          {{ feedbackMessage[i] }}
+        </div>
+
+        <div class="answer__list answer__list--grid">
+          @if(!isCorrectAnswer(i)) {
+            <div
+              class="answer__item answer__item--incorrect"
+              [class.answer__item--selected]="answered && answered != undefined"
+            >
+              <div class="answer__content">
+                <app-icon [icon]="'Cross'" [size]="23" [fill]="'#FF9F4B'" />
+                {{answered![i] != undefined ? answered![i] : "Відповідь не обрана"}}
+              </div>
+            </div>
+          }
+            <div
+              class="answer__item answer__item--correct"
+              [class.answer__item--selected]="answered && answered != undefined"
+            >
+              <div class="answer__content">
+                <app-icon [icon]="'Check'" [size]="24" [stroke]="'#41C550'" [fill]="'transparent'"/>
+                {{questions?.questions![i].answer.text}}
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  }
 }

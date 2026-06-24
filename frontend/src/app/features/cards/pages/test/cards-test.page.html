@@ -1,48 +1,77 @@
 @if(getModule; as module) {
-  <header class="sticky z-1 top-0 w-full">
+  <header class="header-wrapper">
     <div class="game-header">
       
       <app-dropdown 
+        class="game-header__left"
         [list]="dropdownList"
-        [config]="{title: {text: 'Тестування'}, hideOnSmall: true, divider: 'line', icon: {
-          name: 'Document',
-          color: 'var(--accent)'
-        }}" 
-        class="game-header-left"
+        [config]="{
+          title: {text: 'Тестування'}, 
+          hideOnSmall: true,
+          divider: 'line', 
+          icon: {
+            name: 'Document',
+            color: 'var(--accent)'
+          }
+        }" 
       />
 
-      <div class="game-header-center text-(--dark-accent)">
+      <div class="game-header__center text-dark-accent">
         <div>{{ showConfig.showAnswers ? getResult.correct.length : getResult.answered }} / {{ testConfig().maxQuestions }}</div>
         <div>{{ module.title }}</div>
       </div>
 
-      <div class="flex gap-2 game-header-right">
+      <div class="game-header__right">
         @if(true) {
-          <app-button theme="hover-only" rounded="md" size="symbol" (click)="openModal(modalTemplate)">
+
+          <app-button
+            theme="hover-only" 
+            rounded="md" 
+            size="symbol" 
+            (click)="openModal(modalTemplate)"
+          >
             <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
           </app-button>
+
         } @else {
-          <app-button theme="secondary" rounded="md">
+
+          <app-button
+            theme="secondary"
+            rounded="md"
+          >
             Вхід
           </app-button>
+
           <app-button rounded="md">
             Зареєструватись
           </app-button>
+
         }
-        <app-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
+
+        <app-button
+          theme="hover-only" 
+          rounded="md" 
+          size="symbol" 
+          (click)="changeGameMode('default')"
+        >
           <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
         </app-button>
       </div>
     </div>
-    <div class="w-full h-px rounded-3xl bg-(--secondary)">
-      <div [ngStyle]="{ 'width': (Math.min(getResult.answered / testConfig().maxQuestions, 1) * 100)+ '%' }" class="h-px rounded-3xl bg-(--accent)"></div>
+
+    <div class="game-progress">
+      <div 
+        class="game-progress__bar"
+        [ngStyle]="{ 'width': (Math.min(getResult.answered / testConfig().maxQuestions, 1) * 100)+ '%' }" 
+      >
+      </div>
     </div>
   </header>
 
-  <main class="flex flex-col gap-4 w-full p-3 items-center">
+  <main class="main-block">
     @if(showConfig.showAnswers) {
       <div class="flex flex-col gap-4 text-lg w-full max-w-200">
-        <div class="text-(--dark-accent) text-xl">{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
+        <div class="text-dark-accent text-xl">{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
 
         <div class="flex gap-8 items-center max-sm:flex-col">
           <app-doughnut-chart [correct]="getResult.correct.length" [incorrect]="getResult.incorrect.length" />
@@ -120,119 +149,144 @@
   </main>
 
 <ng-template #modalTemplate>
-  <div class="flex flex-col gap-4 mb-16 ">
-    <div class="w-full flex justify-between items-center">
-      <div class="flex gap-2">
-        Питання
-        (максимум {{ module.cards.length }})
+  <div class="modal__body">
+    <div class="modal__section">
+      <div class="modal__row">
+        <span>Питання (максимум {{ module.cards.length }})</span>
+
+        <input
+          class="input max-w-20"
+          type="number"
+          [defaultValue]="tempTestConfig.maxQuestions"
+          [min]="1" [max]="module.cards.length"
+          [(ngModel)]="tempTestConfig.maxQuestions"
+        />
       </div>
-      <input
-        class="input max-w-20"
-        type="number"
-        [defaultValue]="tempTestConfig.maxQuestions"
-        [min]="1" [max]="module.cards.length"
-        [(ngModel)]="tempTestConfig.maxQuestions"
-      />
-    </div>
 
-    <div class="w-full h-px bg-(--secondary)"></div>
+      <div class="divider-horizontal"></div>
 
-    <div class="w-full flex justify-between items-center">
-      Вірно-невірно
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="tempTestConfig.mode == 'true-false'"
-          [disabled]="tempTestConfig.mode == 'true-false'"
-          (click)="tempTestConfig.mode = 'true-false'"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div>
-    <div class="w-full flex justify-between items-center">
-      Вибір відповіді
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="tempTestConfig.mode == 'choose'"
-          [disabled]="tempTestConfig.mode == 'choose'"
-          (click)="tempTestConfig.mode = 'choose'"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div>
-    <div class="w-full flex justify-between items-center">
-      Підбір
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="tempTestConfig.mode == 'match'"
-          [disabled]="tempTestConfig.mode == 'match'"
-          (click)="tempTestConfig.mode = 'match'"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div>
-    <div class="w-full flex justify-between items-center">
-      Письмові питання
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="tempTestConfig.mode == 'input'"
-          [disabled]="tempTestConfig.mode == 'input'"
-          (click)="tempTestConfig.mode = 'input'"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div>
+      <div class="modal__row">
+        <span>Вірно-невірно</span>
 
-    <div class="w-full h-px bg-(--secondary)"></div>
-
-    <div class="w-full flex flex-col gap-4">
-      <div class="w-full flex justify-between items-center">
-        Формат питань
-        <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="showConfig.showAnswerMode = !showConfig.showAnswerMode">
-          Переглянути
-          <app-icon [icon]="'ChevronDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': showConfig.showAnswerMode}"/>
-        </div>
+        <label [class]="'switch'">
+          <input
+            [type]="'checkbox'"
+            [checked]="tempTestConfig.mode == 'true-false'"
+            [disabled]="tempTestConfig.mode == 'true-false'"
+            (click)="tempTestConfig.mode = 'true-false'"
+          />
+          <span [class]="'slider round'"></span>
+        </label>
       </div>
-      <div [class]="'w-full flex flex-col gap-4 pl-4'" [ngClass]="{'hidden': !showConfig.showAnswerMode}">
-        <div class="w-full flex justify-between items-center">
-          Термін - Опис
-          <label [class]="'switch'">
-            <input
-              [type]="'checkbox'"
-              [disabled]="tempTestConfig.answerMode == 'description'"
-              [checked]="tempTestConfig.answerMode == 'description'"
-              (click)="tempTestConfig.answerMode = 'description'"
+
+      <div class="modal__row">
+        <span>Вибір відповіді</span>
+
+        <label [class]="'switch'">
+          <input
+            [type]="'checkbox'"
+            [checked]="tempTestConfig.mode == 'choose'"
+            [disabled]="tempTestConfig.mode == 'choose'"
+            (click)="tempTestConfig.mode = 'choose'"
+          />
+          <span [class]="'slider round'"></span>
+        </label>
+      </div>
+
+      <div class="modal__row">
+        <span>Підбір</span>
+
+        <label [class]="'switch'">
+          <input
+            [type]="'checkbox'"
+            [checked]="tempTestConfig.mode == 'match'"
+            [disabled]="tempTestConfig.mode == 'match'"
+            (click)="tempTestConfig.mode = 'match'"
+          />
+          <span [class]="'slider round'"></span>
+        </label>
+      </div>
+
+      <div class="modal__row">
+        <span>Письмові питання</span>
+
+        <label [class]="'switch'">
+          <input
+            [type]="'checkbox'"
+            [checked]="tempTestConfig.mode == 'input'"
+            [disabled]="tempTestConfig.mode == 'input'"
+            (click)="tempTestConfig.mode = 'input'"
+          />
+          <span [class]="'slider round'"></span>
+        </label>
+      </div>
+
+      <div class="divider-horizontal"></div>
+
+      <div class="modal__section">
+        <div class="modal__row">
+          <span>Формат питань</span>
+
+          <!-- Accordion -->
+          <div
+            class="flex items-center gap-2 text-(--accent) cursor-pointer" 
+            (click)="showConfig.showAnswerMode = !showConfig.showAnswerMode"
+          >
+            <span>Переглянути</span>
+
+            <app-icon 
+              [class]="'transition-all'" 
+              [ngClass]="{'rotate-180': showConfig.showAnswerMode}"
+              [icon]="'ChevronDown'" 
+              [size]="24" 
+              [fill]="'#6d4aff'" 
             />
-            <span [class]="'slider round'"></span>
-          </label>
+          </div>
         </div>
-        <div class="w-full flex justify-between items-center">
-          Опис - Термін
-          <label [class]="'switch'">
-            <input
-              [type]="'checkbox'"
-              [disabled]="tempTestConfig.answerMode == 'title'"
-              [checked]="tempTestConfig.answerMode == 'title'"
-              (click)="tempTestConfig.answerMode = 'title'"
-            />
-            <span [class]="'slider round'"></span>
-          </label>
+
+        <div
+          class="w-full flex flex-col gap-4 pl-4" 
+          [ngClass]="{'hidden': !showConfig.showAnswerMode}"
+        >
+          <div class="modal__row">
+            <span>Термін - Опис</span>
+
+            <label [class]="'switch'">
+              <input
+                [type]="'checkbox'"
+                [disabled]="tempTestConfig.answerMode == 'description'"
+                [checked]="tempTestConfig.answerMode == 'description'"
+                (click)="tempTestConfig.answerMode = 'description'"
+              />
+              <span [class]="'slider round'"></span>
+            </label>
+          </div>
+
+          <div class="modal__row">
+            <span>Опис - Термін</span>
+
+            <label [class]="'switch'">
+              <input
+                [type]="'checkbox'"
+                [disabled]="tempTestConfig.answerMode == 'title'"
+                [checked]="tempTestConfig.answerMode == 'title'"
+                (click)="tempTestConfig.answerMode = 'title'"
+              />
+              <span [class]="'slider round'"></span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  
-  <div [class]="'flex gap-4 justify-end w-full max-md:justify-between max-md:flex-col-reverse max-md:mt-auto'">
-    <app-button theme="secondary" rounded="md" className="max-md:w-full" (click)="resetTestConfig()">
-      Скасувати
-    </app-button>
-    <app-button theme="primary" rounded="md" className="max-md:w-full" (click)="applyTestConfig()">
-      Створити тест
-    </app-button>
+    
+    <div class="modal__actions">
+      <app-button theme="secondary" rounded="md" className="max-md:w-full" (click)="resetTestConfig()">
+        Скасувати
+      </app-button>
+      <app-button theme="primary" rounded="md" className="max-md:w-full" (click)="applyTestConfig()">
+        Створити тест
+      </app-button>
+    </div>
   </div>
 </ng-template>
 }

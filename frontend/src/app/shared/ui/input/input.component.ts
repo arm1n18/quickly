@@ -5,7 +5,7 @@ import { BehaviorSubject, debounceTime, Subject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
-  selector: 'app-custom-input',
+  selector: 'app-input',
   imports: [IconComponent, NgClass],
   templateUrl: './input.component.html',
   styleUrl: './input.component.css',

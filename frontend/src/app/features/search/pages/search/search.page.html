@@ -1,7 +1,7 @@
 <app-header (searchChange)="search($event)" [isLocalSearch]="false" />
 
 <main class="flex flex-col gap-4 max-w-300 mx-auto px-3">
-    <h1 class="title font-medium">
+    <h1>
         Результат пошуку {{ currentSearch() && currentSearch().length > 0 ? ('«' + currentSearch() + '»') : '' }}
     </h1>
     <div class="flex gap-4 md:items-end max-md:flex-col">

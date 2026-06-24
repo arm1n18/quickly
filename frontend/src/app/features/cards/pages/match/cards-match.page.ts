@@ -11,7 +11,6 @@ import { CardsState } from 'app/features/modules/state/module.state';
 @Component({
   selector: 'app-cards-match',
   imports: [
-    NgClass,
     ButtonComponent,
     IconComponent,
     DropdownComponent

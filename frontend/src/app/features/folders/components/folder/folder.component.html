@@ -46,11 +46,11 @@
 <ng-template #modalTemplate>
     <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
         
-        <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             Назва
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
-        <app-custom-input 
+        <app-input 
             [value]="this.editForm.get('title')?.value || ''" [delay]="0"
             (inputChange)="editForm.get('title')?.setValue($event)"
         />

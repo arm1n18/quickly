@@ -12,8 +12,8 @@
             @if(mode == 'reset') {
                 <div class="flex flex-col gap-4 flex-1">
                     <div class="flex flex-col gap-2">
-                        <label class="text-md text-(--dark-accent)" for="email">Ел. пошта</label>
-                        <app-custom-input 
+                        <label class="text-md text-dark-accent" for="email">Ел. пошта</label>
+                        <app-input 
                             inputID="email" 
                             [title]="'Пошта'"
                             [delay]="0"
@@ -41,7 +41,7 @@
                         <!-- SEPARATOR -->
                         <div class="h-px bg-(--secondary) shrink-0  w-full"></div>
                         
-                        <span class="text-sm text-(--dark-accent) mx-auto">
+                        <span class="text-sm text-dark-accent mx-auto">
                             Передумали?
                             <span 
                                 class="text-(--accent) underline 
@@ -56,8 +56,8 @@
             } @else {
                 <div class="flex flex-col gap-4 flex-1">
                     <div class="flex flex-col gap-2">
-                        <label class="text-md text-(--dark-accent)" for="email">Ел. пошта</label>
-                        <app-custom-input 
+                        <label class="text-md text-dark-accent" for="email">Ел. пошта</label>
+                        <app-input 
                             inputID="email" 
                             [title]="'Пошта'"
                             [delay]="0"
@@ -68,8 +68,8 @@
                     </div>
 
                     <div class="flex flex-col gap-2">
-                        <label class="text-md text-(--dark-accent)" for="password">Пароль</label>
-                        <app-custom-input 
+                        <label class="text-md text-dark-accent" for="password">Пароль</label>
+                        <app-input 
                             inputID="password"
                             [delay]="0"
                             [value]="this.authForm.controls.password.value"
@@ -88,7 +88,7 @@
                     <div class="flex flex-col gap-4 max-md:mt-auto">
                         <app-button type="submit" size="w-full" [disabled]="!authForm.valid" (click)="sendData()">{{choosenMode}}</app-button>
                         @if(mode == 'register') {
-                            <span class="text-sm text-(--dark-accent) mx-auto">
+                            <span class="text-sm text-dark-accent mx-auto">
                                 У вас вже є обліковий запис?
                                 <span 
                                     class="text-(--accent) underline 
@@ -99,7 +99,7 @@
                                 </span>
                             </span>
                         } @else {
-                            <span class="text-sm text-(--dark-accent) mx-auto">
+                            <span class="text-sm text-dark-accent mx-auto">
                                 Вперше на Quickly?
                                 <span 
                                     class="text-(--accent) underline 
@@ -129,7 +129,7 @@
         } @else {
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col gap-4">
-                    <span class="text-md text-(--dark-accent)">
+                    <span class="text-md text-dark-accent">
                         Код надіслано на {{this.authForm.controls.email.value}}
                     </span>
 

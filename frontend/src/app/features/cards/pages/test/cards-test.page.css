@@ -4,3 +4,20 @@
     min-height: 100dvh;
     background: var(--background);
 }
+
+.header-wrapper {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    width: 100%;
+}
+
+.main-block {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+    align-items: center;
+}
+

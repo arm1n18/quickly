@@ -1,20 +1,31 @@
-<main class="flex flex-col gap-4 w-full h-screen bg-(--background)">
+<main class="main-block">
   <div class="game-header">
     <app-dropdown 
-      [list]="dropdownList"
-      [config]="{title: {text: 'Підбір'}, hideOnSmall: true, divider: 'line', icon: {
-        name: 'Notes',
-        color: 'var(--accent)'
-      }}" 
       class="game-header-left"
+      [list]="dropdownList"
+      [config]="{
+        title: {text: 'Підбір'},
+        hideOnSmall: true, 
+        divider: 'line', 
+        icon: {
+          name: 'Notes',
+          color: 'var(--accent)'
+        }
+      }" 
     />
 
-    <div class="game-header-center text-(--dark-accent)">
+    <div class="game-header__center text-dark-accent">
         <div>{{ timer().s }},{{ timer().ms }}</div>
         <div>{{ title }}</div>
     </div>
-    <div class="flex gap-2 game-header-right">
-      <app-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
+    
+    <div class="game-header__right">
+      <app-button
+        theme="hover-only"
+        rounded="md"
+        size="symbol"
+        (click)="changeGameMode('default')"
+      >
         <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
       </app-button>
     </div>
@@ -22,35 +33,37 @@
   
   @if(isStarted) {
     @if(matchedQT() == matchCards().length/2){
-      <div class="flex flex-col gap-4 items-center my-auto">
+      <div class="match-state">
           <img src="favicon.png" class="size-24" />
-          <h1 class="title font-medium text-center">Чудово! Хочете спробувати ще?</h1>
-          <span class="text-center">
+          <h1>Чудово! Хочете спробувати ще?</h1>
+          <span>
             Спробуйте пройти гру швидше, ніж за {{ timer().s }}.{{ timer().ms }} секунд.
           </span>
 
           <app-button (click)="playAgain()">Грати знову</app-button>
       </div>
       } @else {
-          <div class="cardsMatchWrapper">
+          <div class="match-board">
           @for (card of matchCards(); track card) {
             <div
-              [ngClass]="{
-                'selected': isSelected(card.id),
-                'hidden': card.match,
-                'matched': matched() && isSelected(card.id),
-                'not-matched': matched() != null && !matched() && isSelected(card.id)
-              }"
-              class="matchCard" (click)="toggleMatchCard(card)"
+              class="match-card"
+              [class.selected]="isSelected(card.id)"
+              [class.hidden]="card.match"
+              [class.matched]="matched() && isSelected(card.id)"
+              [class.not-matched]="matched() != null && !matched() && isSelected(card.id)"
+              (click)="toggleMatchCard(card)"
             >
-              <div class="matchCard-text formatted-text prevent-select">
+              <div class="match-card__text formatted-text prevent-select">
                 @if(!card.match) {
                   {{ card.content.text }}
                 }
               </div>
 
               @if(card.content.media?.type === 'image') {
-                <div class="bg-image " [style.background-image]="'url(' + card.content.media!.content + ')'">
+                <div
+                  class="match-card__image"
+                  [style.background-image]="'url(' + card.content.media!.content + ')'"
+                >
                 </div>
               }
             </div>
@@ -58,10 +71,10 @@
         </div>
     }
   } @else {
-     <div class="flex flex-col gap-4 items-center my-auto">
+     <div class="match-state">
           <img src="favicon.png" class="size-24" />
-          <h1 class="title font-medium text-center">Розпочати?</h1>
-          <span class="text-center">Поєднайте всі терміни з визначеннями якнайшвидше.</span>
+          <h1>Розпочати?</h1>
+          <span>Поєднайте всі терміни з визначеннями якнайшвидше.</span>
 
           <app-button (click)="startGame()">Розпочати гру</app-button>
       </div>

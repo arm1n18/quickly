@@ -2,7 +2,7 @@
     <div class="flex w-full gap-2">
         @for (option of options; track option) {
         <div
-            class="match-answer-block"
+            class="match-answer__item"
             [ngClass]="{ 'chosen': option.answered}"
             (click)="toggleAnswerBlock(option)"
         >

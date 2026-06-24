@@ -1,107 +1,144 @@
 @if(getModule; as module) {
-  <div class="flex flex-col gap-4 w-full h-dvh items-center pb-8">
-    <div class="w-full">
-        <div class="game-header">
+  <header class="game-header-wrapper">
+    <div class="game-header">
+      <app-dropdown 
+        class="game-header__left"
+        [list]="dropdownList"
+        [config]="{
+          title: {text: 'Картки'},
+          hideOnSmall: true, 
+          divider: 'line',
+            icon: {
+            name: 'Slider',
+            color: 'var(--accent)'
+          }
+        }" 
+      />
 
-        <app-dropdown 
-            [list]="dropdownList"
-            [config]="{title: {text: 'Картки'}, hideOnSmall: true,  divider: 'line', icon: {
-              name: 'Slider',
-              color: 'var(--accent)'
-            }}" 
-            class="game-header-left"
-        />
+      <div class="game-header__center text-dark-accent">
+          <div>{{ currentCardIndex()+1 }}/{{ module.cards.length }}</div>
+          <div>{{ module.title }}</div>
+      </div>
 
-        <div class="game-header-center text-(--dark-accent)">
-            <div>{{ currentCardIndex()+1 }}/{{ module.cards.length }}</div>
-            <div>{{ module.title }}</div>
-        </div>
-        <div class="flex gap-2 game-header-right">
-            @if(true) {
-            <app-button theme="hover-only" rounded="md" size="symbol" (click)="openModal(modalTemplate)">
+      <div class="game-header__right">
+          @if(true) {
+
+            <app-button 
+              theme="hover-only" 
+              rounded="md"
+              size="symbol" 
+              (click)="openModal(modalTemplate)"
+            >
                 <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'" />
             </app-button>
-            } @else {
-            <app-button theme="secondary" rounded="md">
-                Вхід
+
+          } @else {
+
+            <app-button 
+              theme="secondary" 
+              rounded="md"
+            >
+              Вхід
             </app-button>
             <app-button rounded="md">
                 Зареєструватись
             </app-button>
-            }
-            <app-button theme="hover-only" rounded="md" size="symbol" (click)="changeGameMode('default')">
-                <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
-            </app-button>
-        </div>
-        </div>
-        <div class="w-full h-px rounded-3xl bg-(--secondary)">
-          <div [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1))*100 + '%' }" class="h-px rounded-3xl bg-(--accent)"></div>
-        </div>
+            
+          }
+
+          <app-button 
+              theme="hover-only" 
+              rounded="md" 
+              size="symbol" 
+              (click)="changeGameMode('default')"
+            >
+              <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
+          </app-button>
+      </div>
     </div>
 
-    <div class="w-full max-w-5xl px-3 h-full">
-      <app-cards  class="h-full" [cards]="module.cards" [config]="{fullscreen: true, dualBtn: false, side: config.frontSide, dualCard: config.dualCard}" (quizChange)="currentCardIndex.set($event)"/>
+    <div class="game-progress">
+      <div 
+        class="game-progress__bar"
+        [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1)) * 100 + '%' }" 
+      ></div>
     </div>
-</div>
+  </header>
+  
+  <main class="main-block">
+    <app-cards 
+      [cards]="module.cards" 
+      [config]="{
+        fullscreen: true, 
+        dualBtn: false, 
+        side: config.frontSide, 
+        dualCard: config.dualCard
+      }" 
+      (quizChange)="currentCardIndex.set($event)"
+    />
+  </main>
 }
 
 <ng-template #modalTemplate>
-  <div class="flex flex-col gap-4">
+  <div class="modal__body">
 
-    <div class="w-full flex justify-between items-center">
+    <div class="modal__row">
       Передня сторона
-      <app-dropdown [list]="dropdownList2" [config]="{divider: 'line', rememberSelection: true }" [position]="{px: 'right', py: 'bottom'}" />
+
+      <app-dropdown
+        [list]="dropdownList2"
+        [config]="{
+          divider: 'line',
+          rememberSelection: true
+        }"
+        [position]="{px: 'right', py: 'bottom'}"
+      />
     </div>
 
-    <!-- <div class="w-full flex justify-between items-center">
-      Показувати обидві сторони карток
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="config.dualCard"
-          (click)="config.dualCard = !config.dualCard"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div> -->
+    <div class="divider-horizontal"></div>
 
-    <div class="w-full h-px bg-(--secondary)"></div>
-
-    <div class="w-full flex flex-col gap-4">
-      <div class="w-full flex justify-between items-center">
+    <div class="modal__section ">
+      <div class="modal__row">
         Поєднання клавіш
         <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="show.shortcut = !show.shortcut">
           Переглянути
           <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
         </div>
       </div>
-       <div [class]="'w-full flex flex-col gap-4 md:grid md:grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': !show.shortcut}">
-        <div class="flex w-full justify-between">
-            Повернутись
+
+      <div class="shortcuts" [ngClass]="{'hidden': !show.shortcut}">
+        <div class="shortcut">
+            <span>Повернутись</span>
             <kbd class="kbd">←</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Перемішати
-            <kbd class="kbd">S</kbd>
-        </div>
-        <div class="flex w-full justify-between">
-            Далі
+
+        <div class="shortcut">
+            <span>Далі</span>
             <kbd class="kbd">→</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Аудіо
+
+        <div class="shortcut">
+            <span>Перемішати</span>
+            <kbd class="kbd">S</kbd>
+        </div>
+
+        <div class="shortcut">
+            <span>Аудіо</span>
             <kbd class="kbd">A</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Перегорунти
+
+        <div class="shortcut">
+            <span>Перегорунти</span>
             <kbd class="kbd">Пробіл</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Підказка
+
+        <div class="shortcut">
+            <span>Підказка</span>
             <kbd class="kbd">C</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Автовідтворення
+
+        <div class="shortcut">
+            <span>Автовідтворення</span>
             <kbd class="kbd">P</kbd>
         </div>
       </div>

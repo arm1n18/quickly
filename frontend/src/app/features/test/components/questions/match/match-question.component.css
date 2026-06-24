@@ -1,3 +1,157 @@
 :host {
+  display: flex;
+  width: 100%;
+  max-width: 56rem;
+
+  flex-direction: column;
+  align-items: center;
+
+  padding: 2rem;
+  gap: 1rem;
+  border-radius: 2rem;
+  color: var(--dark-accent);
+  background-color: #FFF;
+}
+
+.match__pairs {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     width: 100%;
+}
+
+.match__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.match__question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.match__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.match__options--column {
+  flex-direction: column;
+}
+
+.match__option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0.5rem 1rem;
+
+  border: 1px solid var(--secondary2);
+  border-radius: 0.75rem;
+
+  cursor: pointer;
+}
+
+.match__option--chosen {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.match__slot {
+  display: inline-flex;
+  vertical-align: middle;
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--secondary2);
+  border-radius: 1rem;
+  align-items: center;
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.match__slot.lg {
+  min-height: 56px;
+}
+
+.match__slot.sm {
+  height: 36px;
+  border-radius: 8px;
+}
+
+.match__slot:hover {
+  border-color: var(--hover-secondary2);
+}
+
+.match__slot--answered {
+  border: 2px solid var(--secondary2);
+}
+
+.match__slot--active {
+  border: 2px solid var(--accent);
+  background-color: var(--secondary2);
+}
+
+.match__slot-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.match-answer__item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--secondary2);
+  border-radius: 0.75rem;
+  align-items: center;
+  cursor: pointer;
+  justify-content: space-between;
+}
+
+.match-answer__item:hover {
+  border-color: var(--hover-secondary2);
+}
+
+.match-answer__item.chosen {
+  border: 1px solid transparent;
+  opacity: 50%;
+  cursor: default;
+}
+
+.answer__header {
+  display: flex;
+  width: 100%;
+  justify-content: end;
+  align-items: center;
+}
+
+.answer__body {
+  display: flex;
+  width: 100%;
+  gap: 1rem;
+}
+
+@media (width < 48rem /* 768px */) {
+  :host {
+    padding: 1rem;
+  }
+  
+  .match__pair {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .match__question {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .answer__list--grid {
+    display: flex;
+    flex-direction: column;
+  }
 }

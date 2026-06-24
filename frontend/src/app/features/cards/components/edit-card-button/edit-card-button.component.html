@@ -12,7 +12,7 @@
             [value]="this.editForm.get('title')?.value || ''" [delay]="0"
             (inputChange)="editForm.get('title')?.setValue($event)"
         />
-        <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
+        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
             ТЕРМІН
             ({{editForm.get('title')?.value?.length ?? 0}}/50)
         </span>
@@ -21,7 +21,7 @@
             [value]="this.editForm.get('description')?.value || ''" [delay]="0"
             (inputChange)="editForm.get('description')?.setValue($event)"
         />
-        <span class="text-xs text-(--dark-accent)" [ngClass]="{ 'text-red-500': (editForm.get('description')?.get('text')?.value?.length ?? 0) > 500 }">
+        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('description')?.get('text')?.value?.length ?? 0) > 500 }">
             ОПИС
             ({{editForm.get('description')?.value?.length ?? 0}}/500)
         </span>

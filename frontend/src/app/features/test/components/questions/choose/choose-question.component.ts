@@ -58,7 +58,7 @@ export class ChooseQuestionComponent implements OnChanges {
   }
 
    get isGrid(): boolean {
-    return this.question?.answers?.some(a => a.text!.length > 164) ?? false;
+    return !this.question?.answers?.some(a => a.text!.length > 164);
   }
 
   get correctAnswer(): string {
@@ -66,13 +66,13 @@ export class ChooseQuestionComponent implements OnChanges {
     return correct?.text ?? '';
   }
 
-  get isAnsweredCorrect(): boolean {
+  get isCorrectAnswer(): boolean {
     return this.correctAnswer == this.answered;
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if(changes['showAnswer'] && this.showAnswer) {
-      this.feedbackMessage = this.feedback.getFeedbackMessage(this.isAnsweredCorrect);
+      this.feedbackMessage = this.feedback.getFeedbackMessage(this.isCorrectAnswer);
     }
   }
 }

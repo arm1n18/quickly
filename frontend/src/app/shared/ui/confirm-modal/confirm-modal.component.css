@@ -28,13 +28,13 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: 2.25rem;
+    padding: 2rem;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgb(0, 0, 0, 0.1) transparent;
 }
 
-@media (max-width: 768px) {
+@media (width < 48rem /* 768px */) {
     .modal-containter {
         min-height: 100dvh;
         max-width: 100%;
@@ -45,5 +45,6 @@
 
     .modal-content{
         flex: 1;
+        padding: 1rem;
     }
 }

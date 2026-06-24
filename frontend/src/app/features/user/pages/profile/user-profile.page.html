@@ -5,7 +5,7 @@
         @if(user$ | async; as userInfo) {
             <div class="flex gap-4 items-center">
                 <app-avatar [name]="userInfo.name" [avatarUrl]="userInfo.avatar ?? undefined" />
-                <span class="font-medium text-(--dark-accent)">{{userInfo.name}}</span>
+                <span class="font-medium text-dark-accent">{{userInfo.name}}</span>
             </div>
         }
 

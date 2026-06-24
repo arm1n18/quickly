@@ -2,17 +2,34 @@
   height: 100vh;
 }
 
-.cardsMatchWrapper {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: 1fr 1fr 1fr;
-  gap: 10px;
-  height: 80%;
-  max-width: 80%;
+.main-block {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--background);
+}
+
+.match-state {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  text-align: center;
   margin: auto;
 }
 
-.matchCard {
+.match-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 1rem;
+  height: 80%;
+  max-width: 80%;
+  margin: auto;
+  padding: 1rem;
+}
+
+.match-card {
   display: flex;
   padding: 1rem;
   border: 2px solid var(--secondary);
@@ -24,45 +41,46 @@
   cursor: pointer;
 }
 
-.matchCard:hover {
+.match-card:hover {
   background-color: var(--secondary);
 }
 
-.matchCard-text {
-  text-align: center;
-  font-size: 1rem;
-  margin: auto;
-
-  display: -webkit-box;
-  -webkit-line-clamp: 5;      /* количество строк */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.matchCard.selected {
+.match-card.selected {
   border-color: var(--accent);
   background-color: var(--secondary2);
 }
 
-.matchCard.matched {
+.match-card.matched {
   background-color: #BAFFC9;
   border-color: #4ADE71;
   animation: disappear 0.3s linear;
 }
 
-.matchCard.not-matched {
+.match-card.not-matched {
   background-color: #FFD5BA;
   border-color: #FF9F4B;
   animation: shaking 0.2s linear;
 }
 
-.matchCard.hidden {
+.match-card.hidden {
   opacity: 0;
   cursor: default;
 }
 
-.bg-image {
+.match-card__text {
+  text-align: center;
+  font-size: 1rem;
+  margin: auto;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-card__image {
   position: absolute;
   z-index: 1;
   width: 100%;
@@ -103,10 +121,11 @@
 
 
 @media (max-width: 768px) {
-  .cardsMatchWrapper {
+  .match-board {
     max-width: 90%;
     height: 90%;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(4, 0.75fr);
+    padding: 0rem;
   }
 }
