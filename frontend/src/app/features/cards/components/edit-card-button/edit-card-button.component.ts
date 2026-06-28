@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, TemplateRef } from '@angular/core';
+import { Component, HostListener, inject, input, TemplateRef } from '@angular/core';
 import { Card } from '../../models/cards.interface';
 import { ApiService } from 'app/core/api/api.service';
 import { ActivatedRoute } from '@angular/router';
@@ -17,33 +17,43 @@ import { CardsState } from 'app/features/modules/state/module.state';
 })
 
 export class EditCardButtonComponent {
-  @Input({required: true}) card: Card | null = null;
-  @Input() color: string = "var(--accent)";
-  @Input() size: number = 24;
+  private api = inject(ApiService);
+  private state = inject(CardsState);
+  private route = inject(ActivatedRoute);
+  private portal = inject(PortalService);
 
-  constructor(
-    private api: ApiService,
-    private cards: CardsState, 
-    private route: ActivatedRoute,
-    private portal: PortalService
-  ){}
+  readonly card = input.required<Card>();
+  readonly color = input<string>("var(--accent)");
+  readonly size = input<number>(24);
 
-  private isSubmitting: boolean = false;
+  public submitting: boolean = false;
   public showEditModal: boolean = false;
 
-  public editForm = new FormGroup<{
+  public form = new FormGroup<{
     title: FormControl<string>,
     description: FormControl<string>;
   }>({
-    title: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(50)]}),
-    description: new FormControl('', {nonNullable: true, validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]}),
+    title: new FormControl('', 
+      {
+        nonNullable: true, 
+        validators: [Validators.required, Validators.minLength(2), Validators.maxLength(50)]
+      }
+    ),
+      description: new FormControl('', 
+        {
+          nonNullable: true, 
+          validators: [Validators.required, Validators.minLength(2), Validators.maxLength(500)]
+        }
+      ),
   })
 
   public openModal(e: PointerEvent, template: TemplateRef<any>) {
-    e.stopPropagation;
+    e.stopPropagation();
 
-    this.editForm.get('title')?.setValue(this.card?.title.text || '') 
-    this.editForm.get('description')?.setValue(this.card?.description.text || '') 
+    this.form.patchValue({
+      title: this.card().title.text ?? '',
+      description: this.card().description.text ?? ''
+    });
 
     this.portal.open(new ComponentPortal(ModalComponent), {
       config: {
@@ -59,36 +69,38 @@ export class EditCardButtonComponent {
   }
 
   public cancelEdit() {
-    this.editForm.get('title')?.setValue('');
-    this.editForm.get('description')?.setValue('');
+    this.form.reset();
   }
 
   public onSubmit() {
-    if(!this.card) return
-
-    if (this.editForm.invalid) {
-      this.editForm.markAllAsTouched();
+    if (this.form.invalid || this.submitting) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    if(this.isSubmitting) return
-
-    const params = this.route.snapshot.paramMap
-    const id = Number(params.get("id")!)
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    const { title, description } = this.form.getRawValue();
     
     const body = {
-      cardId: this.card.id,
-      title: this.editForm.get('title')?.value,
-      description: this.editForm.get('description')?.value
+      cardId: this.card().id,
+      title: title,
+      description: description
     }
 
+    this.submitting = true;
+
     this.api.module.patchModule(id, body)
-      .subscribe(() => {
-          this.cards.changeCard({id: body.cardId, title: body.title!, description: body.description!})
+      .subscribe({
+        next: () => {
+          this.state.changeCard({
+            id: body.cardId,
+            title,
+            description
+          })
           this.portal.close()
-          // this.modalState.close()
-        }
-      )
+        },
+        complete: () => { this.submitting = false }
+      })
   }
 
   @HostListener('click', ['$event'])

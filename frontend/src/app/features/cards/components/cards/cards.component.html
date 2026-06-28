@@ -1,59 +1,62 @@
-<div class="flex flex-col gap-4 h-full">
-    <app-card
-        [cardInput]="{
-            id: currentCard.id,
-            title: config.side !== 'description' ? currentCard.title : currentCard.description,
-            description: config.side !== 'description' ? currentCard.description : currentCard.title
-        }"
-        [canEdit]="config.canEdit"
-        [dualCard]="config.dualCard"
-        [fullScreen]="config.fullscreen || false"
-    />
+<app-card
+    [card]="{
+        id: currentCard().id,
+        title: config().side !== 'description' 
+            ? currentCard().title
+            : currentCard().description,
+        description: config().side !== 'description'
+            ? currentCard().description 
+            : currentCard().title
+    }"
+    [canEdit]="config().canEdit"
+    [fullScreen]="config().fullscreen || false"
+/>
 
-    <div class="quiz-FooterComponent-nav-md">
-        <div class="quiz-FooterComponent-left">
-            <app-button
-                (click)="toggleAutoPlay()"
-                [theme]="'secondary'"
-                [size]="'symbol'"
-            >
-                <app-icon [icon]="isActive().isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
-            </app-button>
+<div class="quiz-footer__nav quiz-footer__nav--desktop">
+    <div class="quiz-footer__group quiz-footer__group--left">
+        <app-button
+            (click)="toggleAutoPlay()"
+            [theme]="'secondary'"
+            [size]="'symbol'"
+        >
+            <app-icon [icon]="autoPlayEnabled() ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
+        </app-button>
 
-            <app-button
-                (click)="toggleShuffle()"
-                [theme]="isActive().isShuffleActive ? 'primary' : 'secondary'"
-                [size]="'symbol'"
-            >
-                <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isActive().isShuffleActive ? '#FFF' : '#6d4aff'" />
-            </app-button>
-        </div>
+        <app-button
+            (click)="toggleShuffle()"
+            [theme]="shuffleEnabled() ? 'primary' : 'secondary'"
+            [size]="'symbol'"
+        >
+            <app-icon [icon]="'Shuffle'" [size]="16" [fill]="shuffleEnabled() ? '#FFF' : '#6d4aff'" />
+        </app-button>
+    </div>
 
-        <div class="quiz-FooterComponent-center">
-            <app-button
-                (click)="this.changeCard('prev')"
-                [theme]="'secondary'"
-                [size]="'symbol'"
-                [disabled]="currentCardIndex() === 0"
-            >
-                <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
-            </app-button>
+    <div class="quiz-footer__group quiz-footer__group--center">
+        <app-button
+            (click)="this.changeCard('prev')"
+            [theme]="'secondary'"
+            [size]="'symbol'"
+            [disabled]="index() === 0"
+        >
+            <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
+        </app-button>
 
-            <div class="text-dark-accent">{{ currentCardIndex()+1 }}/{{ this.cards.length }}</div>
+        <div class="text-dark-accent">{{ index()+1 }}/{{ this.cards().length }}</div>
 
-            <app-button
-                (click)="this.changeCard('next')"
-                [theme]="'secondary'"
-                [size]="'symbol'"
-                [disabled]="currentCardIndex() === this.cards.length-1"
-            >
-                <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
-            </app-button>
-        </div>
+        <app-button
+            (click)="this.changeCard('next')"
+            [theme]="'secondary'"
+            [size]="'symbol'"
+            [disabled]="index() === this.cards.length-1"
+        >
+            <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
+        </app-button>
+    </div>
 
 
-        @if(config.dualBtn) {
-            <div class="flex gap-1 h-11 p-1 items-center bg-(--secondary) w-fit rounded-2xl overflow-hidden quiz-FooterComponent-right">
+    @if(config().dualBtn) {
+        <div class="quiz-footer__group quiz-footer__group--right">
+            <div class="flex gap-1 h-11 p-1 items-center bg-(--secondary) w-fit rounded-2xl overflow-hidden">
                 <app-button
                     [theme]="'secondary'"
                     [size]="'dual-child'"
@@ -62,7 +65,9 @@
                 >
                     <app-icon [icon]="'Settings'" [size]="24" [fill]="'#6d4aff'"/>
                 </app-button>
-                <div class="w-0.5 h-1/2 bg-[var(--hover-secondary2)]"></div>
+
+                <div class="w-0.5 h-1/2 bg-(--hover-secondary2)"></div>
+                
                 <app-button
                     [theme]="'secondary'"
                     [size]="'dual-child'"
@@ -72,113 +77,116 @@
                     <app-icon [icon]="'FullScreen'" [size]="24" [stroke]="'#6d4aff'"/>
                 </app-button>
             </div>
-        }
-    </div>
-
-    <div class="quiz-FooterComponent-nav-sm">
-        <div class="flex gap-4 items-center mx-auto">
-            <app-button
-                (click)="this.changeCard('prev')"
-                [theme]="'secondary'"
-                [disabled]="currentCardIndex() === 0"
-            >
-                <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
-            </app-button>
-
-            <div class="text-dark-accent">{{ currentCardIndex()+1 }}/{{ this.cards.length }}</div>
-
-            <app-button
-                (click)="this.changeCard('next')"
-                [theme]="'secondary'"
-                [disabled]="currentCardIndex() === this.cards.length-1"
-            >
-                <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
-            </app-button>
-        </div>
-
-        <div class="w-full flex justify-between">
-            <app-button
-                (click)="toggleAutoPlay()"
-                [theme]="'secondary'"
-                [size]="'symbol'"
-            >
-                <app-icon [icon]="isActive().isAutoPlayActive ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
-            </app-button>
-
-            <app-button
-                (click)="toggleShuffle()"
-                [theme]="isActive().isShuffleActive ? 'primary' : 'secondary'"
-                [size]="'symbol'"
-            >
-                <app-icon [icon]="'Shuffle'" [size]="16" [fill]="isActive().isShuffleActive ? '#FFF' : '#6d4aff'" />
-            </app-button>
-        </div>
-    </div>
-
-    @if(config.progressBar) {
-        <div class="w-full h-0.5 rounded-3xl bg-(--secondary)">
-            <div [ngStyle]="{ 'width': (this.currentCardIndex()/(this.cards.length-1))*100 + '%' }" class="h-0.5 rounded-3xl bg-[var(--accent)]"></div>
         </div>
     }
 </div>
 
-<ng-template #modalTemplate>
-  <div class="flex flex-col gap-4">
+<div class="quiz-footer__nav quiz-footer__nav--mobile">
+    <div class="quiz-footer__mobile-navigation">
+        <app-button
+            [theme]="'secondary'"
+            [disabled]="index() === 0"
+            (click)="this.changeCard('prev')"
+        >
+            <app-icon [icon]="'ChevronLeft'" [size]="24" [fill]="'#6d4aff'" />
+        </app-button>
 
-    <div class="w-full flex justify-between items-center">
-      Передня сторона
+        <div class="text-dark-accent">
+            {{ index()+1 }}/{{ this.cards().length }}
+        </div>
+
+        <app-button
+            [theme]="'secondary'"
+            [disabled]="index() === this.cards.length-1"
+            (click)="this.changeCard('next')"
+        >
+            <app-icon [icon]="'ChevronRight'" [size]="24" [fill]="'#6d4aff'" />
+        </app-button>
+    </div>
+
+    <div class="quiz-footer__mobile-actions">
+        <app-button
+            [theme]="'secondary'"
+            [size]="'symbol'"
+            (click)="toggleAutoPlay()"
+        >
+            <app-icon [icon]="autoPlayEnabled() ? 'Pause' : 'Play'" [size]="16" [fill]="'#6d4aff'" />
+        </app-button>
+
+        <app-button
+            [theme]="shuffleEnabled() ? 'primary' : 'secondary'"
+            [size]="'symbol'"
+            (click)="toggleShuffle()"
+        >
+            <app-icon [icon]="'Shuffle'" [size]="16" [fill]="shuffleEnabled() ? '#FFF' : '#6d4aff'" />
+        </app-button>
+    </div>
+</div>
+
+@if(config().progressBar) {
+    <div class="game-progress">
+        <div 
+            class="game-progress__bar"
+            [ngStyle]="{ 'width': (this.index()/(this.cards.length-1))*100 + '%' }" 
+        >
+        </div>
+    </div>
+}
+
+<ng-template #modalTemplate>
+  <div class="modal__body">
+
+    <div class="modal__row">
+      <span>Передня сторона</span>
       <app-dropdown [list]="dropdownList" [config]="{divider: 'line', rememberSelection: true }" [position]="{px: 'right', py: 'bottom'}" />
     </div>
 
-    <!-- <div class="w-full flex justify-between items-center">
-      Показувати обидві сторони карток
-      <label [class]="'switch'">
-        <input
-          [type]="'checkbox'"
-          [checked]="config.dualCard"
-          (click)="config.dualCard = !config.dualCard"
-        />
-        <span [class]="'slider round'"></span>
-      </label>
-    </div> -->
+    <div class="divider-horizontal"></div>
 
-    <div class="w-full h-px bg-(--secondary)"></div>
+    <div class="modal__section">
+      <div class="modal__row">
+        <span>Поєднання клавіш</span>
 
-    <div class="w-full flex flex-col gap-4">
-      <div class="w-full flex justify-between items-center">
-        Поєднання клавіш
         <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="shortcut = !shortcut">
-          Переглянути
+          <span>Переглянути</span>
           <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': shortcut}"/>
         </div>
       </div>
-      <div [class]="'w-full flex flex-col gap-4 md:grid md:grid-cols-2 gap-x-8 gap-y-4 pl-4'" [ngClass]="{'hidden': shortcut}">
-        <div class="flex w-full justify-between">
-            Повернутись
+
+      <div class="shortcuts" [ngClass]="{'hidden': !shortcut}">
+
+        <div class="shortcut">
+            <span>Повернутись</span>
             <kbd class="kbd">←</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Перемішати
-            <kbd class="kbd">S</kbd>
-        </div>
-        <div class="flex w-full justify-between">
-            Далі
+
+        <div class="shortcut">
+            <span>Далі</span>
             <kbd class="kbd">→</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Аудіо
+
+        <div class="shortcut">
+            <span>Перемішати</span>
+            <kbd class="kbd">S</kbd>
+        </div>
+
+        <div class="shortcut">
+            <span>Аудіо</span>
             <kbd class="kbd">A</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Перегорунти
+
+        <div class="shortcut">
+            <span>Перегорунти</span>
             <kbd class="kbd">Пробіл</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Підказка
+
+        <div class="shortcut">
+            <span>Підказка</span>
             <kbd class="kbd">C</kbd>
         </div>
-        <div class="flex w-full justify-between">
-            Автовідтворення
+
+        <div class="shortcut">
+            <span>Автовідтворення</span>
             <kbd class="kbd">P</kbd>
         </div>
       </div>

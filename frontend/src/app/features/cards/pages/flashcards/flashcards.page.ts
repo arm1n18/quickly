@@ -1,4 +1,4 @@
-import { Component, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
+import { Component, computed, inject, signal, TemplateRef, ViewChild } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -9,6 +9,7 @@ import { DropdownItem } from 'app/shared/ui/dropdown/dropdown.component';
 import { PortalService } from 'app/core/services/portal/portal.service';
 import { GameMode } from 'app/features/test/models/test-card.interface';
 import { CardsState } from 'app/features/modules/state/module.state';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-flashcards-page',
@@ -18,56 +19,94 @@ import { CardsState } from 'app/features/modules/state/module.state';
 })
 
 export class FlashcardsPageComponent {
-  @ViewChild(CardsComponent) quizCards!: CardsComponent;
-  
-  private currentModule: WritableSignal<Module | null> = signal(null);
-  public currentCardIndex: WritableSignal<number> = signal(0);
-  public show: {showSettingsModal: boolean, shortcut: boolean} = {
-    showSettingsModal: false,
-    shortcut: false
-  }
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private state = inject(CardsState);
+  private portal = inject(PortalService);
 
-  public config: {frontSide: 'title' | 'description', dualCard: boolean} = {
-    frontSide: 'title',
-    dualCard: false
-  }
+  @ViewChild(CardsComponent) cards!: CardsComponent;
+  
+  readonly module = toSignal(this.state.module$, { initialValue: null });
+  public index = signal(0);
+
+  public progress = computed(() => {
+    const total = this.module()?.cards.length ?? 1;
+    return (this.index() / (total - 1)) * 100;
+  });
+
+  readonly show = signal({
+    settingsModal: false,
+    shortcut: false,
+  });
+
+  public config = signal({
+    frontSide: 'title' as 'title' | 'description',
+    dualCard: false,
+  });
 
   public dropdownList: DropdownItem[][] = [
     [ 
-      { title: {text: 'Картки'}, preselected: true, onClick: () => this.changeGameMode('flashcards'), icon : {
-        name: 'Slider',
-        color: 'var(--accent)'
-      } },
-      { title: {text: 'Підбір'}, onClick: () => this.changeGameMode('match'), icon: {
-        name: 'Notes',
-        color: 'var(--accent)'
-      } },
-      { title: {text: 'Тестування'}, onClick: () => this.changeGameMode('test'), icon: {
-          name: 'Document',
-          color: 'var(--accent)'
-      } }
+      { 
+        preselected: true,
+        title: {text: 'Картки'}, 
+        icon : { name: 'Slider', color: 'var(--accent)'},
+        onClick: () => this.changeGameMode('flashcards'),
+      },
+      { 
+        title: {text: 'Підбір'}, 
+        icon : { name: 'Notes', color: 'var(--accent)'},
+        onClick: () => this.changeGameMode('match'), 
+      },
+      { 
+        title: {text: 'Тестування'}, 
+        icon : { name: 'Document', color: 'var(--accent)'},
+        onClick: () => this.changeGameMode('test'), 
+      },
     ],
       [
-        { title: {text: 'Головна'}, onClick: () => this.changeGameMode('default'), icon: {
-        name: 'House',
-        color: 'var(--accent)'
-      } }
+        { 
+          title: {text: 'Головна'}, 
+          icon : { name: 'House', color: 'var(--accent)'},
+          onClick: () => this.changeGameMode('default'),
+        }  
     ]
   ]
 
   public dropdownList2: DropdownItem[][] = [
     [
-      { title: {text: 'Термін'}, onClick: () => this.config.frontSide = 'title', preselected: this.config.frontSide === 'title' },
-      { title: {text: 'Визначення'}, onClick: () => this.config.frontSide = 'description', preselected: this.config.frontSide === 'description' }
+      { 
+        title: {text: 'Термін'}, 
+        preselected: this.config().frontSide === 'title',
+        onClick: () => this.updateConfig('frontSide', 'title')
+      },
+      { 
+        preselected: this.config().frontSide === 'description',
+        title: {text: 'Визначення'}, 
+        onClick: () => this.updateConfig('frontSide', 'description'), 
+      }
     ]
   ]
-  
-  constructor(
-    private cardsState: CardsState,
-    private route: ActivatedRoute,
-    private router: Router,
-    private portal: PortalService
-  ) {}
+
+  public updateConfig<K extends keyof ReturnType<typeof this.config>>(
+    key: K,
+    value: ReturnType<typeof this.config>[K]
+  ) {
+    this.config.update(c => ({
+      ...c,
+      [key]: value,
+    }));
+  }
+
+  public updateShowConfig<K extends keyof ReturnType<typeof this.show>>(
+    key: K,
+    value: ReturnType<typeof this.show>[K]
+  ) {
+    this.show.update(c => ({
+      ...c,
+      [key]: value,
+    }));
+  }
+
 
   public openModal(template: TemplateRef<any>) {
     this.portal.open(new ComponentPortal(ModalComponent), {
@@ -95,15 +134,5 @@ export class FlashcardsPageComponent {
     }
   }
 
-  get getModule(): Module | null {
-    return this.currentModule();
-  }
-    
-  ngOnInit(): void {
-    this.cardsState.module$.subscribe(module => {
-      if(!module) return
 
-      this.currentModule.set(module);
-    });
-  }
 }

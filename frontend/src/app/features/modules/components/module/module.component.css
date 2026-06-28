@@ -16,9 +16,24 @@
     border: 2px solid var(--hover-secondary);
 }
 
-.header {
+.module-header {
     display: flex;
     align-items: center;
     width: 100%;
     justify-content: space-between;
+}
+
+.module-header__main {
+    display: flex;
+    gap: 1rem;
+}
+
+.module-header__info {
+    display: flex;
+    flex-direction: column;
+}
+
+.module-header__actions {
+    display: flex;
+    gap: 1rem;
 }

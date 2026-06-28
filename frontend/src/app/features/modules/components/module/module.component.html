@@ -1,25 +1,22 @@
 @if(module) {
-    <div class="header">
-        <div class="flex gap-4">
+    <div class="module-header">
+        <div class="module-header__main">
             @if(module.media.hasMedia && module.media.thumbnail) {
                 <img [src]="module.media.thumbnail" class="size-10 object-cover rounded-xl" />
             }@else {
-                <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
+                <div class="icon">
                     <app-icon [size]="24" [icon]="'Notes'" fill="var(--accent)" />
                 </div>
             }
 
-            <div class="flex flex-col text-sm ">
-                <span class="font-medium line-clamp-2">{{module.title}}</span>
-                <!-- <div class="flex justify-center px-2 py-1 bg-[var(--hover-secondary)] rounded-xl">
-                    <span>{{`Карток: ${module.objects}`}}</span>
-                </div> -->
-                <span>{{`Карток: ${module.objects}`}}</span>
+            <div class="module-header__info">
+                <span class="text-medium overline">{{module.title}}</span>
+                <span class="overline">{{`Карток: ${module.objects}`}}</span>
             </div>
         </div>
 
         @if(isAuthenticated | async) {
-            <div class="flex gap-4">
+            <div class="module-header__actions">
                 <app-button 
                     [theme]="module.isSaved ? 'primary' : 'hover-only-dark'" 
                     [size]="'symbol'"
@@ -31,8 +28,10 @@
                         [size]="24"
                     /> 
                 </app-button>
+
                 @if(module.isOwner) {
                     <app-dropdown 
+                        class="game-header__left"
                         [list]="dropdownList()"
                         [config]="{
                             rememberSelection: false,
@@ -42,7 +41,6 @@
                             px: 'right',
                             py: 'bottom'
                         }"
-                        class="game-header-left"
                     >
                         <app-button btn 
                             theme="hover-only-dark" 

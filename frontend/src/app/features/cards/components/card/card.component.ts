@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
+import {Component, computed, input, Input, OnChanges, signal, SimpleChanges, WritableSignal} from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IconComponent } from '../../../../shared/ui';
 import { ContentBlock } from '../../models/cards.interface';
@@ -19,29 +19,34 @@ interface QuizCardProps {
 })
 
 export class CardComponent implements OnChanges {
-  @Input() canEdit: boolean = false;
-  @Input({ required: true }) cardInput: QuizCardProps | undefined = undefined;
-  @Input() fullScreen: boolean = false;
-  @Input() dualCard: boolean = false;
+  readonly card = input.required<QuizCardProps>();
+  readonly canEdit = input<boolean>();
+  readonly fullScreen = input<boolean>();
 
+  readonly isFlipped = signal(false);
+  readonly showClue = signal(false);
+  readonly animate = signal(false);
+  readonly animationClass = signal('');
+  
   public showEditModal: boolean = false;
-
-  public animationClass: WritableSignal<string> = signal('');
-  public animate: WritableSignal<boolean> = signal(false);
   private isChanged:  WritableSignal<boolean> = signal(false);
 
-  public isFlipped: WritableSignal<boolean> = signal(false);
-  public showClue: WritableSignal<boolean> = signal(false);
+  public clue = computed(() => {
+    const text = this.card()?.description?.text;
+
+    if (!text) return '';
+
+    return this.buildClue(text);
+  });
 
   public toggleFlip(skipDuringAutoPlay: boolean = false) {
     if(skipDuringAutoPlay && this.isFlipped()) return
 
     this.animate.set(true);
-    setTimeout(() => {
-      this.animate.set(false);
-    }, 200);
 
-    this.isFlipped.set(!this.isFlipped())
+    setTimeout(() => this.animate.set(false), 200);
+
+    this.isFlipped.update(v => !v)
 
     if (this.showClue()) {
       this.showClue.set(!this.showClue())
@@ -50,54 +55,69 @@ export class CardComponent implements OnChanges {
 
   public toggleClue(event: Event) {
     event.stopPropagation();
-    this.showClue.set(!this.showClue())
+    this.showClue.update(v => !v)
   }
 
   public speakText(event: Event) {
-    if (this.cardInput) {
-      event.stopPropagation();
+    event.stopPropagation();
 
-      if (window.speechSynthesis.speaking) {
-        window.speechSynthesis.cancel();
-        return;
-      }
+    const card = this.card();
+    if (!card) return;
 
-      const utterance = new SpeechSynthesisUtterance(!this.isFlipped ? this.cardInput.title.text : this.cardInput.description.text);
-      window.speechSynthesis.speak(utterance);
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      return;
     }
+
+    const text = !this.isFlipped()
+      ? card.title?.text
+      : card.description?.text;
+
+    if(!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utterance);
   }
 
-  public triggerSlideInAnimation(action: 'right' | 'left') {
-    this.animationClass.set(action === 'right' ? 'slide-in-right' : 'slide-in-left');
+  public triggerSlideInAnimation(dir: 'right' | 'left') {
+    this.animationClass.set(
+      dir === 'right' 
+        ? 'slide-in-right' 
+        : 'slide-in-left'
+    );
+
     setTimeout(() => {
       this.animationClass.set('');
     }, 200);
   }
 
-  get getClue(): string {
-    if(this.cardInput && this.cardInput.description.text) {
-      const mA = this.cardInput.description.text.split(" ")
+  private buildClue(text: string): string {
+    const words = text.trim().split(/\s+/);
+    const len = words.length;
 
-      const len = mA.length;
-
-      if (len > 2) {
-        if((mA[0].length + mA[1].length) >= 15) {
-          return `${mA[0]} ${'.'.repeat(mA[1].length-1)}`
-        } else {
-          return`${mA[0]} ${mA[1]} ${'.'.repeat(mA[2].length-1)}`
-        }
-      } else if (len === 2) {
-        return `${mA[0]} ${'.'.repeat(mA[1].length-1)}`
-      } else if (len === 1) {
-        return `${mA[0][0]}${'.'.repeat(mA[0].length-1)}`
-      }
+    if (len === 1) {
+      const w = words[0];
+      return w[0] + '.'.repeat(Math.max(0, w.length - 1));
     }
 
-    return ""
+    if (len === 2) {
+      return `${words[0]} ${'.'.repeat(Math.max(0, words[1].length - 1))}`;
+    }
+
+    const first = words[0];
+    const second = words[1];
+
+    if (first.length + second.length >= 15) {
+      return `${first} ${'.'.repeat(Math.max(0, second.length - 1))}`;
+    }
+
+    const thirdLen = words[2]?.length ?? 1;
+
+    return `${first} ${second} ${'.'.repeat(Math.max(0, thirdLen - 1))}`;
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['cardInput']) {
+    if (changes['card']) {
       this.isFlipped.set(false)
       this.showClue.set(false)
       this.isChanged.set(true);

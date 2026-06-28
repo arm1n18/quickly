@@ -1,39 +1,63 @@
 <app-icon 
     class="cursor-pointer"
-    [icon]="'Edit'" [size]="size" 
-    [fill]="color" (click)="openModal($event, modalTemplate)"
+    [icon]="'Edit'" 
+    [size]="size()" 
+    [fill]="color()" 
+    (click)="openModal($event, modalTemplate)"
 />
 
 
 <ng-template #modalTemplate>
-    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
-        
-        <app-text-area 
-            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
-            (inputChange)="editForm.get('title')?.setValue($event)"
-        />
-        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
-            ТЕРМІН
-            ({{editForm.get('title')?.value?.length ?? 0}}/50)
-        </span>
+    <form 
+        class="modal__body"
+        [formGroup]="form" 
+    >
+        <div class="modal__section">
+            <app-text-area 
+                [value]="this.form.get('title')?.value || ''" [delay]="0"
+                (inputChange)="form.get('title')?.setValue($event)"
+            />
 
-        <app-text-area 
-            [value]="this.editForm.get('description')?.value || ''" [delay]="0"
-            (inputChange)="editForm.get('description')?.setValue($event)"
-        />
-        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('description')?.get('text')?.value?.length ?? 0) > 500 }">
-            ОПИС
-            ({{editForm.get('description')?.value?.length ?? 0}}/500)
-        </span>
+            <span
+                class="overline" 
+                [ngClass]="{ 'text-red-500': (form.get('title')?.get('text')?.value?.length ?? 0) > 50 }"
+            >
+                ТЕРМІН
+                ({{form.get('title')?.value?.length ?? 0}}/50)
+            </span>
+        </div>
+
+        <div class="modal__section">
+            <app-text-area 
+                [value]="this.form.get('description')?.value || ''" [delay]="0"
+                (inputChange)="form.get('description')?.setValue($event)"
+            />
+            <span 
+                class="overline" 
+                [ngClass]="{ 'text-red-500': (form.get('description')?.get('text')?.value?.length ?? 0) > 500 }"
+            >
+                ОПИС
+                ({{form.get('description')?.value?.length ?? 0}}/500)
+            </span>
+        </div>
         
-        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
+        <div class="modal__actions">
+            <app-button 
+                theme="secondary" 
+                rounded="md" 
+                [disabled]="submitting" 
+                (click)="closeModal()"
+            >
                 Скасувати
             </app-button>
-            <app-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-button 
+                theme="primary" 
+                rounded="md" 
+                [disabled]="!form.valid || submitting" 
+                (click)="onSubmit()"
+            >
                 Зберегти
             </app-button>
         </div>
-
     </form>
 </ng-template>

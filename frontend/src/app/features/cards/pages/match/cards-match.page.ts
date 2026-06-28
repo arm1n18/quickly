@@ -18,6 +18,7 @@ import { CardsState } from 'app/features/modules/state/module.state';
   templateUrl: './cards-match.page.html',
   styleUrl: './cards-match.page.css'
 })
+
 export class CardsMatchPageComponent implements OnInit {
   private stopTimer$ = new Subject<void>();
 

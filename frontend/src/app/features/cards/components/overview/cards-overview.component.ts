@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, input} from '@angular/core';
 import { ImageModalDirective } from 'app/core/directives/image/image-modal.directive';
 import { EditCardButtonComponent } from '../edit-card-button/edit-card-button.component';
 import { Module } from 'app/features/modules/models/module.interface';
@@ -13,5 +13,5 @@ import { Module } from 'app/features/modules/models/module.interface';
   styleUrl: './cards-overview.component.css'
 })
 export class OverviewComponent {
-  @Input() module: Module | null = null;
+  readonly module = input.required<Module>();
 }

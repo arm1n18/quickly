@@ -16,9 +16,19 @@
     border: 2px solid var(--hover-secondary);
 }
 
-.header {
+.folder-header {
     display: flex;
     align-items: center;
     width: 100%;
     justify-content: space-between;
+}
+
+.folder-header__main {
+    display: flex;
+    gap: 1rem;
+}
+
+.folder-header__info {
+    display: flex;
+    flex-direction: column;
 }

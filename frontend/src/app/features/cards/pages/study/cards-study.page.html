@@ -1,6 +1,6 @@
 <app-header/>
 
-@if(isLoading().module) {
+@if(isModuleLoading()) {
   <main class="main-block">
       <!-- OVERVIEW -->
       <div class="flex w-full justify-between gap-4 max-md:flex-col">
@@ -82,7 +82,7 @@
       <div class="skeletone w-full h-96 rounded-2xl"></div>
   </main>
 }@else {
-  @if(module$ | async; as module) {
+  @if(module(); as module) {
     <div class="main-block">
       <div class="overview-block">
         <div class="overview-block__header">
@@ -101,7 +101,7 @@
           <app-button
             [size]="'text'"
             [theme]="module.isSaved ? 'primary': 'hover-only-dark'"
-            [disabled]="isLoading().save"
+            [disabled]="isSaveLoading()"
             (click)="toggleSaveModule()"
           >
             <app-icon 
@@ -109,7 +109,7 @@
               [size]="24"
             /> 
 
-            {{(module$ | async)?.isSaved ? 'Збережено' : 'Зберегти'}}
+            {{module.isSaved ? 'Збережено' : 'Зберегти'}}
           </app-button>
 
           <app-button
@@ -188,7 +188,7 @@
 
         <app-cards 
           [cards]="module.cards" 
-          [config]="{progressBar: true, dualBtn: true, canEdit: module.isOwner}"
+          [configInput]="{progressBar: true, dualBtn: true, canEdit: module.isOwner}"
         />
       </div>
 

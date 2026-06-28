@@ -17,7 +17,7 @@
       />
 
       <div class="game-header__center text-dark-accent">
-        <div>{{ showConfig.showAnswers ? getResult.correct.length : getResult.answered }} / {{ testConfig().maxQuestions }}</div>
+        <div>{{ showConfig().showAnswers ? getResult.correct.length : answeredCount() }} / {{ testConfig().max }}</div>
         <div>{{ module.title }}</div>
       </div>
 
@@ -62,14 +62,14 @@
     <div class="game-progress">
       <div 
         class="game-progress__bar"
-        [ngStyle]="{ 'width': (Math.min(getResult.answered / testConfig().maxQuestions, 1) * 100)+ '%' }" 
+        [ngStyle]="{ 'width': (Math.min(answeredCount() / testConfig().max, 1) * 100)+ '%' }" 
       >
       </div>
     </div>
   </header>
 
   <main class="main-block">
-    @if(showConfig.showAnswers) {
+    @if(showConfig().showAnswers) {
       <div class="flex flex-col gap-4 text-lg w-full max-w-200">
         <div class="text-dark-accent text-xl">{{`Час: ${timer().m} хв. ${timer().s} сек.`}}</div>
 
@@ -103,7 +103,7 @@
             [question]="question"
             [numeration]="{ pos: i+1, from: len }"
             (questionChange)="toggleSelectAnswer(i, $event)"
-            [showAnswer]="showConfig.showAnswers"
+            [showAnswer]="showConfig().showAnswers"
             [answered]="getResult.answers[i]"
           />
         }
@@ -115,7 +115,7 @@
             [question]="question"
             [numeration]="{ pos: i+1, from: len }"
             (questionChange)="toggleSelectAnswer(i, $event)"
-            [showAnswer]="showConfig.showAnswers"
+            [showAnswer]="showConfig().showAnswers"
             [answered]="(getResult.answers[i] == undefined || getResult.answers[i] == '') ? undefined : getResult.answers[i] == 'true'"
           />
         }
@@ -128,7 +128,7 @@
             [numeration]="{ pos: i+1, from: len }"
             (questionChange)="toggleSelectAnswer(i, $event)"
             (nextQuestion)="scrollToNextQuestion(i)"
-            [showAnswer]="showConfig.showAnswers"
+            [showAnswer]="showConfig().showAnswers"
             [answered]="getResult.answers[i]"
           />
         }
@@ -136,14 +136,14 @@
       @case("match") {
         <app-match-question 
           [questions]="tests().match"
-          [showAnswer]="showConfig.showAnswers"
+          [showAnswer]="showConfig().showAnswers"
           [answered]="getResult.answers"
           (questionChange)="toggleSelectAnswer($event.index, $event.answer)"
         />
       }
     }
 
-    @if(!showConfig.showAnswers) {
+    @if(!showConfig().showAnswers) {
       <app-button #finishButton rounded="md" (click)="finishTest()">Завершити тест</app-button>
     }
   </main>
@@ -157,9 +157,9 @@
         <input
           class="input max-w-20"
           type="number"
-          [defaultValue]="tempTestConfig.maxQuestions"
+          [defaultValue]="tempConfig().max"
           [min]="1" [max]="module.cards.length"
-          [(ngModel)]="tempTestConfig.maxQuestions"
+          [(ngModel)]="tempConfig().max"
         />
       </div>
 
@@ -171,9 +171,9 @@
         <label [class]="'switch'">
           <input
             [type]="'checkbox'"
-            [checked]="tempTestConfig.mode == 'true-false'"
-            [disabled]="tempTestConfig.mode == 'true-false'"
-            (click)="tempTestConfig.mode = 'true-false'"
+            [checked]="tempConfig().mode == 'true-false'"
+            [disabled]="tempConfig().mode == 'true-false'"
+            (click)="updateTempConfig('mode', 'true-false')"
           />
           <span [class]="'slider round'"></span>
         </label>
@@ -185,9 +185,9 @@
         <label [class]="'switch'">
           <input
             [type]="'checkbox'"
-            [checked]="tempTestConfig.mode == 'choose'"
-            [disabled]="tempTestConfig.mode == 'choose'"
-            (click)="tempTestConfig.mode = 'choose'"
+            [checked]="tempConfig().mode == 'choose'"
+            [disabled]="tempConfig().mode == 'choose'"
+            (click)="updateTempConfig('mode', 'choose')"
           />
           <span [class]="'slider round'"></span>
         </label>
@@ -199,9 +199,9 @@
         <label [class]="'switch'">
           <input
             [type]="'checkbox'"
-            [checked]="tempTestConfig.mode == 'match'"
-            [disabled]="tempTestConfig.mode == 'match'"
-            (click)="tempTestConfig.mode = 'match'"
+            [checked]="tempConfig().mode == 'match'"
+            [disabled]="tempConfig().mode == 'match'"
+            (click)="updateTempConfig('mode', 'match')"
           />
           <span [class]="'slider round'"></span>
         </label>
@@ -213,9 +213,9 @@
         <label [class]="'switch'">
           <input
             [type]="'checkbox'"
-            [checked]="tempTestConfig.mode == 'input'"
-            [disabled]="tempTestConfig.mode == 'input'"
-            (click)="tempTestConfig.mode = 'input'"
+            [checked]="tempConfig().mode == 'input'"
+            [disabled]="tempConfig().mode == 'input'"
+            (click)="updateTempConfig('mode', 'input')"
           />
           <span [class]="'slider round'"></span>
         </label>
@@ -230,13 +230,13 @@
           <!-- Accordion -->
           <div
             class="flex items-center gap-2 text-(--accent) cursor-pointer" 
-            (click)="showConfig.showAnswerMode = !showConfig.showAnswerMode"
+            (click)="showConfig().showAnswerMode = !showConfig().showAnswerMode"
           >
             <span>Переглянути</span>
 
             <app-icon 
               [class]="'transition-all'" 
-              [ngClass]="{'rotate-180': showConfig.showAnswerMode}"
+              [ngClass]="{'rotate-180': showConfig().showAnswerMode}"
               [icon]="'ChevronDown'" 
               [size]="24" 
               [fill]="'#6d4aff'" 
@@ -246,7 +246,7 @@
 
         <div
           class="w-full flex flex-col gap-4 pl-4" 
-          [ngClass]="{'hidden': !showConfig.showAnswerMode}"
+          [ngClass]="{'hidden': !showConfig().showAnswerMode}"
         >
           <div class="modal__row">
             <span>Термін - Опис</span>
@@ -254,9 +254,9 @@
             <label [class]="'switch'">
               <input
                 [type]="'checkbox'"
-                [disabled]="tempTestConfig.answerMode == 'description'"
-                [checked]="tempTestConfig.answerMode == 'description'"
-                (click)="tempTestConfig.answerMode = 'description'"
+                [disabled]="tempConfig().answerMode == 'description'"
+                [checked]="tempConfig().answerMode == 'description'"
+                (click)="updateTempConfig('answerMode', 'description')"
               />
               <span [class]="'slider round'"></span>
             </label>
@@ -268,9 +268,9 @@
             <label [class]="'switch'">
               <input
                 [type]="'checkbox'"
-                [disabled]="tempTestConfig.answerMode == 'title'"
-                [checked]="tempTestConfig.answerMode == 'title'"
-                (click)="tempTestConfig.answerMode = 'title'"
+                [disabled]="tempConfig().answerMode == 'title'"
+                [checked]="tempConfig().answerMode == 'title'"
+                (click)="updateTempConfig('answerMode', 'title')"
               />
               <span [class]="'slider round'"></span>
             </label>
@@ -280,10 +280,10 @@
     </div>
     
     <div class="modal__actions">
-      <app-button theme="secondary" rounded="md" className="max-md:w-full" (click)="resetTestConfig()">
+      <app-button theme="secondary" rounded="md" (click)="resetTestConfig()">
         Скасувати
       </app-button>
-      <app-button theme="primary" rounded="md" className="max-md:w-full" (click)="applyTestConfig()">
+      <app-button theme="primary" rounded="md" (click)="applyTestConfig()">
         Створити тест
       </app-button>
     </div>

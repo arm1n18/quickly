@@ -1,4 +1,4 @@
-@if(getModule; as module) {
+@if(module(); as module) {
   <header class="game-header-wrapper">
     <div class="game-header">
       <app-dropdown 
@@ -16,8 +16,8 @@
       />
 
       <div class="game-header__center text-dark-accent">
-          <div>{{ currentCardIndex()+1 }}/{{ module.cards.length }}</div>
-          <div>{{ module.title }}</div>
+        <div>{{ index()+1 }}/{{ module.cards.length }}</div>
+        <div>{{ module.title }}</div>
       </div>
 
       <div class="game-header__right">
@@ -60,7 +60,7 @@
     <div class="game-progress">
       <div 
         class="game-progress__bar"
-        [ngStyle]="{ 'width': (this.currentCardIndex()/(module.cards.length-1)) * 100 + '%' }" 
+        [ngStyle]="{ 'width': progress() + '%' }" 
       ></div>
     </div>
   </header>
@@ -68,13 +68,12 @@
   <main class="main-block">
     <app-cards 
       [cards]="module.cards" 
-      [config]="{
+      [configInput]="{
         fullscreen: true, 
         dualBtn: false, 
-        side: config.frontSide, 
-        dualCard: config.dualCard
+        side: config().frontSide, 
       }" 
-      (quizChange)="currentCardIndex.set($event)"
+      (indexChange)="index.set($event)"
     />
   </main>
 }
@@ -97,16 +96,16 @@
 
     <div class="divider-horizontal"></div>
 
-    <div class="modal__section ">
+    <div class="modal__section">
       <div class="modal__row">
-        Поєднання клавіш
-        <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="show.shortcut = !show.shortcut">
-          Переглянути
-          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show.shortcut}"/>
+        <span>Поєднання клавіш</span>
+        <div class="flex items-center gap-2 text-(--accent) cursor-pointer" (click)="updateShowConfig('shortcut', !show().shortcut)">
+          <span>Переглянути</span>
+          <app-icon [icon]="'ChevronFillDown'" [size]="24" [fill]="'#6d4aff'" [class]="'transition-all'" [ngClass]="{'rotate-180': show().shortcut}"/>
         </div>
       </div>
 
-      <div class="shortcuts" [ngClass]="{'hidden': !show.shortcut}">
+      <div class="shortcuts" [ngClass]="{'hidden': !show().shortcut}">
         <div class="shortcut">
             <span>Повернутись</span>
             <kbd class="kbd">←</kbd>

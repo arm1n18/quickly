@@ -1,12 +1,14 @@
 import {
   Component,
+  computed,
   ElementRef,
+  inject,
   OnDestroy,
   OnInit,
   QueryList, signal,
   TemplateRef,
   ViewChild,
-  ViewChildren, WritableSignal
+  ViewChildren
 } from '@angular/core';
 import {NgClass, NgStyle} from '@angular/common';
 import {FormsModule} from '@angular/forms';
@@ -16,7 +18,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { ChooseQuestionComponent, InputQuestionComponent, MatchQuestionComponent, TrueFalseQuestionComponent } from 'app/features/test/components';
 import { ButtonComponent, DoughnutChartComponent, DropdownComponent, IconComponent, ModalComponent } from 'app/shared/ui';
 import { Module } from 'app/features/modules/models/module.interface';
-import { GameMode, TestAnswer, TestInputCard, TestItem, TestMap, TestMatchCard, TestQACard, TestResult, TestTFCard } from 'app/features/test/models/test-card.interface';
+import { GameMode, TestInputCard, TestItem, TestMap, TestMatchCard, TestQACard, TestResult, TestTFCard } from 'app/features/test/models/test-card.interface';
 import { DropdownItem } from 'app/shared/ui/dropdown/dropdown.component';
 import { CardsState } from 'app/features/modules/state/module.state';
 import { PortalService } from 'app/core/services/portal/portal.service';
@@ -26,15 +28,15 @@ import { isAnswerMode, isTestMode } from 'app/shared/utils/validate.utils';
 
 export type TestMode = 'true-false' | 'choose' | 'match' | 'input';
 
-interface ShowConfigInterface {
+interface ShowConfig {
   showModeDropdown: boolean;
   showAnswerMode: boolean;
   showAnswers: boolean;
 }
 
-interface TestConfigInterface {
+interface TestConfig {
   showImages: boolean;
-  maxQuestions: number;
+  max: number;
   mode: TestMode;
   answerMode: 'title' | 'description';
 }
@@ -59,79 +61,97 @@ interface TestConfigInterface {
 })
 
 export class CardsTestPageComponent implements OnInit, OnDestroy {
+  private state = inject(CardsState);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private portal = inject(PortalService);
+
   private stopTimer$ = new Subject<void>();
   private destroy$ = new Subject<void>();
   
-  @ViewChild('finishButton', { read: ElementRef }) finisButtonElement!: ElementRef;
+  @ViewChild('finishButton', { read: ElementRef })
+  public finishButton!: ElementRef;
+
   @ViewChildren('questionRef', { read: ElementRef })
   public questionElements!: QueryList<ElementRef>;
 
-  public showConfig: ShowConfigInterface = {
-    showModeDropdown: false,
-    showAnswerMode: false,
-    showAnswers: false
-  }
+  private module = signal<Module | null>(null);
 
-  private currentModule: WritableSignal<Module | null> = signal(null);
-  private result: TestResult = { answered: 0, correct: [], incorrect: [], answers: [] };
-  public tests: WritableSignal<TestMap> = signal({ choose: [], tf: [], input: [], match: { questions: [], answers: [] } });
+  private result = signal<TestResult>({
+    answered: 0,
+    correct: [], 
+    incorrect: [], 
+    answers: []
+  });
 
-  public testConfig: WritableSignal<TestConfigInterface> = signal({
+  public answeredCount = computed(() =>
+    this.result().answered
+  );
+  
+  public tests = signal<TestMap>({
+    choose: [],
+    tf: [],
+    input: [],
+    match: { questions: [], answers: [] },
+  });
+
+  public testConfig = signal<TestConfig>({
     showImages: true,
-    maxQuestions: 0,
+    max: 0,
     mode: 'true-false',
     answerMode: 'description'
   })
-  public tempTestConfig = { ...this.testConfig() };
 
-  public timer: WritableSignal<{ m: number, s: number }> = signal({ m: 0, s: 0 });
+  public showConfig = signal<ShowConfig>({
+    showModeDropdown: false,
+    showAnswerMode: false,
+    showAnswers: false,
+  });
+
+  public timer = signal({ m: 0, s: 0 });
+
+  public tempConfig = signal<TestConfig>(this.testConfig());
 
   public dropdownList: DropdownItem[][] = [
     [
-      { title: {text: 'Картки'}, onClick: () => this.changeGameMode('flashcards'), icon : {
-        name: 'Slider',
-        color: 'var(--accent)'
-      } },
-      { title: {text: 'Підбір'}, onClick: () => this.changeGameMode('match'), icon: {
-        name: 'Notes',
-        color: 'var(--accent)'
-      } },
-      { title: {text: 'Тестування'}, preselected: true, onClick: () => this.changeGameMode('test'), icon: {
-        name: 'Document',
-        color: 'var(--accent)'
-      } }
+      {
+        title: { text: 'Картки' },
+        icon: { name: 'Slider', color: 'var(--accent)' },
+        onClick: () => this.changeGameMode('flashcards'),
+      },
+      {
+        title: { text: 'Підбір' },
+        icon: { name: 'Notes', color: 'var(--accent)' },
+        onClick: () => this.changeGameMode('match'),
+      },
+      {
+        preselected: true,
+        title: { text: 'Тестування' },
+        icon: { name: 'Document', color: 'var(--accent)' },
+        onClick: () => this.changeGameMode('test'),
+      },
     ],
     [
-      { title: {text: 'Головна'}, onClick: () => this.changeGameMode('default'), icon: {
-        name: 'House',
-        color: 'var(--accent)'
-      } },
-    ]
+      {
+        title: { text: 'Головна' },
+        icon: { name: 'House', color: 'var(--accent)' },
+        onClick: () => this.changeGameMode('default'),
+      },
+    ],
   ];
 
-  constructor(
-    private cardsState: CardsState,
-    private route: ActivatedRoute,
-    private router: Router,
-    private portal: PortalService
-  ) {}
-
-  private setTest<T extends keyof TestMap>(type: T, test: TestMap[T]) {
-    this.tests.update(current => {
-      return {
-        ...current,
-        [type]: test
-      };
-    });
+  private setTest<T extends keyof TestMap>(type: T, value: TestMap[T]) {
+    this.tests.update((t) => ({ ...t, [type]: value }));
   }  
 
-  private pushTest<T extends Exclude<keyof TestMap, 'match'>>(type: T, test: TestItem<TestMap[T]>) {
-    this.tests.update(current => {
-      return {
-        ...current,
-        [type]: [...current[type], test]
-      };
-    });
+  private pushTest<T extends Exclude<keyof TestMap, 'match'>>(
+    type: T, 
+    value: TestItem<TestMap[T]>
+  ) {
+    this.tests.update(t => ({
+      ...t,
+      [type]: [...t[type], value]
+    }));
   }
 
   public getTest<T extends keyof TestMap>(type: T): TestMap[T] {
@@ -139,116 +159,117 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
   }
 
   private generateQuestions(): void {
-    if(!this.currentModule()) return
+    const module = this.module();
+    if (!module) return;
 
-    const shuffledCards: Card[] = shuffleArray(this.currentModule()!.cards);
-    const maxLen = Math.min(shuffledCards.length, this.testConfig().maxQuestions)
+    const config = this.testConfig();
 
-    switch (this.testConfig().mode) {
+    const shuffled: Card[] = shuffleArray(this.module()!.cards);
+    const len = Math.min(shuffled.length, config.max)
+
+    switch (config.mode) {
       case ('choose'): {
-        this.generateChooseQuestions(shuffledCards, maxLen);
+        this.generateChoose(shuffled, len);
       }
       break;
       case ('match'): {
-        this.generateMatchQuestions(shuffledCards, maxLen);
+        this.generateMatch(shuffled, len);
       }
       break;
       case ('true-false'): {
-        this.generateTrueFalseQuestions(shuffledCards, maxLen);
+        this.generateTrueFalse(shuffled, len);
       }
       break;
       case ('input'): {
-        this.generateInputQuestions(shuffledCards, maxLen);
+        this.generateInput(shuffled, len);
       }
     }
   }
 
-  private generateChooseQuestions(cards: Card[], length: number) {
-    for (let i = 0; i < length; i++) {
+  private generateChoose(cards: Card[], len: number) {
+    const config = this.testConfig();
+
+    for (let i = 0; i < len; i++) {
       let card = cards[i];
+      const others = shuffleArray(cards.filter((_, id) => id !== i)).slice(0, 3);
 
-      let testQACard: TestQACard = {
-        question: this.testConfig().answerMode == 'title' ? card.description : card.title,
-        answers: []
+      const questions: TestQACard = {
+        question: config.answerMode == 'title' ? card.description : card.title,
+        answers: shuffleArray([
+          {
+            isCorrect: true,
+            ...(config.answerMode == 'title' ? card.title : card.description),
+          },
+          ...others.map(c => ({
+            isCorrect:false, 
+            ...(config.answerMode == 'title' ? c.title : c.description)
+          }))
+        ])
       }
 
-      const otherCards = cards.filter((_, id) => id !== i);
-      const randomWrongCards = shuffleArray(otherCards).slice(0, 3);
 
-      let answers: TestAnswer[] = shuffleArray([
-        {
-          isCorrect: true,
-          ...(this.testConfig().answerMode == 'title' ? card.title : card.description),
-        },
-        ...randomWrongCards.map(c => ({isCorrect:false, ...(this.testConfig().answerMode == 'title' ? c.title : c.description),}))
-      ])
-
-      testQACard.answers = shuffleArray(answers);
-      this.pushTest('choose', testQACard)
+      // questions.answers = shuffleArray(questions.answers);
+      this.pushTest('choose', questions)
     }
   }
 
-  private generateMatchQuestions(cards: Card[], length: number) {
-    const questions: TestMatchCard[] = cards.slice(0, length).map((c, index) => ({
-        question: {id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.description : c.title)},
-        answer: {id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.title : c.description)}
+  private generateMatch(cards: Card[], len: number) {
+    const config = this.testConfig();
+
+    const questions: TestMatchCard[] = cards.slice(0, len).map((c, i) => ({
+        question: {id: `q${i}`, ...(config.answerMode == 'title' ? c.description : c.title)},
+        answer: {id: `q${i}`, ...(config.answerMode == 'title' ? c.title : c.description)}
     }));
 
-    const answers: ContentBlock[] = shuffleArray(cards.slice(0, length)
-      .flatMap((c, index) => ({
-        id: `q${index}`, ...(this.testConfig().answerMode == 'title' ? c.title : c.description)
+    const answers: ContentBlock[] = shuffleArray(
+      cards.slice(0, len)
+      .flatMap((c, i) => ({
+        id: `q${i}`, 
+        ...(config.answerMode == 'title' ? c.title : c.description)
       }))
     );
 
-    this.setTest('match', {
-      questions: questions,
-      answers: answers
-    })
+    this.setTest('match', { questions, answers });
   }
 
-  private generateTrueFalseQuestions(cards: Card[], length: number) {
-    for (let i = 0; i < length; i++) {
+  private generateTrueFalse(cards: Card[], len: number) {
+    const config = this.testConfig();
+    
+    for (let i = 0; i < len; i++) {
       const card = cards[i];
+      const isCorrect = Math.random() > 0.5;
 
-      if(Math.random() <= 0.5) {
-        let randomIndex = Math.floor(Math.random() * (this.currentModule()!.cards.length-1))
-        while (randomIndex === i) {
-          randomIndex = Math.floor(Math.random() * (this.currentModule()!.cards.length-1))
-        }
+      const other = cards.filter((_, id) => id !== i);
+      const randomCard = other[Math.floor(Math.random() * other.length)];
+      const answerCard = isCorrect ? card : randomCard;
 
-        let testTFCard: TestTFCard = {
-          question: this.testConfig().answerMode == 'title' ? card.description : card.title ,
-          answer: {
-            isCorrect: false,
-            ...(this.testConfig().answerMode == 'title' ? cards[randomIndex].title : cards[randomIndex].description),
-          }
+      const tf: TestTFCard = {
+        question: config.answerMode == 'title'
+          ? card.description
+          : card.title ,
+        answer: {
+          isCorrect: false,
+          ...(config.answerMode == 'title'
+          ? answerCard.title
+          : answerCard.description),
         }
-        this.pushTest('tf', testTFCard)
-      } else {
-        let testTFCard: TestTFCard = {
-          question: this.testConfig().answerMode == 'title' ? card.description : card.title,
-          answer: {
-            isCorrect: true,
-            ...(this.testConfig().answerMode == 'title' ? card.title : card.description),
-          }
-        }
-        this.pushTest('tf', testTFCard)
       }
+
+      this.pushTest('tf', tf)
     }
   }
 
-  private generateInputQuestions(cards: Card[], length: number) {
-    let temp: TestInputCard[] = []
+  private generateInput(cards: Card[], len: number) {
+    const config = this.testConfig();
 
-    for (let i = 0; i < length; i++) {
-      const card = cards[i];
-      temp.push({
-        question: this.testConfig().answerMode == 'title' ? card.description : card.title,
-        answer: this.testConfig().answerMode == 'title' ? card.title : card.description
-      })
-    }
+    const input: TestInputCard[] = cards.slice(0, len).map((c) => ({
+      question:
+        config.answerMode === 'title' ? c.description : c.title,
+      answer:
+        config.answerMode === 'title' ? c.title : c.description,
+    }));
 
-    this.setTest('input', temp)
+    this.setTest('input', input)
   }
 
   private resetQuestions() {
@@ -261,23 +282,29 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
         questions: []
       }
     })
-    this.result = {answered: 0, answers: [], correct: [], incorrect: []}
+    this.result.set({answered: 0, answers: [], correct: [], incorrect: []});
   }
 
   public applyTestConfig() {
-    this.testConfig.update(() => ({...this.tempTestConfig}));
+    this.testConfig.set(this.tempConfig());
     this.resetQuestions();
     this.generateQuestions();
-    this.result.answers = [];
-    this.result.answered = 0;
-    this.showConfig.showAnswers = false;
+    
+    this.result.update(v => {
+      return { ...v, answers: [], answered: 0 };
+    });
+
+    this.showConfig.update(s => ({
+      ...s,
+      showAnswers: false
+    }));
 
     let url = new URL(window.location.href);
     let params = url.searchParams;
 
-    params.set('mode', this.tempTestConfig.mode)
-    params.set('maxQuestions', String(this.tempTestConfig.maxQuestions))
-    params.set('answerMode', this.tempTestConfig.answerMode)
+    params.set('mode', this.tempConfig().mode)
+    params.set('max', String(this.tempConfig().max))
+    params.set('answerMode', this.tempConfig().answerMode)
 
     const newUrl = url.pathname + '?' + params.toString();
     window.history.replaceState({}, '', newUrl);
@@ -286,98 +313,68 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
   }
 
   public resetTestConfig() {
-    this.tempTestConfig = { ...this.testConfig() };
+    this.tempConfig.set(this.testConfig())
     this.portal.close()
   }
 
-
-  public finishTest() {
-    this.stopTimer();
-
-    for(let i = 0; i < this.testConfig().maxQuestions; i++) {
-      switch (this.testConfig().mode) {
-        case 'true-false': {
-          if(String(this.getTest('tf')[i].answer.isCorrect) === this.result.answers[i]) {
-            this.result.correct.push(i)
-          } else {
-            this.result.incorrect.push(i)
-          }
-          break;
-        }
-        case 'choose': {
-          if(this.result.answers[i] === this.getTest('choose')[i].answers.find(a => a.isCorrect)?.text) {
-            this.result.correct.push(i)
-          } else {
-            this.result.incorrect.push(i)
-          }
-          break;
-        }
-        case 'input': {
-          if(this.result.answers[i] === this.getTest('input')[i].answer.text) {
-            this.result.correct.push(i)
-          } else {
-            this.result.incorrect.push(i)
-          }
-          break;
-        }
-        case 'match': {
-          if(this.result.answers[i] === this.getTest('match').questions[i].answer.text) {
-            this.result.correct.push(i)
-          } else {
-            this.result.incorrect.push(i)
-          }
-          break;
-        }
-      }
-    }
-
-    window.scrollTo({
-      top: 0,
-    })
-
-    this.showConfig.showAnswers = true
-  }
-
   public toggleSelectAnswer(index: number, value: string | undefined) {
-    if(value === undefined) {
-      this.result.answered -= 1
-      this.result.answers[index] = undefined
-    } else {
-      if(this.result.answers[index] === undefined) this.result.answered += 1
-      this.result.answers[index] = value
+    this.result.update(r => {
+      const answers = [...r.answers];
+      let answered = r.answered;
 
-      
-      if(this.testConfig().mode == 'true-false' || this.testConfig().mode == 'choose') {
-       this.scrollToNextQuestion(index)
+      const prev = answers[index];
+
+      if (value === undefined) {
+        if (prev !== undefined) {
+          answered--;
+        }
+        answers[index] = undefined;
       }
+      else {
+        if (prev === undefined) {
+          answered++;
+        }
+        answers[index] = value;
+      }
+
+      return {
+        ...r,
+        answers,
+        answered,
+      };
+    });
+
+    if (
+      this.testConfig().mode === 'true-false' ||
+      this.testConfig().mode === 'choose'
+    ) {
+      this.scrollToNextQuestion(index);
     }
   }
 
   public scrollToNextQuestion(index: number) {
     const elementsArray = this.questionElements.toArray();
 
-    console.log(elementsArray)
-
-    const nextIndex = this.result.answers.findIndex((a, i) => i > index && a === undefined);
+    const nextIndex = this.result().answers.findIndex((a, i) => i > index && a === undefined);
     const nextElement = elementsArray[nextIndex];
 
     if (nextElement) {
       nextElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
-      if(this.result.answered !== this.testConfig().maxQuestions) return
-      this.finisButtonElement.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if(this.result().answered !== this.testConfig().max) return
+      this.finishButton.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
-  public openModal(template: TemplateRef<any>) {
-    this.portal.open(new ComponentPortal(ModalComponent), {
-      config: {
-        showCross: true,
-        title: 'Параметри',
-        template: template,
-        onClose: this.resetTestConfig()
-      }
-    })
+  public changeGameMode(mode: GameMode) {
+    switch (mode) {
+      case 'default':
+        void this.router.navigate(['../'], { relativeTo: this.route });
+        break;
+      default:
+        void this.router.navigate([`../${mode}`], { relativeTo: this.route });
+        break;
+    }
   }
 
   private startTimer(): void {
@@ -402,48 +399,109 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
     this.stopTimer$.next();
   }
 
-  public changeGameMode(mode: GameMode) {
-    switch (mode) {
-      case 'default':
-        void this.router.navigate(['../'], { relativeTo: this.route });
-        break;
-      default:
-        void this.router.navigate([`../${mode}`], { relativeTo: this.route });
-        break;
-    }
+  public finishTest() {
+    this.stopTimer();
+
+    this.result.update(r => {
+      const correct = [...r.correct];
+      const incorrect = [...r.incorrect];
+
+      for (let i = 0; i < this.testConfig().max; i++) {
+        const mode = this.testConfig().mode;
+
+        let isCorrect = false;
+
+        switch (mode) {
+          case 'true-false':
+            isCorrect = String(this.getTest('tf')[i].answer.isCorrect) === r.answers[i];
+            break;
+
+          case 'choose':
+            isCorrect = r.answers[i] === this.getTest('choose')[i].answers.find(a => a.isCorrect)?.text;
+            break;
+
+          case 'input':
+            isCorrect = r.answers[i] === this.getTest('input')[i].answer.text;
+            break;
+
+          case 'match':
+            isCorrect = r.answers[i] === this.getTest('match').questions[i].answer.text;
+            break;
+        }
+
+        if (isCorrect) correct.push(i);
+        else incorrect.push(i);
+      }
+
+      return {
+        ...r,
+        correct,
+        incorrect,
+      };
+    });
+
+    window.scrollTo({
+      top: 0,
+    })
+
+    this.showConfig.update(s => ({
+      ...s,
+      showAnswers: true
+    }));
+  }
+
+  public openModal(template: TemplateRef<any>) {
+    this.portal.open(new ComponentPortal(ModalComponent), {
+      config: {
+        showCross: true,
+        title: 'Параметри',
+        template: template,
+        onClose: () => this.resetTestConfig()
+      }
+    })
+  }
+
+  public updateTempConfig<K extends keyof TestConfig>(
+    key: K,
+    value: TestConfig[K]
+  ): void {
+    this.tempConfig.update(config => ({
+      ...config,
+      [key]: value,
+    }));
   }
 
   get getResult(): TestResult {
-    return this.result;
+    return this.result();
   }
 
   get getModule(): Module | null {
-    return this.currentModule();
+    return this.module();
   }
 
   ngOnInit(): void {
-    this.cardsState.module$
+    this.state.module$
     .pipe(takeUntil(this.destroy$))
       .subscribe(module => {
         if(!module) return
 
-        this.currentModule.set(module);
+        this.module.set(module);
 
-        this.testConfig.update(current => ({ ...current, maxQuestions: module.cards.length }));
-        this.tempTestConfig.maxQuestions = module.cards.length
+        this.testConfig.update(current => ({ ...current, max: module.cards.length }));
+        this.tempConfig.update(current => ({ ...current, max: module.cards.length }));
 
         const params = this.route.snapshot.queryParams;
-        let maxQuestions: number = params['maxQuestions'];
+        let max: number = params['max'];
         const answerMode: 'title' | 'description' = params['answerMode'];
         const mode: TestMode = params['mode'];
 
         const needNavigate =
-          maxQuestions > module.cards.length || maxQuestions <= 0 ||
+          max > module.cards.length || max <= 0 ||
           isTestMode(mode) ||
           isAnswerMode(answerMode);
 
-        maxQuestions = maxQuestions > 0
-          ? Math.min(maxQuestions, module.cards.length)
+        max = max > 0
+          ? Math.min(max, module.cards.length)
           : module.cards.length;
 
         if (needNavigate) {
@@ -451,7 +509,7 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
           let params = url.searchParams;
 
           params.set('mode', isTestMode(mode) ? mode : 'choose')
-          params.set('maxQuestions', String(maxQuestions))
+          params.set('max', String(max))
           params.set('answerMode', isAnswerMode(answerMode) ? answerMode : 'title')
 
           window.history.replaceState({}, '', url.pathname + '?' + params.toString());
@@ -459,13 +517,15 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
 
         this.testConfig.update(current => ({
           ...current,
-          maxQuestions: maxQuestions,
+          max: max,
           answerMode: isAnswerMode(answerMode) ? answerMode : 'title',
           mode: isTestMode(mode) ? mode : 'choose',
         }));
 
-        this.tempTestConfig = { ...this.testConfig() };
-        this.result.answers = new Array(this.testConfig().maxQuestions).fill(undefined);
+        this.tempConfig.set({
+          ...this.testConfig()
+        });
+        this.result.update(current => ({ ...current, answers: new Array(this.testConfig().max).fill(undefined) }));
 
         this.generateQuestions();
         this.startTimer();
@@ -477,6 +537,5 @@ export class CardsTestPageComponent implements OnInit, OnDestroy {
     this.destroy$.complete()
   }
   
-
   protected readonly Math = Math;
 }

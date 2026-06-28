@@ -18,23 +18,3 @@
 .game-header-wrapper {
     width: 100%;
 }
-
-.shortcuts {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem 2rem;
-
-    padding-left: 1rem;
-}
-
-.shortcut {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-@media (width < 48rem /* 768px */) {
-   .shortcuts {
-        grid-template-columns: 1fr;
-    }
-}

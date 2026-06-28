@@ -1,7 +1,8 @@
 <div #overlay [ngClass]="'flex w-screen h-screen p-9 fixed overlay z-2'" (click)="closeModal($event)"></div>
+
 <form class="modal-containter" [formGroup]="authForm" (ngSubmit)="sendData()">
     <div class="modal-content">
-        <div class="flex justify-between w-full items-center mb-4">
+        <div class="modal__row mb-4">
             <h1 class="title">{{choosenMode}}</h1>
             <app-button theme="hover-only" rounded="md" size="symbol" (click)="closeModal($event)">
                 <app-icon [icon]="'Cross'" [size]="36" [fill]="'#6d4aff'" />
@@ -10,9 +11,10 @@
 
         @if(!isReceiveCode()) {
             @if(mode == 'reset') {
-                <div class="flex flex-col gap-4 flex-1">
-                    <div class="flex flex-col gap-2">
+                <div class="modal__body">
+                    <div class="modal__section">
                         <label class="text-md text-dark-accent" for="email">Ел. пошта</label>
+
                         <app-input 
                             inputID="email" 
                             [title]="'Пошта'"
@@ -23,7 +25,9 @@
                         />
                     </div>
                     
-                    <span class="text-xs text-(--text-secondary2)">На вашу Ел. пошту буде надіслано посилання для скидання паролю.</span>
+                    <span class="overline">
+                        На вашу Ел. пошту буде надіслано посилання для скидання паролю.
+                    </span>
 
                     @if(errorMessage()){
                         <span class="text-md text-red-400 mx-auto">{{errorMessage()}}</span>
@@ -38,8 +42,7 @@
                             Скинути
                         </app-button>
                     
-                        <!-- SEPARATOR -->
-                        <div class="h-px bg-(--secondary) shrink-0  w-full"></div>
+                        <div class="divider-horizontal"></div>
                         
                         <span class="text-sm text-dark-accent mx-auto">
                             Передумали?
@@ -54,8 +57,8 @@
                     </div>
                 </div>
             } @else {
-                <div class="flex flex-col gap-4 flex-1">
-                    <div class="flex flex-col gap-2">
+                <div class="modal__body">
+                    <div class="modal__section">
                         <label class="text-md text-dark-accent" for="email">Ел. пошта</label>
                         <app-input 
                             inputID="email" 
@@ -67,7 +70,7 @@
                         />
                     </div>
 
-                    <div class="flex flex-col gap-2">
+                    <div class="modal__section">
                         <label class="text-md text-dark-accent" for="password">Пароль</label>
                         <app-input 
                             inputID="password"
@@ -78,7 +81,7 @@
                             [title]="'Пароль'" 
                             (inputChange)="authForm.controls.password.patchValue($event)"
                         />
-                        <span class="text-xs text-(--text-secondary2)">Пароль повинен бути довжиною від 6 до 50 символів.</span>
+                        <span class="overline">Пароль повинен бути довжиною від 6 до 50 символів.</span>
                     </div>
 
                     @if(errorMessage()){
@@ -102,8 +105,7 @@
                             <span class="text-sm text-dark-accent mx-auto">
                                 Вперше на Quickly?
                                 <span 
-                                    class="text-(--accent) underline 
-                                    underline-offset-4 hover:no-underline cursor-pointer"
+                                    class="text-sm link"
                                     (click)="toggleMode('register')"
                                 >
                                     Створити обліковий запис
@@ -113,11 +115,10 @@
 
                         
                         @if(mode == 'login') {
-                            <!-- SEPARATOR -->
-                            <div class="h-px bg-(--secondary) shrink-0  w-full"></div>
+                            <div class="divider-horizontal"></div>
                             
                             <span 
-                                class="text-sm text-(--accent) hover:underline underline-offset-4 cursor-pointer mx-auto"
+                                class="text-sm link mx-auto"
                                 (click)="mode = ('reset')"
                             >
                                 Забули пароль?

@@ -89,7 +89,7 @@
     @for (answer of question?.answers; track answer; let i = $index) {
       <div
         class="answer__item"
-        [class.answer__item--selected]="answer.text === answered"
+        [class.answer__item--selected]="!showAnswer && answer.text === answered"
         [class.answer__item--correct]="showAnswer && correctAnswer === answer.text"
         [class.answer__item--incorrect]="showAnswer && answer.text === answered && answer.text !== correctAnswer"
         [class.answer__item--disabled]="showAnswer && answer.text !== correctAnswer && answer.text !== answered"

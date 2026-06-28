@@ -25,23 +25,24 @@ export class CardsRootPageComponent implements OnInit {
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
-      const idStr = params.get("id");
-      if (!idStr) return;
+      const id = Number(params.get("id"));
+      if (!id){
+        this.router.navigate(["/not-found"], {replaceUrl: true});
+        return;
+      }
 
-      const id = Number(idStr);
-
-      this.api.module.getModule(id)
+      this.api.module.getModule(Number(id))
         .subscribe({
-        next: resp => {
-            this.cardsState.setModule(resp.module)
-          },
-          error: err => {
-            if(!this.acceptedErrors.includes(err.status)) {
-              this.router.navigate(["/not-found"], {replaceUrl: true})
+          next: resp => {
+              this.cardsState.setModule(resp.module)
+            },
+            error: err => {
+              if(!this.acceptedErrors.includes(err.status)) {
+                this.router.navigate(["/not-found"], {replaceUrl: true})
+              }
+              this.errCode.set(err.status)
             }
-            this.errCode.set(err.status)
-          }
-      })
+        })
     })
   }
 }

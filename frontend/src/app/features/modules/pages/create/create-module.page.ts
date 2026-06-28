@@ -94,7 +94,7 @@ export class CreateModulePageComponent implements OnInit {
     cards.insert(index+1, newCard)
   }
 
-  private dublicateModule(module: Module) {
+  private duplicateModule(module: Module) {
     this.moduleForm.controls.title.patchValue(module.title)
     this.moduleForm.controls.description.patchValue(module.description)
 
@@ -201,7 +201,7 @@ export class CreateModulePageComponent implements OnInit {
     const module = this.module.getModule();
 
     if (state?.['duplicate'] && module) {
-      this.dublicateModule(module)
+      this.duplicateModule(module)
     } else {
       this.addCard(0)
       this.addCard(1)

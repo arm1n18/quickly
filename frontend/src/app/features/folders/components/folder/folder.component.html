@@ -1,65 +1,71 @@
 @if(folder) {
-    <div class="header">
-        <div class="flex gap-4">
-            <div class="flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary)">
+    <div class="folder-header">
+        <div class="folder-header__main">
+            <div class="icon">
                 <app-icon [size]="24" [icon]="'Folder'" fill="var(--accent)" />
             </div>
 
-            <div class="flex flex-col text-sm ">
-                <span class="font-medium line-clamp-2">{{folder.title}}</span>
-                <!-- <div class="flex justify-center px-2 py-1 bg-[var(--hover-secondary)] rounded-xl">
-                    <span>{{`Карток: ${module.objects}`}}</span>
-                </div> -->
-                <span>{{`Модулів: ${folder.objects}`}}</span>
+            <div class="folder-header__info">
+                <span class="text-medium overline">{{folder.title}}</span>
+                <span class="overline">{{`Модулів: ${folder.objects}`}}</span>
             </div>
         </div>
 
-    @if(folder.isOwner) {
-        <app-dropdown 
-                [list]="dropdownList"
-                [config]="{
-                    rememberSelection: false,
-                    divider: 'line',
-                }"
-                [position]="{
-                    px: 'right',
-                    py: 'bottom'
-                }"
-                class="game-header-left"
-            >
-                <app-button btn 
-                    theme="hover-only-dark" 
-                    [size]="'symbol'"
-                    [disabled]="isLoading()"
+        @if(folder.isOwner) {
+            <app-dropdown 
+                    [list]="dropdownList"
+                    [config]="{
+                        rememberSelection: false,
+                        divider: 'line',
+                    }"
+                    [position]="{
+                        px: 'right',
+                        py: 'bottom'
+                    }"
+                    class="game-header__left"
                 >
-                <app-icon
-                    [icon]="'MenuDots'"
-                    [size]="24"
-                    
-                />
-                </app-button>
-        </app-dropdown>
-    }
+                    <app-button btn 
+                        theme="hover-only-dark" 
+                        [size]="'symbol'"
+                        [disabled]="isLoading()"
+                    >
+                    <app-icon
+                        [icon]="'MenuDots'"
+                        [size]="24"
+                        
+                    />
+                    </app-button>
+            </app-dropdown>
+        }
     </div>
 }
 
 <ng-template #modalTemplate>
-    <form [formGroup]="editForm" class="flex flex-col gap-4 overflow-y-auto flex-1">
+    <form 
+        class="modal__body"
+        [formGroup]="editForm" 
+    >
+    
+         <div class="modal__section">
+            <span 
+                class="overline"  
+                [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }"
+            >
+                Назва
+                ({{editForm.get('title')?.value?.length ?? 0}}/50)
+            </span>
+            
+            <app-input 
+                [value]="this.editForm.get('title')?.value || ''" [delay]="0"
+                (inputChange)="editForm.get('title')?.setValue($event)"
+            />
+        </div>
         
-        <span class="text-xs text-dark-accent" [ngClass]="{ 'text-red-500': (editForm.get('title')?.get('text')?.value?.length ?? 0) > 50 }">
-            Назва
-            ({{editForm.get('title')?.value?.length ?? 0}}/50)
-        </span>
-        <app-input 
-            [value]="this.editForm.get('title')?.value || ''" [delay]="0"
-            (inputChange)="editForm.get('title')?.setValue($event)"
-        />
-        
-        <div [class]="'flex gap-4 justify-end w-full max-md:mt-auto max-md:flex-col-reverse'">
-            <app-button theme="secondary" className="max-md:w-full" rounded="md" (click)="closeModal()">
+        <div class="modal__actions">
+            <app-button theme="secondary" rounded="md" (click)="closeModal()">
                 Скасувати
             </app-button>
-            <app-button theme="primary" className="max-md:w-full" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
+            <app-button theme="primary" rounded="md" [disabled]="!editForm.valid" (click)="onSubmit()">
                 Оновити
             </app-button>
         </div>

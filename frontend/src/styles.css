@@ -186,14 +186,26 @@ h1 {
   background-color: var(--secondary2);
 }
 
+.answer__item--selected:hover {
+  border-color: var(--accent);
+}
+
 .answer__item--correct {
   border-color: #41C550;
   background-color: var(--lightGrey);
 }
 
+.answer__item--correct:hover {
+  border-color: #41C550;
+}
+
 .answer__item--incorrect {
   border-color: #FF9F4B;
   background-color: var(--lightGrey);
+}
+
+.answer__item--incorrect:hover {
+  border-color: #FF9F4B;
 }
 
 .answer__item--disabled {
@@ -308,38 +320,18 @@ h1 {
   justify-content: end;
 }
 
+.icon {
+  display: flex;
+  height: fit-content;
+  width: fit-content;
+  background-color: var(--hover-secondary);
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  /* flex p-2 h-fit w-fit rounded-xl bg-(--hover-secondary) */
+}
+
 /* old */
 
-.quiz-FooterComponent-nav-md {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  width: 100%;
-  gap: 0.75rem;
-}
-
-.quiz-FooterComponent-left {
-  justify-self: start;
-  display: flex;
-  gap: 0.75rem;
-}
-
-.quiz-FooterComponent-center {
-  justify-self: center;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-.quiz-FooterComponent-right {
-  justify-self: end;
-}
-
-.quiz-FooterComponent-nav-sm {
-  display: none;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-}
 
 .game-header {
   display: grid;
@@ -535,18 +527,14 @@ input:checked + .slider:before {
     justify-content: space-between;
     margin-top: auto;
   }
+
+  .modal__actions :first-child {
+    width: 100%;
+  }
 }
 
 
 @media (max-width: 414px) {
-  .quiz-FooterComponent-nav-md {
-    display: none;
-  }
-
-  .quiz-FooterComponent-nav-sm {
-    display: flex;
-  }
-
   .game-header{
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -558,5 +546,25 @@ input:checked + .slider:before {
   .game-header-center {
     grid-column: 2;
     grid-row: 2;
+  }
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 2rem;
+
+  padding-left: 1rem;
+}
+
+.shortcut {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (width < 48rem /* 768px */) {
+  .shortcuts {
+    grid-template-columns: 1fr;
   }
 }

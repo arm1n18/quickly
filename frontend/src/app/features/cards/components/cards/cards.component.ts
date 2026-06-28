@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, Input, Output, signal, TemplateRef, ViewChild, WritableSignal } from '@angular/core';
+import { Component, computed, EventEmitter, HostListener, inject, input, Output, signal, TemplateRef, ViewChild } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
 import { Router } from '@angular/router';
 import { ComponentPortal } from '@angular/cdk/portal';
@@ -15,13 +15,8 @@ interface QuizCardsInterface {
   fullscreen: boolean,
   progressBar: boolean,
   dualBtn: boolean,
-  dualCard: boolean,
 }
 
-interface IsActiveInterface {
-  isAutoPlayActive: boolean;
-  isShuffleActive: boolean;
-}
 
 type sideType = 'title' | 'description' | 'both'
 
@@ -40,79 +35,92 @@ type sideType = 'title' | 'description' | 'both'
 })
 
 export class CardsComponent {
-  constructor(
-    private router: Router,
-    private portal: PortalService
-  ){}
+  private router = inject(Router);
+  private portal = inject(PortalService);
 
-  private _config: QuizCardsInterface = {
+  readonly cards = input.required<Card[]>();
+  readonly configInput = input<Partial<QuizCardsInterface>>({});
+  readonly config = computed<QuizCardsInterface>(() => ({
     side: 'title',
     canEdit: false,
     fullscreen: false,
     progressBar: false,
     dualBtn: false,
-    dualCard: false
-  };
+    ...this.configInput(),
+  }));
 
-  @ViewChild(CardComponent) quizCard!: CardComponent;
-  @Input({ required: true }) cards: Card[] = [];
-  @Input() set config(value: Partial<QuizCardsInterface>) {
-    this._config = { ...this._config, ...value }
-  }
-  @Output() quizChange = new EventEmitter<number>();
+  readonly index = signal(0);
+  readonly shuffleEnabled = signal(false);
+  readonly autoPlayEnabled = signal(false);
 
-  private changeCardTimeout: ReturnType<typeof setTimeout> | null = null;
+  private cardTimeout: ReturnType<typeof setTimeout> | null = null;
   private stopAutoPlay$ = new Subject<void>();
 
-  public currentCardIndex: WritableSignal<number> = signal(0);
-  private shuffledCards: WritableSignal<Card[] | null> = signal(null);
-  public isActive: WritableSignal<IsActiveInterface> = signal({
-    isAutoPlayActive: false,
-    isShuffleActive: false
-  })
+  readonly shuffled = signal<Card[] | null>(null);
+
+  readonly currentCards = computed(() =>
+    this.shuffled() ?? this.cards()
+  );
+
+  readonly currentCard = computed(() =>
+    this.currentCards()[this.index()]
+  );
+
+  readonly isLast = computed(() =>
+    this.index() === this.currentCards().length - 1
+  );
+
+  readonly isFirst = computed(() =>
+    this.index() === 0
+  );
+
 
   public shortcut: boolean = false;
-
   public dropdownList: DropdownItem[][] = [
     [
-      { title: {text: 'Термін'}, onClick: () => this.config.side = 'title', preselected: this.config.side === 'title' },
-      { title: {text: 'Визначення'}, onClick: () => this.config.side = 'description', preselected: this.config.side === 'description' }
+      {
+        title: {text: 'Термін'}, 
+        preselected: this.config().side === 'title',
+        onClick: () => this.config().side = 'title',
+      },
+      { 
+        title: {text: 'Визначення'}, 
+        preselected: this.config().side === 'description',
+        onClick: () => this.config().side = 'description',
+      }
     ]
   ]
 
-  public changeCard(action: 'next' | 'prev') {
-    if (this.changeCardTimeout) return
+  @ViewChild(CardComponent) card!: CardComponent;
+  @Output() indexChange = new EventEmitter<number>();
 
-    if (action === 'prev') {
-      if (this.currentCardIndex() === 0) return
+  public changeCard(dir: 'next' | 'prev') {
+    if (this.cardTimeout) return
 
-      this.quizCard.triggerSlideInAnimation('right')
-      const newIndex = Math.max(0, this.currentCardIndex() - 1)
+    const cards = this.currentCards();
 
-      this.currentCardIndex.set(newIndex)
-      this.quizChange.emit(newIndex)
-    } else if (action === 'next') {
-      if (this.currentCardIndex() === this.cards.length - 1) return
+    const nextIndex = 
+      dir === 'next'
+        ? Math.min(cards.length - 1, this.index() + 1)
+        : Math.max(0, this.index() - 1)
 
-      this.quizCard.triggerSlideInAnimation('left')
-      const newIndex = Math.min(this.cards.length - 1, this.currentCardIndex() + 1)
+    if (nextIndex === this.index()) return;
 
-      this.currentCardIndex.set(newIndex)
-      this.quizChange.emit(newIndex)
-    }
+    this.index.set(nextIndex);
+    this.indexChange.emit(nextIndex);
 
-    this.changeCardTimeout = setTimeout(() => {
-      this.changeCardTimeout = null;
+    this.cardTimeout = setTimeout(() => {
+      this.cardTimeout = null;
     }, 200)
 
-    if (this.isActive().isAutoPlayActive) {
+    if (this.autoPlayEnabled()) {
       this.pauseAutoPlay();
       this.autoPlay();
     }
   }
 
   public toggleAutoPlay() {
-    if (this.isActive().isAutoPlayActive) {
+    if (this.autoPlayEnabled()) {
       this.pauseAutoPlay()
     } else {
       this.autoPlay();
@@ -120,25 +128,22 @@ export class CardsComponent {
   }
 
   private autoPlay(): void {
-    if (this.isActive().isAutoPlayActive) {
+    if (this.autoPlayEnabled()) {
       return;
     }
 
-    this.isActive.update(current => ({
-      ...current,
-      isAutoPlayActive: true
-    }))
+    this.autoPlayEnabled.set(true)
     this.stopAutoPlay$.next();
 
     timer(2000, 4000).pipe(
       takeUntil(this.stopAutoPlay$),
       switchMap(() => {
-        this.quizCard.toggleFlip(true);
+        this.card.toggleFlip(true);
 
         return timer(2000).pipe(
           takeUntil(this.stopAutoPlay$),
           tap(() => {
-            const current = this.currentCardIndex();
+            const current = this.index();
             const last = this.cards.length - 1;
 
             if (current < last) {
@@ -154,39 +159,30 @@ export class CardsComponent {
 
   private pauseAutoPlay(): void {
     this.stopAutoPlay$.next();
-    this.isActive.update(current => ({
-      ...current,
-      isAutoPlayActive: false
-    }))
+    this.autoPlayEnabled.set(false)
   }
 
   private shuffleCards() {
-    const newArray: Card[] = [...this.cards];
+    const newArray: Card[] = [...this.cards()];
 
     for (let i = newArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
 
-    this.shuffledCards.set(newArray as Card[]);
-    this.currentCardIndex.set(0)
+    this.shuffled.set(newArray as Card[]);
+    this.index.set(0)
   }
 
   public toggleShuffle() {
-    this.currentCardIndex.set(0)
-    this.quizChange.emit(0)
-    if (this.isActive().isShuffleActive) {
-      this.shuffledCards.set(null);
-      this.isActive.update(current => ({
-        ...current,
-        isShuffleActive: false
-      }))
+    this.index.set(0)
+    
+    if (this.shuffleEnabled()) {
+      this.shuffled.set(null);
+      this.shuffleEnabled.set(false)
     } else {
       this.shuffleCards();
-      this.isActive.update(current => ({
-        ...current,
-        isShuffleActive: true
-      }))
+      this.shuffleEnabled.set(true)
     }
   }
 
@@ -204,23 +200,9 @@ export class CardsComponent {
     })
   }
 
-  get currentCard(): Card {
-    const shuffled = this.shuffledCards();
-    const currentIndex = this.currentCardIndex();
-
-    if (shuffled?.[currentIndex]) {
-      return shuffled[currentIndex];
-    }
-    return this.cards[currentIndex];
-  }
-
-  get config(): QuizCardsInterface {
-    return this._config;
-  }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyPress (e: KeyboardEvent) {
-
     const target = e.target as HTMLElement;
 
     if (
@@ -242,7 +224,7 @@ export class CardsComponent {
         break;
       case "Space":
         e.preventDefault();
-        this.quizCard.toggleFlip()
+        this.card.toggleFlip()
         break;
       case "KeyP":
         e.preventDefault();
@@ -254,11 +236,11 @@ export class CardsComponent {
         break;
       case "KeyA":
         e.preventDefault();
-        this.quizCard.speakText(e);
+        this.card.speakText(e);
         break;
       case "KeyC":
         e.preventDefault();
-        this.quizCard.toggleClue(e);
+        this.card.toggleClue(e);
         break;
     }
   }
